@@ -15,6 +15,13 @@ jobs:
           python-version: '3.12'
       - name: App bouwen (src/ -> site/index.html)
         run: python build.py
+      - name: Pages-project aanmaken (eenmalig, faalt stil als het al bestaat)
+        continue-on-error: true
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages project create csa-app --production-branch=main
       - name: Publiceren op Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:
