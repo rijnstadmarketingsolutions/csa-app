@@ -2,7 +2,7 @@
 
 AI Market Intelligence voor crypto en aandelen. Prototype van Rijnstad Marketing Solutions.
 
-- **Live:** https://csa-app.pages.dev
+- **Live:** https://csa-app-e9b.pages.dev
 - **Bouwen:** `python build.py` maakt `site/index.html` uit de bestanden in `src/`.
 - **Publiceren:** elke push naar `main` gaat via GitHub Actions automatisch naar Cloudflare Pages (project `csa-app`).
 
