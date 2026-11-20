@@ -902,6 +902,7 @@ function cluster(){
   S.clusters=cl;
 }
 async function loadCC(){
+  if(typeof Api!=='undefined'&&Api.on)return; // nieuws komt dan via de CSA-server
   try{const r=await fetch(CFG.CC,{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);const j=await r.json();
     const d=Array.isArray(j.Data)?j.Data:[];if(!d.length)throw new Error(j.Message||'leeg antwoord');
     ingest(d.map(x=>({id:'cc'+x.id,title:x.title,body:x.body,url:x.url,src:(x.source_info&&x.source_info.name)||x.source||'Onbekend',t:x.published_on*1000,feed:'CryptoCompare'})));
@@ -1274,8 +1275,13 @@ async function loadServer(){
   if(!Api.on)return;
   try{const d=await Api.call('/api/market');
     S.extra=d.extra||null;S.srvEvents=d.events||[];
-    if(d.extra&&(d.extra.global||d.extra.fng)){S.src.cg.st='ok';S.src.cg.ts=d.extra.global?.t||Date.now();S.src.cg.msg=[d.extra.global?'CoinGecko':null,d.extra.fng?'Fear & Greed':null].filter(Boolean).join(' + ')+' beschikbaar'}else{S.src.cg.st='wait';S.src.cg.msg='Nog geen data van de server'}
-    if(d.news&&d.news.items&&d.news.items.length){ingest(d.news.items);if(S.src.cc.st!=='ok'){S.src.cc.st='ok';S.src.cc.ts=d.news.t;S.src.cc.msg=d.news.items.length+' artikelen via CSA-server'}}
+    const X=d.extra;if(X&&(X.global||X.fng)){S.src.cg.st=X.globalErr||X.fngErr?'warn':'ok';S.src.cg.ts=X.global?.t||Date.now();S.src.cg.msg=[X.global?'CoinGecko marktcijfers':null,X.trending?'trending':null,X.fng?'Fear & Greed':null].filter(Boolean).join(' + ')+([X.globalErr,X.trendErr,X.fngErr].filter(Boolean).length?' · deels: '+[X.globalErr,X.trendErr,X.fngErr].filter(Boolean).join('; '):'')}
+      else if(X){S.src.cg.st='err';S.src.cg.msg='Server krijgt geen data: '+([X.globalErr,X.trendErr,X.fngErr].filter(Boolean).join('; ')||'onbekende fout')}else{S.src.cg.st='wait';S.src.cg.msg='Wacht op de eerste serverscan (elke 5 min)'}
+    S.src.cc.name='Nieuws (meerdere bronnen)';S.src.cc.kind='CoinDesk, Cointelegraph, Decrypt, The Block, CNBC, MarketWatch e.a. · elke 15 min';
+    if(d.news){const src=d.news.sources||{};const okS=Object.entries(src).filter(([,v])=>typeof v==='number'&&v>0),bad=Object.entries(src).filter(([,v])=>typeof v!=='number');
+      if(d.news.items&&d.news.items.length){ingest(d.news.items);S.src.cc.st=bad.length?'warn':'ok';S.src.cc.ts=d.news.t;S.src.cc.msg=`${d.news.items.length} artikelen · ${okS.map(([k,v])=>k+' '+v).join(', ')}`+(bad.length?` · niet bereikbaar: ${bad.map(([k])=>k).join(', ')}`:'')}
+      else{S.src.cc.st='err';S.src.cc.msg='Geen artikelen: '+(bad.map(([k,v])=>k+' '+v).join('; ')||'wacht op serverscan')}}
+    else{S.src.cc.st='wait';S.src.cc.msg='Wacht op de eerste serverscan (elke 15 min)'}
     if(d.stocks&&!S.settings.fhKey){let n=0;for(const [s,q] of Object.entries(d.stocks)){if(S.stocks.has(s)){Object.assign(S.stocks.get(s),{price:q.p,ch24:q.dp,open:q.o,high:q.h,low:q.l,prev:q.pc,ts:q.ts});n++}else ETFQ.set(s,{price:q.p,dp:q.dp,open:q.o,high:q.h,low:q.l,prev:q.pc,ts:q.ts})}
       if(n){S.src.fh.st='ok';S.src.fh.ts=Date.now();S.src.fh.msg=n+' aandelenkoersen via CSA-server'}}
     if(S.src.bitvavo.st==='err'&&d.tickers&&d.tickers.list){d.tickers.list.forEach(x=>applyTicker({market:x.s+'-EUR',last:x.p,open:x.o,high:x.h,low:x.l,volumeQuote:x.vq,timestamp:d.tickersTs},false));S.src.bitvavo.st='warn';S.src.bitvavo.msg='Directe verbinding mislukt; koersen via CSA-server (max. 5 min oud)'}

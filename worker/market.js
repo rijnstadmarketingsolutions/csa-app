@@ -27,7 +27,34 @@ const relOf = vq => clamp(Math.log10(Math.max(vq || 1, 1) / 1e5) / 3, 0, 1);
 
 /* ---------- budget voor subrequests (gratis plan: 50 per uitvoering) ---------- */
 export function budget(n = 45) { let left = n; return { take(k = 1) { if (left < k) return false; left -= k; return true; }, get left() { return left; } }; }
-async function getJSON(url, b, init) { if (b && !b.take()) throw new Error('budget op'); const r = await fetch(url, init); if (!r.ok) throw new Error(url.split('?')[0] + ' HTTP ' + r.status); return r.json(); }
+const UA = 'CSA-CryptoSignalAI/1.1 (+https://csa.rijnstadmarketing.workers.dev; info@rijnstadmarketing.nl)';
+async function getJSON(url, b, init = {}) { if (b && !b.take()) throw new Error('budget op'); const r = await fetch(url, { ...init, headers: { 'user-agent': UA, accept: 'application/json', ...(init.headers || {}) } }); if (!r.ok) throw new Error(new URL(url).hostname + ' HTTP ' + r.status); return r.json(); }
+async function getText(url, b) { if (b && !b.take()) throw new Error('budget op'); const r = await fetch(url, { headers: { 'user-agent': UA, accept: 'application/rss+xml, application/xml, text/xml, */*' } }); if (!r.ok) throw new Error(new URL(url).hostname + ' HTTP ' + r.status); return r.text(); }
+/* ---------- gratis nieuws via RSS (geen sleutel nodig), meerdere onafhankelijke bronnen ---------- */
+export const FEEDS = [
+  ['CoinDesk', 'https://www.coindesk.com/arc/outboundfeeds/rss/'],
+  ['Cointelegraph', 'https://cointelegraph.com/rss'],
+  ['Decrypt', 'https://decrypt.co/feed'],
+  ['Bitcoin Magazine', 'https://bitcoinmagazine.com/.rss/full/'],
+  ['The Block', 'https://www.theblock.co/rss.xml'],
+  ['CNBC Markets', 'https://www.cnbc.com/id/100003114/device/rss/rss.html'],
+  ['MarketWatch', 'https://feeds.content.dowjones.io/public/rss/mw_topstories'],
+  ['Yahoo Finance', 'https://finance.yahoo.com/news/rssindex']
+];
+const ENT = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ' };
+const unent = t => t.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').replace(/&(#x?[0-9a-f]+|[a-z]+);/gi, (m, e) => e[0] === '#' ? String.fromCodePoint(e[1] === 'x' || e[1] === 'X' ? parseInt(e.slice(2), 16) : +e.slice(1)) : (ENT[e.toLowerCase()] ?? m));
+const tag = (x, n) => { const m = x.match(new RegExp('<' + n + '(?:\\s[^>]*)?>([\\s\\S]*?)</' + n + '>', 'i')); return m ? unent(m[1]).trim() : ''; };
+export function parseRSS(xml, src) {
+  const out = []; const items = xml.match(/<item[\s>][\s\S]*?<\/item>/gi) || xml.match(/<entry[\s>][\s\S]*?<\/entry>/gi) || [];
+  for (const it of items.slice(0, 30)) {
+    const title = tag(it, 'title').replace(/<[^>]+>/g, '').trim(); let link = tag(it, 'link'); if (!link) { const m = it.match(/<link[^>]*href="([^"]+)"/i); link = m ? m[1] : ''; }
+    const when = Date.parse(tag(it, 'pubDate') || tag(it, 'dc:date') || tag(it, 'published') || tag(it, 'updated'));
+    const body = (tag(it, 'description') || tag(it, 'summary')).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 300);
+    if (title && /^https?:\/\//.test(link)) out.push({ id: 'rss' + hashStr(link), title, body, url: link, src, t: isFinite(when) ? when : Date.now(), feed: 'RSS' });
+  }
+  return out;
+}
+function hashStr(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36); }
 
 /* ---------- verversen: één cron-tik ---------- */
 export async function refreshMarket(env, state, b) {
@@ -52,11 +79,16 @@ export async function refreshMarket(env, state, b) {
     C[s] = { u: now, t: rows.map(x => x[0]), c: rows.map(x => x[4]), h: rows.map(x => x[2]), l: rows.map(x => x[3]), vq: rows.map(x => x[5] * x[4]) }; } catch { } }));
   for (const k of Object.keys(C)) if (!deep.includes(k) && now - C[k].u > DAY) delete C[k];
   state.candles = C; if (stale.length) writes.push(kvPutStmt(env, 'candles', C));
-  // 4. nieuws (elke 15 min)
-  if (now - (state.newsTs || 0) > 15 * MIN) { try { const url = 'https://min-api.cryptocompare.com/data/v2/news/?lang=EN' + (env.CRYPTOCOMPARE_KEY ? '&api_key=' + env.CRYPTOCOMPARE_KEY : ''); const j = await getJSON(url, b);
-    const items = (j.Data || []).slice(0, 60).map(x => ({ id: 'cc' + x.id, title: x.title, body: (x.body || '').slice(0, 400), url: x.url, src: (x.source_info && x.source_info.name) || x.source, t: x.published_on * 1000, feed: 'CryptoCompare' }));
-    if (env.FINNHUB_KEY && b.left > 6) { for (const cat of ['general', 'crypto']) { try { const l = await getJSON(`https://finnhub.io/api/v1/news?category=${cat}&token=${env.FINNHUB_KEY}`, b); items.push(...l.slice(0, 40).map(x => ({ id: 'fh' + x.id, title: x.headline, body: (x.summary || '').slice(0, 400), url: x.url, src: x.source, t: x.datetime * 1000, feed: 'Finnhub' }))); } catch { } } }
-    state.news = { t: now, items: items.filter(x => x.title && x.url) }; writes.push(kvPutStmt(env, 'news', state.news)); } catch (e) { state.news = { ...(state.news || {}), t: now, error: e.message }; writes.push(kvPutStmt(env, 'news', state.news)); } }
+  // 4. nieuws (elke 15 min): RSS van meerdere bronnen, optioneel CryptoCompare/Finnhub met sleutel
+  if (now - (state.newsTs || 0) > 15 * MIN) {
+    const items = [], st = {};
+    await Promise.all(FEEDS.map(async ([name, url]) => { try { const got = parseRSS(await getText(url, b), name); items.push(...got); st[name] = got.length; } catch (e) { st[name] = 'fout: ' + e.message; } }));
+    if (env.CRYPTOCOMPARE_KEY) { try { const j = await getJSON('https://min-api.cryptocompare.com/data/v2/news/?lang=EN&api_key=' + env.CRYPTOCOMPARE_KEY, b); const d = (j.Data || []).slice(0, 50); items.push(...d.map(x => ({ id: 'cc' + x.id, title: x.title, body: (x.body || '').slice(0, 300), url: x.url, src: (x.source_info && x.source_info.name) || x.source, t: x.published_on * 1000, feed: 'CryptoCompare' }))); st.CryptoCompare = d.length; } catch (e) { st.CryptoCompare = 'fout: ' + e.message; } }
+    if (env.FINNHUB_KEY) { for (const cat of ['general', 'crypto']) { try { const l = await getJSON(`https://finnhub.io/api/v1/news?category=${cat}&token=${env.FINNHUB_KEY}`, b); items.push(...l.slice(0, 40).map(x => ({ id: 'fh' + x.id, title: x.headline, body: (x.summary || '').slice(0, 300), url: x.url, src: x.source, t: x.datetime * 1000, feed: 'Finnhub' }))); st['Finnhub ' + cat] = l.length; } catch (e) { st['Finnhub ' + cat] = 'fout: ' + e.message; } } }
+    const cut = now - 3 * DAY; const seen = new Set();
+    const keep = items.filter(x => x.title && x.url && x.t > cut && !seen.has(x.id) && seen.add(x.id)).sort((p, q) => q.t - p.t).slice(0, 200);
+    state.news = { t: now, items: keep.length ? keep : (state.news?.items || []), sources: st }; writes.push(kvPutStmt(env, 'news', state.news));
+  }
   // 5. extra marktcijfers (elke 10 min): CoinGecko + Fear & Greed
   if (now - (state.extraTs || 0) > 10 * MIN) {
     const ex = state.extra || {}; const h = env.COINGECKO_KEY ? { headers: { 'x-cg-demo-api-key': env.COINGECKO_KEY } } : undefined;

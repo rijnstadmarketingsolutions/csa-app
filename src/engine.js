@@ -303,6 +303,7 @@ function cluster(){
   S.clusters=cl;
 }
 async function loadCC(){
+  if(typeof Api!=='undefined'&&Api.on)return; // nieuws komt dan via de CSA-server
   try{const r=await fetch(CFG.CC,{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);const j=await r.json();
     const d=Array.isArray(j.Data)?j.Data:[];if(!d.length)throw new Error(j.Message||'leeg antwoord');
     ingest(d.map(x=>({id:'cc'+x.id,title:x.title,body:x.body,url:x.url,src:(x.source_info&&x.source_info.name)||x.source||'Onbekend',t:x.published_on*1000,feed:'CryptoCompare'})));

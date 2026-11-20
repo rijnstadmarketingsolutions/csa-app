@@ -36,3 +36,10 @@ test('scanner herkent een ongewone daling met hoog volume', () => {
   const ev = detect(analyse(state)).map(e => e.type);
   assert.ok(ev.includes('move')); assert.ok(ev.includes('volume')); assert.ok(ev.includes('breakdown'));
 });
+import { parseRSS } from '../worker/market.js';
+test('RSS: titel, link, datum en tekst worden netjes uitgelezen (CDATA, entities, Atom)', () => {
+  const rss = parseRSS('<rss><channel><item><title><![CDATA[Bitcoin falls &amp; ETF outflows]]></title><link>https://ex.com/a</link><pubDate>Thu, 19 Nov 2026 22:10:00 GMT</pubDate><description>&lt;p&gt;Spot ETFs saw outflows&lt;/p&gt;</description></item></channel></rss>', 'CoinDesk');
+  assert.equal(rss[0].title, 'Bitcoin falls & ETF outflows'); assert.equal(rss[0].body, 'Spot ETFs saw outflows'); assert.equal(rss[0].src, 'CoinDesk'); assert.equal(rss[0].t, Date.parse('2026-11-19T22:10:00Z'));
+  const atom = parseRSS('<feed><entry><title>ETH upgrade</title><link href="https://ex.com/b"/><updated>2026-11-19T10:00:00Z</updated><summary>Done</summary></entry></feed>', 'X');
+  assert.equal(atom[0].url, 'https://ex.com/b');
+});

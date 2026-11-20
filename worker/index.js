@@ -5,7 +5,7 @@ import { vapidKeys, sendPush } from './push.js';
 import { refreshMarket, analyse, detect, backtest, budget, RADAR, STOCK_SYMS } from './market.js';
 import { checkout, portal, webhook, stripeReady } from './billing.js';
 
-const VERSION = '1.1.0';
+const VERSION = '1.1.1';
 const NATIVE_ORIGINS = ['capacitor://localhost', 'http://localhost', 'https://localhost', 'ionic://localhost'];
 const DEFAULT_SETTINGS = { notify: true, minScore: 60, scope: 'all', quiet: false, quietFrom: '23:00', quietTo: '07:00', cats: {} };
 const EMAIL_RX = /^[^@\s]{1,64}@[^@\s]{1,190}\.[^@\s]{2,}$/;
@@ -41,7 +41,8 @@ export default {
 /* =================================================================== API */
 async function api(req, env, ctx, url) {
   const p = url.pathname, m = req.method;
-  if (p === '/api/health') return json({ ok: true, version: VERSION, features: { accounts: true, push: true, stripe: stripeReady(env), finnhub: !!env.FINNHUB_KEY, ai: false, premiumEnforced: env.PREMIUM_ENFORCED === 'true' } });
+  if (p === '/api/health') { const st = await loadState(env, ['market', 'extra', 'news']);
+    return json({ ok: true, version: VERSION, lastScan: st.marketTs || null, data: { extra: st.extra ? { global: !!st.extra.global, fng: !!(st.extra.fng && st.extra.fng.length), trending: !!(st.extra.trending && st.extra.trending.length), errors: [st.extra.globalErr, st.extra.trendErr, st.extra.fngErr].filter(Boolean) } : null, news: st.news ? { items: (st.news.items || []).length, sources: st.news.sources || {} } : null }, features: { accounts: true, push: true, stripe: stripeReady(env), finnhub: !!env.FINNHUB_KEY, ai: false, premiumEnforced: env.PREMIUM_ENFORCED === 'true' } }); }
 
   /* ---------- account ---------- */
   if (p === '/api/auth/register' && m === 'POST') {
