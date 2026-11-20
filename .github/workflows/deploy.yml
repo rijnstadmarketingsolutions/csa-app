@@ -43,6 +43,7 @@ jobs:
 
       - name: Worker publiceren
         run: |
+          set -o pipefail
           npx wrangler deploy 2>&1 | tee deploy.log
           URL=$(grep -oE 'https://[a-z0-9.-]+\.workers\.dev' deploy.log | head -1)
           echo "Worker: $URL"
