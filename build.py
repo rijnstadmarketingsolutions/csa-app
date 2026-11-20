@@ -7,7 +7,7 @@ import urllib.parse as _u
 def _svguri(f): return 'url("data:image/svg+xml,'+_u.quote(open('assets/'+f).read().replace('"',"'"),safe=" =:/'<>.-,()")+'")'
 css=open(P+'styles.css').read().replace('__VMARK__',_svguri('vantis-mark.svg')).replace('__VWORD__',_svguri('vantis-word.svg')).replace('__VFULL__',_svguri('vantis-full.svg'))
 body=open(P+'body.html').read()
-js='\n'.join(open(P+f).read() for f in ['engine.js','api.js','ui-core.js','ui-viz.js','ui-pages.js','ui-pages2.js','ui-v3.js','ui-v4.js','ui-v5.js','ui-v6.js','ui-v7.js','ui-v8.js']).replace('__LOGO__',inner.replace('`','\\`'))
+js='\n'.join(open(P+f).read() for f in ['engine.js','api.js','ui-core.js','ui-viz.js','ui-pages.js','ui-pages2.js','ui-v3.js','ui-v4.js','ui-v5.js','ui-v6.js','ui-v7.js','ui-v8.js','ui-v9.js']).replace('__LOGO__',inner.replace('`','\\`'))
 icon=base64.b64encode(open('assets/icon180.png','rb').read()).decode()
 fav=base64.b64encode(open('assets/logo_icon.svg','rb').read()).decode()
 html=f'''<!DOCTYPE html>
