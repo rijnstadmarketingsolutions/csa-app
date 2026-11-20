@@ -6,7 +6,7 @@ import { indFor, IND_KINDS, NOVAL, refreshMarket, lookupPrice, lookupStock, usdP
 import { checkout, portal, webhook, stripeReady } from './billing.js';
 import { handlePaper, paperCron, paperNeed } from './paper.js';
 
-const VERSION = '1.4.0';
+const VERSION = '1.5.0';
 const NATIVE_ORIGINS = ['capacitor://localhost', 'http://localhost', 'https://localhost', 'ionic://localhost'];
 const DEFAULT_SETTINGS = { notify: true, briefing: true, minScore: 60, scope: 'all', quiet: false, quietFrom: '23:00', quietTo: '07:00', cats: {} };
 const EMAIL_RX = /^[^@\s]{1,64}@[^@\s]{1,190}\.[^@\s]{2,}$/;
