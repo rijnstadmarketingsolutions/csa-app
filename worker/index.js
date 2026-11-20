@@ -2,7 +2,7 @@
 import { json, err, readJSON, hashPassword, verifyPassword, b32enc, rand, totpCheck, newSession, sessionFrom, sessionByToken, sha256, seal, open,
   limited, bump, clearAttempts, kvGet, kvPutStmt, randToken, DAY, HOUR, MIN } from './lib.js';
 import { vapidKeys, sendPush } from './push.js';
-import { refreshMarket, lookupPrice, lookupStock, usdPerEur, analyse, detect, backtest, budget, RADAR, STOCK_SYMS, ALERT_KINDS, quote, alertHit, alertText, buildBriefing } from './market.js';
+import { indFor, IND_KINDS, NOVAL, refreshMarket, lookupPrice, lookupStock, usdPerEur, analyse, detect, backtest, budget, RADAR, STOCK_SYMS, ALERT_KINDS, quote, alertHit, alertText, buildBriefing } from './market.js';
 import { checkout, portal, webhook, stripeReady } from './billing.js';
 import { handlePaper, paperCron, paperNeed } from './paper.js';
 
@@ -139,14 +139,20 @@ async function api(req, env, ctx, url) {
   if (p.startsWith('/api/paper') || p === '/api/quote' || p === '/api/board' || p === '/api/history') { if (!s && p !== '/api/quote' && p !== '/api/history') return needAuth();
     const r = await handlePaper(req, env, s || {}, p, m, url); if (r) return r; }
 
+  if (p === '/api/unlocks' && m === 'GET') { const st = await loadState(env, ['unlocks']); return json(st.unlocks ? { ...st.unlocks, events: st.unlocks.events.filter(e => e.t > Date.now() - DAY) } : { pending: true, events: [] }); }
+
   /* ---------- koersalerts ---------- */
   if (p === '/api/alerts') { if (!s) return needAuth();
     if (m === 'GET') return json({ alerts: (await env.DB.prepare('SELECT id,sym,kind,value,active,created,fired,note FROM price_alerts WHERE user_id=? ORDER BY created DESC').bind(s.user_id).all()).results, kinds: ALERT_KINDS });
-    if (m === 'POST') { const b = await readJSON(req); const sym = String(b.sym || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12); const value = Number(b.value);
+    if (m === 'POST') { const b = await readJSON(req); const sym = String(b.sym || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12); const value = NOVAL.has(b.kind) ? 1 : Number(b.value);
       if (!sym || !ALERT_KINDS[b.kind] || !(value > 0)) return err(400, 'Kies een asset, een soort alert en een geldige waarde.');
       if (/1h|24h/.test(b.kind) && value > 90) return err(400, 'Kies een percentage tot 90%.');
+      if (/^rsi/.test(b.kind) && !(value >= 1 && value <= 99)) return err(400, 'Kies een RSI-waarde tussen 1 en 99.');
+      if (b.kind === 'volx' && !(value >= 1.1 && value <= 20)) return err(400, 'Kies een factor tussen 1,1 en 20.');
       const n = await env.DB.prepare('SELECT COUNT(*) n FROM price_alerts WHERE user_id=? AND active=1').bind(s.user_id).first(); if (n.n >= 50) return err(400, 'Maximaal 50 actieve koersalerts.');
-      const st = await loadState(env, ['tickers', 'stocks', 'names', 'xquotes']); let q = quote(st, sym);
+      const st = await loadState(env, ['tickers', 'stocks', 'names', 'xquotes', 'candles']); let q = quote(st, sym);
+      if (IND_KINDS.has(b.kind)) { const ind = q ? indFor(st, sym, q.p) : null; if (!ind) return err(400, `Voor ${sym} heeft de server nog geen dagkoersen, dus indicator-alerts kunnen niet. Ze werken voor de 40 grootste munten.`);
+        if (alertHit({ kind: b.kind, value }, q, ind)) return err(400, 'Deze voorwaarde geldt nu al. Kies een andere waarde of soort alert.'); }
       if (!q && !STOCK_SYMS.includes(sym)) { const r = await quoteNow(env, sym); if (r.q) q = { p: r.q.p, src: r.q.src }; }
       if (q && b.kind === 'above' && q.p >= value) return err(400, `De koers staat al boven deze waarde (nu ${q.p.toLocaleString('nl-NL')}).`);
       if (q && b.kind === 'below' && q.p <= value) return err(400, `De koers staat al onder deze waarde (nu ${q.p.toLocaleString('nl-NL')}).`);
@@ -219,8 +225,8 @@ async function dispatch(env, fresh, b, state, extra = {}) {
   const alerts = (await env.DB.prepare('SELECT * FROM price_alerts WHERE active=1').all()).results;
   for (const a of alerts) {
     if (/1h|24h/.test(a.kind) && a.fired && now - a.fired < 6 * HOUR) continue;
-    const q = quote(state, a.sym); if (!alertHit(a, q)) continue;
-    const t = alertText(a, q); add(a.user_id, { key: 'alert:' + a.id + ':' + now, title: t.title, body: t.body, url: '/#asset-' + a.sym.toLowerCase(), tag: 'alert-' + a.id, cat: 'alert', score: null, force: true });
+    const q = quote(state, a.sym); const ind = IND_KINDS.has(a.kind) && q ? indFor(state, a.sym, q.p) : null; if (!alertHit(a, q, ind)) continue;
+    const t = alertText(a, q, ind); add(a.user_id, { key: 'alert:' + a.id + ':' + now, title: t.title, body: t.body, url: '/#asset-' + a.sym.toLowerCase(), tag: 'alert-' + a.id, cat: 'alert', score: null, force: true });
     ops.push(/1h|24h/.test(a.kind) ? env.DB.prepare('UPDATE price_alerts SET fired=? WHERE id=?').bind(now, a.id) : env.DB.prepare('UPDATE price_alerts SET active=0, fired=? WHERE id=?').bind(now, a.id));
   }
   // 2. gebeurtenissen en herinneringen (gebruikers met pushmeldingen)

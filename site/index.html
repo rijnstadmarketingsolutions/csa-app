@@ -2489,32 +2489,40 @@ const Onb={step:0,picks:new Set(),
 };
 
 /* ---------------- koersalerts ---------------- */
-const KINDS={above:'Koers boven',below:'Koers onder',up1h:'Stijgt in 1 uur met',down1h:'Daalt in 1 uur met',up24h:'Stijgt in 24 uur met',down24h:'Daalt in 24 uur met'};
+const KINDS={above:'Koers boven',below:'Koers onder',up1h:'Stijgt in 1 uur met',down1h:'Daalt in 1 uur met',up24h:'Stijgt in 24 uur met',down24h:'Daalt in 24 uur met',
+  rsi_lt:'RSI (14d) zakt onder',rsi_gt:'RSI (14d) stijgt boven',sma20_up:'Breekt boven 20-daags gemiddelde',sma20_dn:'Zakt onder 20-daags gemiddelde',sma50_up:'Breekt boven 50-daags gemiddelde',sma50_dn:'Zakt onder 50-daags gemiddelde',volx:'Volume is … × normaal',hi30:'Nieuwe 30-daagse top',lo30:'Nieuwe 30-daagse bodem'};
+const KGRP=[['Koers',['above','below','up1h','down1h','up24h','down24h']],['Indicatoren',['rsi_lt','rsi_gt','sma20_up','sma20_dn','sma50_up','sma50_dn','volx','hi30','lo30']]];
+const KNOVAL=new Set(['sma20_up','sma20_dn','sma50_up','sma50_dn','hi30','lo30']);
+function indLocal(q){const m=q&&q.m||{};const c=q&&q.cd?q.cd.map(x=>x.c):[];const mean=a=>a.reduce((s,x)=>s+x,0)/a.length;return {rsi:m.rsi??null,sma20:m.sma20??null,sma50:c.length>=50?mean(c.slice(-50)):null,hi30:m.hi30??null,lo30:m.lo30??null,volx:m.volRatio??null}}
+function indHit(k,v,q){const i=indLocal(q),p=q.price;return {rsi_lt:i.rsi!=null&&i.rsi<=v,rsi_gt:i.rsi!=null&&i.rsi>=v,sma20_up:i.sma20!=null&&p>i.sma20,sma20_dn:i.sma20!=null&&p<i.sma20,sma50_up:i.sma50!=null&&p>i.sma50,sma50_dn:i.sma50!=null&&p<i.sma50,volx:i.volx!=null&&i.volx>=v,hi30:i.hi30!=null&&p>i.hi30,lo30:i.lo30!=null&&p<i.lo30}[k]}
 const PA={list:null,
   async load(){try{this.list=Api.authed?(await Api.call('/api/alerts')).alerts:LS.get('palerts',[])}catch(e){this.list=[]}return this.list},
   async add(a){if(Api.authed)return Api.call('/api/alerts',{method:'POST',body:a});const q=getAsset(a.sym);if(!q||q.price==null)throw new Error('Geen koers voor '+a.sym);
     if(a.kind==='above'&&q.price>=a.value)throw new Error('De koers staat al boven deze waarde.');if(a.kind==='below'&&q.price<=a.value)throw new Error('De koers staat al onder deze waarde.');
+    if(KINDS[a.kind]&&!/^(above|below|up|down)/.test(a.kind)){if(!q.m||q.m.rsi==null)throw new Error('Voor deze munt is nog geen koershistorie geladen.');if(indHit(a.kind,a.value,q))throw new Error('Deze voorwaarde geldt nu al.')}
     const L=LS.get('palerts',[]);L.unshift({...a,id:Date.now(),active:1,created:Date.now()});LS.set('palerts',L)},
   async del(id){if(Api.authed)return Api.call('/api/alerts/'+id,{method:'DELETE'});LS.set('palerts',LS.get('palerts',[]).filter(x=>x.id!==id))},
   checkLocal(){if(Api.authed)return;const L=LS.get('palerts',[]);let ch=false;
     for(const a of L){if(!a.active)continue;if(/1h|24h/.test(a.kind)&&a.fired&&Date.now()-a.fired<6*HOUR)continue;const q=getAsset(a.sym);if(!q||q.price==null)continue;
       const c1=(()=>{const t=q.ticks||[];const ref=t.find(x=>Date.now()-x[0]<=HOUR+5*MIN);return ref?(q.price/ref[1]-1)*100:null})();
-      const hit={above:q.price>=a.value,below:q.price<=a.value,up1h:c1!=null&&c1>=a.value,down1h:c1!=null&&c1<=-a.value,up24h:q.ch24>=a.value,down24h:q.ch24<=-a.value}[a.kind];
+      const hit=a.kind in {above:1,below:1,up1h:1,down1h:1,up24h:1,down24h:1}?{above:q.price>=a.value,below:q.price<=a.value,up1h:c1!=null&&c1>=a.value,down1h:c1!=null&&c1<=-a.value,up24h:q.ch24>=a.value,down24h:q.ch24<=-a.value}[a.kind]:indHit(a.kind,a.value,q);
       if(!hit)continue;ch=true;a.fired=Date.now();if(!/1h|24h/.test(a.kind))a.active=0;
-      Alerts.push({id:'pa:'+a.id+':'+a.fired,cat:'alert',force:true,title:/above|below/.test(a.kind)?`${q.name} ${a.kind==='above'?'boven':'onder'} ${money(q,a.value)}`:`${q.name} ${KINDS[a.kind].toLowerCase()} ${nlN(a.value,1)}%`,body:`Koers nu ${money(q,q.price)}. Je koersalert is uitgegaan.`,href:'#asset-'+q.sym.toLowerCase()})}
+      Alerts.push({id:'pa:'+a.id+':'+a.fired,cat:'alert',force:true,title:/^(above|below)$/.test(a.kind)?`${q.name} ${a.kind==='above'?'boven':'onder'} ${money(q,a.value)}`:/1h|24h/.test(a.kind)?`${q.name} ${KINDS[a.kind].toLowerCase()} ${nlN(a.value,1)}%`:`${q.name}: ${KINDS[a.kind].toLowerCase().replace('…',nlN(a.value,1))}${/^rsi/.test(a.kind)?' '+nlN(a.value,0):''}`,body:`Koers nu ${money(q,q.price)}. Je koersalert is uitgegaan.`,href:'#asset-'+q.sym.toLowerCase()})}
     if(ch)LS.set('palerts',L)},
   dialog(sym){const a=getAsset(sym||'BTC');const opts=allAssets().filter(x=>x.price!=null).sort((x,y)=>(y.volQ||0)-(x.volQ||0)).slice(0,120);
     dlg(`<div class="chead"><h2>${ico('alarm','style="width:20px;height:20px;vertical-align:-3px"')} Koersalert</h2><button class="ibtn" id="pax" aria-label="Sluiten">${ico('x')}</button></div>
       <form id="paf"><div class="field"><label for="pasym">Asset</label><select class="inp" id="pasym">${opts.map(x=>`<option value="${x.sym}" ${x.sym===a?.sym?'selected':''}>${esc(x.name)} (${x.sym}) · ${money(x,x.price)}</option>`).join('')}</select></div>
-      <div class="field"><label for="pakind">Wanneer</label><select class="inp" id="pakind">${Object.entries(KINDS).map(([k,l])=>`<option value="${k}">${l}</option>`).join('')}</select></div>
-      <div class="field"><label for="paval" id="pavl">Koers</label><input class="inp" id="paval" inputmode="decimal" required></div><p class="note" id="pahint"></p>
+      <div class="field"><label for="pakind">Wanneer</label><select class="inp" id="pakind">${KGRP.map(([g,L])=>`<optgroup label="${g}">${L.map(k=>`<option value="${k}">${KINDS[k]}</option>`).join('')}</optgroup>`).join('')}</select></div>
+      <div class="field" id="pavf"><label for="paval" id="pavl">Koers</label><input class="inp" id="paval" inputmode="decimal"></div><p class="note" id="pahint"></p>
       <div class="err" id="paerr"></div><button class="btn" style="width:100%;height:44px">Alert instellen</button>
       <p class="note" style="margin-top:10px">${Api.authed?'De CSA-server controleert elke 5 minuten, ook als de app dicht is. Met pushmeldingen aan krijg je hem direct op je telefoon.':'Zonder account werkt de alert alleen zolang CSA openstaat in deze browser.'}</p></form>`,c=>{
-      const upd=()=>{const x=getAsset($('#pasym',c).value),k=$('#pakind',c).value,pc=/1h|24h/.test(k);$('#pavl',c).textContent=pc?'Percentage':'Koers ('+(x?.cur==='USD'?'$':'€')+')';
-        $('#paval',c).placeholder=pc?'bijv. 5':(x?nlN(x.price*(k==='above'?1.05:.95),x.price<1?6:2):'');$('#pahint',c).textContent=x?`Nu ${money(x,x.price)} · ${pct(x.ch24)} in 24 uur`:''};
+      const upd=()=>{const x=getAsset($('#pasym',c).value),k=$('#pakind',c).value,pc=/1h|24h/.test(k),ind=!/^(above|below|up|down)/.test(k);$('#pavf',c).classList.toggle('hidden',KNOVAL.has(k));
+        $('#pavl',c).textContent=pc?'Percentage':/^rsi/.test(k)?'RSI-waarde (1–99)':k==='volx'?'Factor (bijv. 2 = twee keer zo veel)':'Koers ('+(x?.cur==='USD'?'$':'€')+')';
+        $('#paval',c).placeholder=pc?'bijv. 5':k==='rsi_lt'?'30':k==='rsi_gt'?'70':k==='volx'?'2':(x?nlN(x.price*(k==='above'?1.05:.95),x.price<1?6:2):'');
+        const i=indLocal(x);$('#pahint',c).innerHTML=!x?'':ind?`Nu: RSI ${i.rsi!=null?nlN(i.rsi,0):'—'} · 20d gem. ${i.sma20!=null?money(x,i.sma20):'—'} · 50d gem. ${i.sma50!=null?money(x,i.sma50):'—'} · volume ${i.volx!=null?nlN(i.volx,1)+'×':'—'} · 30d ${i.lo30!=null?money(x,i.lo30)+' – '+money(x,i.hi30):'—'}${Api.authed?'<br>Indicator-alerts werken voor de 40 grootste munten.':''}`:`Nu ${money(x,x.price)} · ${pct(x.ch24)} in 24 uur`};
       $('#pasym',c).onchange=upd;$('#pakind',c).onchange=upd;upd();$('#pax',c).onclick=closeOverlay;
-      $('#paf',c).onsubmit=async e=>{e.preventDefault();const v=Number(String($('#paval',c).value).replace(/\./g,'').replace(',','.'));if(!(v>0)){$('#paerr',c).textContent='Vul een geldige waarde in.';return}
-        try{const sym=$('#pasym',c).value,k=$('#pakind',c).value;const r=await this.add({sym,kind:k,value:v});closeOverlay();UI.toast({title:'Koersalert ingesteld',body:(r&&r.message)?r.message:`${sym}: ${KINDS[k].toLowerCase()} ${/1h|24h/.test(k)?nlN(v,1)+'%':nlN(v,2)}`});this.list=null;if(UI.cur==='meldingen')UI.route()}catch(x){$('#paerr',c).textContent=x.message}}})}
+      $('#paf',c).onsubmit=async e=>{e.preventDefault();const kk=$('#pakind',c).value;const v=KNOVAL.has(kk)?1:Number(String($('#paval',c).value).replace(/\./g,'').replace(',','.'));if(!(v>0)){$('#paerr',c).textContent='Vul een geldige waarde in.';return}
+        try{const sym=$('#pasym',c).value,k=$('#pakind',c).value;const r=await this.add({sym,kind:k,value:v});closeOverlay();UI.toast({title:'Koersalert ingesteld',body:(r&&r.message)?r.message:`${sym}: ${KINDS[k].toLowerCase().replace('…',nlN(v,1))}${KNOVAL.has(k)||k==='volx'?'':' '+(/1h|24h/.test(k)?nlN(v,1)+'%':/^rsi/.test(k)?nlN(v,0):nlN(v,2))}`});this.list=null;if(UI.cur==='meldingen')UI.route()}catch(x){$('#paerr',c).textContent=x.message}}})}
 };
 
 /* ---------------- meldingencentrum ---------------- */
@@ -2545,7 +2553,7 @@ Pages.meldingen={
     let html='',last='';for(const x of L.slice(0,120)){const dl=dayLabel(x.t);if(dl!==last){html+=`<div class="ncday">${dl}</div>`;last=dl}
       const unread=!NC.read.has(x.id);html+=`<a class="nci ${unread?'unread':''}" href="${esc(x.url&&x.url.startsWith('#')?x.url:'#'+(x.url||'impact').replace(/^#?/,''))}" data-nid="${esc(x.id)}">${x.score?ring(x.score,40):`<span class="ncic">${ico(x.cat==='alert'?'alarm':x.cat==='briefing'?'sun':x.cat==='reminder'?'cal':'bell')}</span>`}<span><b>${esc(x.title)}</b>${x.body?`<span class="note" style="display:block">${esc(x.body)}</span>`:''}<span class="src">${hhmm(x.t)} · ${CATLBL[x.cat]||'Melding'}</span></span></a>`}
     $('#nclist',el).innerHTML=html||`<div class="empty">${f==='all'?'Nog geen meldingen. Stel je voorkeuren in bij Instellingen of zet een koersalert.':'Geen meldingen in deze categorie.'}</div>`;
-    const P=PA.list||[];$('#palist',el).innerHTML=P.length?P.map(a=>{const x=getAsset(a.sym);return `<div class="srow" style="cursor:default"><span><b>${esc(x?x.name:a.sym)}</b> <span class="src">${a.sym}</span><br><span class="note">${KINDS[a.kind]} ${/1h|24h/.test(a.kind)?nlN(a.value,1)+'%':(x?money(x,a.value):nlN(a.value,2))}${x&&x.price!=null?' · nu '+money(x,x.price):''}</span></span><span style="display:flex;align-items:center;gap:6px"><span class="tag ${a.active?'up':''}">${a.active?'Actief':'Afgegaan'}</span><button class="ibtn" data-pad="${a.id}" aria-label="Verwijderen">${ico('x')}</button></span></div>`}).join(''):`<div class="empty">Nog geen koersalerts. Zet er een via de knop hierboven of op een assetpagina.</div>`}
+    const P=PA.list||[];$('#palist',el).innerHTML=P.length?P.map(a=>{const x=getAsset(a.sym);return `<div class="srow" style="cursor:default"><span><b>${esc(x?x.name:a.sym)}</b> <span class="src">${a.sym}</span><br><span class="note">${KNOVAL.has(a.kind)?KINDS[a.kind]:a.kind==='volx'?KINDS[a.kind].replace('…',nlN(a.value,1)):`${KINDS[a.kind]} ${/1h|24h/.test(a.kind)?nlN(a.value,1)+'%':/^rsi/.test(a.kind)?nlN(a.value,0):(x?money(x,a.value):nlN(a.value,2))}`}${x&&x.price!=null?' · nu '+money(x,x.price):''}</span></span><span style="display:flex;align-items:center;gap:6px"><span class="tag ${a.active?'up':''}">${a.active?'Actief':'Afgegaan'}</span><button class="ibtn" data-pad="${a.id}" aria-label="Verwijderen">${ico('x')}</button></span></div>`}).join(''):`<div class="empty">Nog geen koersalerts. Zet er een via de knop hierboven of op een assetpagina.</div>`}
 };
 
 /* ---------------- koersgrafiek met gebeurtenissen ---------------- */

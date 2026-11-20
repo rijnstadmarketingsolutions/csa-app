@@ -1,0 +1,31 @@
+name: Unlock-kalender bijwerken
+on:
+  schedule:
+    - cron: '23 4 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+env:
+  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+jobs:
+  unlocks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm ci
+      - name: Kalender bouwen uit DefiLlama
+        run: python tools/unlocks.py
+      - name: Naar de database schrijven
+        run: |
+          npx wrangler d1 list --json > d1.json
+          ID=$(python3 -c "import json;print(next((d.get('uuid') or d.get('id')) for d in json.load(open('d1.json')) if d.get('name')=='csa-db'))")
+          sed -i "s/00000000-0000-0000-0000-000000000000/$ID/" wrangler.jsonc
+          npx wrangler d1 execute csa-db --remote --file tools/unlocks.sql

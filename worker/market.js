@@ -146,8 +146,8 @@ export async function refreshMarket(env, state, b, status = {}) {
   if (bitvavoOk || krakenSrc) await step('candles', async () => {
     const C = state.candles || {}; const top = (state.tickers.list || []).slice(0, 40); const deep = top.map(x => x.s); const pair = Object.fromEntries(top.map(x => [x.s, x.k]));
     const stale = deep.filter(s => !C[s] || now - C[s].u > HOUR).slice(0, 6); let ok = 0, last = '';
-    const put = (s, rows) => { rows = rows.sort((x, y) => x[0] - y[0]).filter(x => x[0] + DAY <= now).slice(-31); C[s] = { u: now, t: rows.map(x => x[0]), c: rows.map(x => x[4]), h: rows.map(x => x[2]), l: rows.map(x => x[3]), vq: rows.map(x => x[5] * x[4]) }; ok++; };
-    if (bitvavoOk) await Promise.all(stale.map(async s => { try { const r = await getJSON(`${BV}/${s}-EUR/candles?interval=1d&limit=32`, b); put(s, r.map(x => x.map(Number))); } catch (e) { last = e.message; } }));
+    const put = (s, rows) => { rows = rows.sort((x, y) => x[0] - y[0]).filter(x => x[0] + DAY <= now).slice(-61); C[s] = { u: now, t: rows.map(x => x[0]), c: rows.map(x => x[4]), h: rows.map(x => x[2]), l: rows.map(x => x[3]), vq: rows.map(x => x[5] * x[4]) }; ok++; };
+    if (bitvavoOk) await Promise.all(stale.map(async s => { try { const r = await getJSON(`${BV}/${s}-EUR/candles?interval=1d&limit=62`, b); put(s, r.map(x => x.map(Number))); } catch (e) { last = e.message; } }));
     else for (const s of stale) { if (!pair[s]) continue; try { const j = await getJSON(`https://api.kraken.com/0/public/OHLC?pair=${pair[s]}&interval=1440`, b); if (j.error && j.error.length) throw new Error(j.error.join(', '));
       const rows = Object.entries(j.result || {}).find(([k]) => k !== 'last')?.[1] || []; put(s, rows.map(x => [x[0] * 1000, +x[1], +x[2], +x[3], +x[4], +x[6]])); } catch (e) { last = e.message; } }
     for (const k of Object.keys(C)) if (!deep.includes(k) && now - C[k].u > DAY) delete C[k];
@@ -272,7 +272,18 @@ export async function backtest(env, b, topSyms) {
 }
 
 /* ---------- koersalerts ---------- */
-export const ALERT_KINDS = { above: 'koers boven', below: 'koers onder', up1h: 'stijgt in 1 uur met', down1h: 'daalt in 1 uur met', up24h: 'stijgt in 24 uur met', down24h: 'daalt in 24 uur met' };
+export const ALERT_KINDS = { above: 'koers boven', below: 'koers onder', up1h: 'stijgt in 1 uur met', down1h: 'daalt in 1 uur met', up24h: 'stijgt in 24 uur met', down24h: 'daalt in 24 uur met',
+  rsi_lt: 'RSI (14 dagen) zakt onder', rsi_gt: 'RSI (14 dagen) stijgt boven', sma20_up: 'koers breekt boven 20-daags gemiddelde', sma20_dn: 'koers zakt onder 20-daags gemiddelde',
+  sma50_up: 'koers breekt boven 50-daags gemiddelde', sma50_dn: 'koers zakt onder 50-daags gemiddelde', volx: 'volume 24 uur is … × het gemiddelde', hi30: 'nieuwe 30-daagse top', lo30: 'nieuwe 30-daagse bodem' };
+export const NOVAL = new Set(['sma20_up', 'sma20_dn', 'sma50_up', 'sma50_dn', 'hi30', 'lo30']);
+export const IND_KINDS = new Set(['rsi_lt', 'rsi_gt', 'sma20_up', 'sma20_dn', 'sma50_up', 'sma50_dn', 'volx', 'hi30', 'lo30']);
+/* indicatoren uit de dagcandles van de server plus de actuele koers */
+export function indFor(state, sym, p) {
+  const C = state.candles?.[sym]; if (!C || !C.c || C.c.length < 15 || p == null) return null; const c = C.c, n = c.length; const mean = a => a.reduce((s, x) => s + x, 0) / a.length;
+  const cl = c.concat([p]); let g = 0, l = 0; for (let i = cl.length - 14; i < cl.length; i++) { const d = cl[i] - cl[i - 1]; d > 0 ? g += d : l -= d; } const rsi = l ? 100 - 100 / (1 + g / l) : 100;
+  const t = (state.tickers?.list || []).find(x => x.s === sym); const avgVq = C.vq && C.vq.length >= 10 ? mean(C.vq.slice(-30)) : null;
+  return { rsi, sma20: n >= 20 ? mean(c.slice(-20)) : null, sma50: n >= 50 ? mean(c.slice(-50)) : null, hi30: Math.max(...C.h.slice(-30)), lo30: Math.min(...C.l.slice(-30)), volx: avgVq && t?.vq ? t.vq / avgVq : null };
+}
 export function quote(state, sym) {
   const t = (state.tickers?.list || []).find(x => x.s === sym);
   if (t) { const arr = state.ticks?.p?.[sym]; return { p: t.p, cur: 'EUR', ch24: t.o ? (t.p / t.o - 1) * 100 : null, ch1h: arr && arr.length >= 13 ? (t.p / arr[arr.length - 13] - 1) * 100 : null, name: state.names?.[sym] || sym }; }
@@ -280,16 +291,32 @@ export function quote(state, sym) {
   const q = state.stocks?.[sym]; if (q) return { p: q.p, cur: 'USD', ch24: q.dp, ch1h: null, name: sym };
   return null;
 }
-export function alertHit(a, q) {
+export function alertHit(a, q, ind) {
   if (!q) return false;
+  if (IND_KINDS.has(a.kind)) { if (!ind) return false; switch (a.kind) {
+    case 'rsi_lt': return ind.rsi <= a.value; case 'rsi_gt': return ind.rsi >= a.value;
+    case 'sma20_up': return ind.sma20 != null && q.p > ind.sma20; case 'sma20_dn': return ind.sma20 != null && q.p < ind.sma20;
+    case 'sma50_up': return ind.sma50 != null && q.p > ind.sma50; case 'sma50_dn': return ind.sma50 != null && q.p < ind.sma50;
+    case 'volx': return ind.volx != null && ind.volx >= a.value; case 'hi30': return q.p > ind.hi30; case 'lo30': return q.p < ind.lo30; } return false; }
   switch (a.kind) {
     case 'above': return q.p >= a.value; case 'below': return q.p <= a.value;
     case 'up1h': return q.ch1h != null && q.ch1h >= a.value; case 'down1h': return q.ch1h != null && q.ch1h <= -a.value;
     case 'up24h': return q.ch24 != null && q.ch24 >= a.value; case 'down24h': return q.ch24 != null && q.ch24 <= -a.value;
   } return false;
 }
-export function alertText(a, q) {
+export function alertText(a, q, ind) {
   const money = v => (q.cur === 'USD' ? '$ ' : '€ ') + Number(v).toLocaleString('nl-NL', { maximumFractionDigits: v < 1 ? 6 : 2 });
+  if (IND_KINDS.has(a.kind)) { const i = ind || {}; const T = {
+      rsi_lt: [`${q.name}: RSI onder ${nl(a.value, 0)}`, `RSI (14 dagen) staat op ${nl(i.rsi, 0)}: de munt is relatief veel gedaald (oversold-gebied).`],
+      rsi_gt: [`${q.name}: RSI boven ${nl(a.value, 0)}`, `RSI (14 dagen) staat op ${nl(i.rsi, 0)}: de munt is relatief hard gestegen (overbought-gebied).`],
+      sma20_up: [`${q.name} boven 20-daags gemiddelde`, `Koers ${money(q.p)} brak boven het 20-daags gemiddelde van ${money(i.sma20)}.`],
+      sma20_dn: [`${q.name} onder 20-daags gemiddelde`, `Koers ${money(q.p)} zakte onder het 20-daags gemiddelde van ${money(i.sma20)}.`],
+      sma50_up: [`${q.name} boven 50-daags gemiddelde`, `Koers ${money(q.p)} brak boven het 50-daags gemiddelde van ${money(i.sma50)}.`],
+      sma50_dn: [`${q.name} onder 50-daags gemiddelde`, `Koers ${money(q.p)} zakte onder het 50-daags gemiddelde van ${money(i.sma50)}.`],
+      volx: [`${q.name}: volume ${nl(i.volx, 1)}× normaal`, `Het handelsvolume van de laatste 24 uur is ${nl(i.volx, 1)} keer het 30-daags gemiddelde. Koers ${money(q.p)} (${pct(q.ch24 ?? 0)}).`],
+      hi30: [`${q.name}: nieuwe 30-daagse top`, `Koers ${money(q.p)} ligt boven de hoogste koers van de afgelopen 30 dagen (${money(i.hi30)}).`],
+      lo30: [`${q.name}: nieuwe 30-daagse bodem`, `Koers ${money(q.p)} ligt onder de laagste koers van de afgelopen 30 dagen (${money(i.lo30)}).`] }[a.kind];
+    return { title: T[0], body: T[1] + ' Je alert is uitgegaan.' }; }
   if (a.kind === 'above' || a.kind === 'below') return { title: `${q.name} ${a.kind === 'above' ? 'boven' : 'onder'} ${money(a.value)}`, body: `Koers nu ${money(q.p)} (${pct(q.ch24 ?? 0)} in 24 uur). Je koersalert is uitgegaan.` };
   const w = a.kind.endsWith('1h') ? '1 uur' : '24 uur', ch = a.kind.endsWith('1h') ? q.ch1h : q.ch24;
   return { title: `${q.name} ${pct(ch)} in ${w}`, body: `Koers nu ${money(q.p)}. Je alert stond op ${a.kind.startsWith('up') ? '+' : '−'}${nl(a.value, 1)}% in ${w}.` };
