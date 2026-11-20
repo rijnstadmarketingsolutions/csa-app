@@ -58,6 +58,7 @@ for slug, sym in MAP.items():
     m = re.search(r'of (.+?) tokens will', e.get('description') or '')
     if m: g['to'].add(m.group(1))
   n = 0
+  if len(grp) > 12: done.append(f'{sym}:doorlopend'); continue
   for g in grp.values():
     out.append({'sym': sym, 'name': d.get('name') or slug, 't': int(g['t'] * 1000), 'tokens': round(g['tokens'], 2), 'max': mx, 'cats': sorted(g['cats']), 'to': sorted(g['to'])[:4]})
     n += 1
