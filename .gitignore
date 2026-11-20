@@ -6,3 +6,4 @@ node_modules/
 android/
 ios/
 tools/unlocks.sql
+wrangler.old.json

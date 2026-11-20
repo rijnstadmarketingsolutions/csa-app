@@ -41,15 +41,7 @@ jobs:
           sed -i "s/00000000-0000-0000-0000-000000000000/$ID/" wrangler.jsonc
           npx wrangler d1 migrations apply csa-db --remote
 
-      - name: Worker publiceren
-        run: |
-          set -o pipefail
-          npx wrangler deploy 2>&1 | tee deploy.log
-          URL=$(grep -oE 'https://[a-z0-9.-]+\.workers\.dev' deploy.log | head -1)
-          echo "Worker: $URL"
-          echo "WORKER_URL=$URL" >> "$GITHUB_ENV"
-
-      - name: Versleutelsleutel overzetten van de oude worker (eenmalig)
+      - name: Versleutelsleutel overzetten van de oude worker (eenmalig, vóór publiceren)
         run: |
           set -e
           HAS_NEW=$(npx wrangler secret list --name vantis --format json 2>/dev/null | grep -c '"ENC_KEY"' || true)
@@ -58,7 +50,12 @@ jobs:
           if [ "$HAS_NEW" = "0" ] && [ "$HAS_OLD" != "0" ]; then
             TOKEN=$(openssl rand -hex 24); echo "::add-mask::$TOKEN"
             printf '%s' "$TOKEN" | npx wrangler secret put MIGRATE_TOKEN --name csa
-            npx wrangler deploy --name csa > /dev/null
+            python3 - <<'PY'
+          import json,re
+          t=open('wrangler.jsonc').read(); t=re.sub(r'(?m)^\s*//.*$','',t); c=json.loads(t)
+          c['name']='csa'; c['triggers']={'crons':[]}; json.dump(c,open('wrangler.old.json','w'))
+          PY
+            npx wrangler deploy -c wrangler.old.json > /dev/null
             for i in 1 2 3 4 5 6; do
               K=$(curl -sS -H "x-migrate: $TOKEN" https://csa.rijnstadmarketing.workers.dev/api/_migrate-key | python3 -c "import sys,json;print(json.load(sys.stdin).get('k') or '')" 2>/dev/null || true)
               [ -n "$K" ] && break; sleep 5
@@ -69,6 +66,21 @@ jobs:
             echo y | npx wrangler secret delete MIGRATE_TOKEN --name csa || true
             echo "Sleutel overgezet"
           fi
+
+      - name: Oude worker-adres doorsturen naar Vantis (en zijn cron-triggers vrijgeven)
+        run: |
+          mkdir -p old-redirect
+          printf 'export default { fetch(req) { const u = new URL(req.url); return Response.redirect("%s" + u.pathname + u.search, 301); } };\n' "https://vantis.rijnstadmarketing.workers.dev" > old-redirect/worker.js
+          printf '{ "name": "csa", "main": "worker.js", "compatibility_date": "2026-11-01", "workers_dev": true, "triggers": { "crons": [] } }\n' > old-redirect/wrangler.json
+          npx wrangler deploy -c old-redirect/wrangler.json || echo "Oude worker niet gevonden, overgeslagen"
+
+      - name: Worker publiceren
+        run: |
+          set -o pipefail
+          npx wrangler deploy 2>&1 | tee deploy.log
+          URL=$(grep -oE 'https://[a-z0-9.-]+\.workers\.dev' deploy.log | head -1)
+          echo "Worker: $URL"
+          echo "WORKER_URL=$URL" >> "$GITHUB_ENV"
 
       - name: Geheimen instellen (alleen als ze zijn opgegeven)
         env:
@@ -103,14 +115,6 @@ jobs:
           SECRET=$(printf 'vantis-tg:%s' "$TELEGRAM_BOT_TOKEN" | sha256sum | cut -c1-48)
           curl -sS "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setWebhook" -d "url=${WORKER_URL}/api/telegram/webhook" -d "secret_token=${SECRET}" -d 'allowed_updates=["message"]' | head -c 300; echo
           curl -sS "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setMyCommands" -H 'content-type: application/json' -d '{"commands":[{"command":"koers","description":"Actuele koers, bijv. /koers BTC"},{"command":"briefing","description":"Ochtendbriefing"},{"command":"portefeuille","description":"Je oefenportefeuille"},{"command":"stop","description":"Meldingen stoppen"}]}' | head -c 200; echo
-
-      - name: Oude worker-adres doorsturen naar Vantis
-        if: env.WORKER_URL != ''
-        run: |
-          mkdir -p old-redirect
-          printf 'export default { fetch(req) { const u = new URL(req.url); return Response.redirect("%s" + u.pathname + u.search, 301); } };\n' "$WORKER_URL" > old-redirect/worker.js
-          printf '{ "name": "csa", "main": "worker.js", "compatibility_date": "2026-11-01", "workers_dev": true, "triggers": { "crons": [] } }\n' > old-redirect/wrangler.json
-          npx wrangler deploy -c old-redirect/wrangler.json || echo "Oude worker niet gevonden, overgeslagen"
 
       - name: Oude link (pages.dev) doorsturen naar de nieuwe app
         if: env.WORKER_URL != ''
