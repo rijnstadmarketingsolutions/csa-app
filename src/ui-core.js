@@ -2,7 +2,7 @@
    UI — shell, router, componenten
    ===================================================================== */
 const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
-const LOGO=`<svg viewBox="0 0 200 200" aria-hidden="true">__LOGO__</svg>`;
+const LOGO='';
 const IC={
   home:'<path d="M3 10.5 12 3l9 7.5V21H3z"/><path d="M9 21v-6h6v6"/>',
   markets:'<path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/>',
@@ -57,7 +57,7 @@ const UI={
     this.cur=p;this.arg=arg;const pg=Pages[p];
     $$('#nav a,#tabbar a').forEach(a=>a.classList.toggle('on',a.dataset.p===p||(a.dataset.p==='more'&&!['overzicht','markten','waarom','impact'].includes(p))));
     const old=$('#view');const v=old.cloneNode(false);old.replaceWith(v);v.classList.remove('enter');void v.offsetWidth;v.classList.add('enter');v.innerHTML=pg.html(arg);this.el=v;pg.mount&&pg.mount(v,arg);pg.live&&pg.live(v,arg,'calc');
-    document.title=(pg.title?pg.title(arg)+' · ':'')+'Crypto Signal AI';
+    document.title=(pg.title?pg.title(arg)+' · ':'')+'Vantis';
     window.scrollTo(0,0);closeOverlay();
   },
   paint(){if(this.raf)return;const wait=Math.max(0,900-(Date.now()-this.lastPaint));this.raf=setTimeout(()=>{this.raf=null;this.lastPaint=Date.now();this.doPaint()},wait)},
@@ -128,7 +128,7 @@ function bindStars(root){root.addEventListener('click',e=>{const b=e.target.clos
 function newsDrawer(a){
   const sym=a.sym;loadCompanyNews(a).then(()=>{const b=$('#ndl');if(b)b.innerHTML=list()});
   const list=()=>{const cl=S.clusters.filter(c=>c.assets.includes(sym)).slice(0,25);return cl.length?cl.map(c=>clusterRow(c,false)).join(''):`<div class="empty">Geen artikelen over ${esc(a.name)} in de gekoppelde nieuwsbronnen${S.src.cc.st!=='ok'&&S.src.fh.st!=='ok'?' (nieuwsbron niet bereikbaar)':''}. Bekijk hieronder de live TradingView-nieuwsfeed.</div>`};
-  drawer('Nieuws: '+a.name,`<p class="note" style="margin:12px 0">Artikelen die CSA aan ${esc(a.name)} koppelt, ontdubbeld en gelabeld (feit, verwachting, gerucht, interpretatie of speculatie). Klik om het origineel te openen.</p><div id="ndl">${list()}</div><h3 style="margin:22px 0 10px">Live nieuwsfeed (TradingView)</h3><div class="tv" id="ntv" style="height:520px"></div>`,
+  drawer('Nieuws: '+a.name,`<p class="note" style="margin:12px 0">Artikelen die Vantis aan ${esc(a.name)} koppelt, ontdubbeld en gelabeld (feit, verwachting, gerucht, interpretatie of speculatie). Klik om het origineel te openen.</p><div id="ndl">${list()}</div><h3 style="margin:22px 0 10px">Live nieuwsfeed (TradingView)</h3><div class="tv" id="ntv" style="height:520px"></div>`,
     b=>tv($('#ntv',b),'timeline',{feedMode:'symbol',symbol:tvSym(a),displayMode:'regular',width:'100%',height:520}));
 }
 
@@ -150,9 +150,9 @@ const Auth={
   show(id){['step1','step2','step3','step4'].forEach(x=>$('#'+x).classList.toggle('hidden',x!==id))},
   async init(){
     if(Api.on&&Api.token){try{const me=await Api.call('/api/me');Api.setSession(Api.token,me.user);LS.set('user',{email:me.user.email,name:me.user.name});this.enter();return}catch(e){Api.setSession(null)}}
-    if(!Api.on){const trust=LS.get('trust',0),ses=(()=>{try{return sessionStorage.getItem('csa.session')}catch(e){return null}})();if(ses||trust>Date.now()){this.enter();return}}
+    if(!Api.on){const trust=LS.get('trust',0),ses=(()=>{try{return sessionStorage.getItem('vantis.session')}catch(e){return null}})();if(ses||trust>Date.now()){this.enter();return}}
     $('#login').classList.remove('hidden');
-    $('#modenote').innerHTML=Api.on?'Je account en beveiliging lopen via de CSA-server. Gegevens staan versleuteld in de EU.':'<b>Demomodus:</b> de CSA-server is niet bereikbaar (bijvoorbeeld omdat je het bestand lokaal opent). Inloggen wordt in deze browser gesimuleerd.';
+    $('#modenote').innerHTML=Api.on?'Je account en beveiliging lopen via de Vantis-server. Gegevens staan versleuteld in de EU.':'<b>Demomodus:</b> de Vantis-server is niet bereikbaar (bijvoorbeeld omdat je het bestand lokaal opent). Inloggen wordt in deze browser gesimuleerd.';
     $('#regline').classList.toggle('hidden',!Api.on);$('#resend').classList.toggle('hidden',Api.on);$('#usebackup').classList.toggle('hidden',!Api.on);
     const otp=$('#otp');otp.innerHTML=Array.from({length:6},(_,i)=>`<input inputmode="numeric" maxlength="1" aria-label="Cijfer ${i+1}" autocomplete="${i?'off':'one-time-code'}">`).join('');
     const ins=$$('input',otp);this.ins=ins;
@@ -160,7 +160,7 @@ const Auth={
       inp.addEventListener('keydown',e=>{if(e.key==='Backspace'&&!inp.value&&ins[i-1])ins[i-1].focus()});
       inp.addEventListener('paste',e=>{const t=(e.clipboardData.getData('text')||'').replace(/\D/g,'').slice(0,6);if(t.length){e.preventDefault();t.split('').forEach((c,k)=>{if(ins[k])ins[k].value=c});(ins[t.length]||ins[5]).focus();if(t.length===6)$('#step2').requestSubmit()}})});
     $('#toreg').onclick=()=>{this.reg=!this.reg;$('#namef').classList.toggle('hidden',!this.reg);$('#s1title').textContent=this.reg?'Account aanmaken':'Inloggen';$('#s1btn').textContent=this.reg?'Account aanmaken':'Doorgaan';
-      $('#s1sub').textContent=this.reg?'Maak een gratis CSA-account. Je beveiligt het direct met een authenticator-app.':'Log in op je CSA-account. Daarna vragen we altijd een beveiligingscode.';$('#toreg').textContent=this.reg?'Ik heb al een account':'Account aanmaken';$('#regline').firstChild.textContent=this.reg?'':'Nog geen account? ';$('#lgpw').autocomplete=this.reg?'new-password':'current-password';$('#err1').textContent=''};
+      $('#s1sub').textContent=this.reg?'Maak een gratis Vantis-account. Je beveiligt het direct met een authenticator-app.':'Log in op je Vantis-account. Daarna vragen we altijd een beveiligingscode.';$('#toreg').textContent=this.reg?'Ik heb al een account':'Account aanmaken';$('#regline').firstChild.textContent=this.reg?'':'Nog geen account? ';$('#lgpw').autocomplete=this.reg?'new-password':'current-password';$('#err1').textContent=''};
     $('#step1').onsubmit=async e=>{e.preventDefault();const m=$('#lgmail').value.trim(),p=$('#lgpw').value;
       if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(m)){$('#err1').textContent='Vul een geldig e-mailadres in.';return}
       if(p.length<(Api.on?8:6)){$('#err1').textContent=`Wachtwoord moet minimaal ${Api.on?8:6} tekens zijn.`;return}
@@ -190,15 +190,15 @@ const Auth={
     this.enter()},
   step2(){
     this.show('step2');$('#err2').textContent='';this.useBackup=false;$('#backupf').classList.add('hidden');$('#otp').classList.remove('hidden');
-    if(Api.on){$('#democode').classList.add('hidden');$('#otpmsg').textContent='Open je authenticator-app en vul de code voor Crypto Signal AI in.'}
+    if(Api.on){$('#democode').classList.add('hidden');$('#otpmsg').textContent='Open je authenticator-app en vul de code voor Vantis in.'}
     else{const sec=LS.get('totp',null);
-      if(sec){$('#democode').classList.add('hidden');$('#otpmsg').textContent='Open je authenticator-app en vul de code voor CSA in.'}
+      if(sec){$('#democode').classList.add('hidden');$('#otpmsg').textContent='Open je authenticator-app en vul de code voor Vantis in.'}
       else{this.code=String(crypto.getRandomValues(new Uint32Array(1))[0]%1e6).padStart(6,'0');
         $('#otpmsg').innerHTML=`Demomodus: we simuleren een code voor <b>${esc(LS.get('user',{}).email||'je e-mail')}</b>.`;
         const dc=$('#democode');dc.innerHTML=`Demo: in de echte app komt deze code uit je authenticator-app.<b>${this.code}</b>`;dc.classList.remove('hidden')}}
     $$('#otp input').forEach(x=>x.value='');setTimeout(()=>$('#otp input').focus(),50);
   },
-  enter(){try{sessionStorage.setItem('csa.session','1')}catch(e){}$('#login').classList.add('hidden');$('#app').classList.remove('hidden');$('#tabbar').classList.remove('hidden');
+  enter(){try{sessionStorage.setItem('vantis.session','1')}catch(e){}$('#login').classList.add('hidden');$('#app').classList.remove('hidden');$('#tabbar').classList.remove('hidden');
     const u=LS.get('user',null);if(u)$('#avatar').textContent=(u.name||'CS').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();Boot.start()},
-  async logout(){if(Api.authed){try{await Api.call('/api/auth/logout',{method:'POST'})}catch(e){}}Api.setSession(null);try{sessionStorage.removeItem('csa.session')}catch(e){}LS.set('trust',0);location.hash='';location.reload()}
+  async logout(){if(Api.authed){try{await Api.call('/api/auth/logout',{method:'POST'})}catch(e){}}Api.setSession(null);try{sessionStorage.removeItem('vantis.session')}catch(e){}LS.set('trust',0);location.hash='';location.reload()}
 };

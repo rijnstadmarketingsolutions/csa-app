@@ -1,4 +1,4 @@
-// CSA worker — marktdata (alleen gratis bronnen), analyse, gebeurtenissen, backtest
+// Vantis worker — marktdata (alleen gratis bronnen), analyse, gebeurtenissen, backtest
 import { DAY, HOUR, MIN, kvPutStmt } from './lib.js';
 
 export const BV_DEFAULT = 'https://api.bitvavo.com/v2';
@@ -27,7 +27,7 @@ const relOf = vq => clamp(Math.log10(Math.max(vq || 1, 1) / 1e5) / 3, 0, 1);
 
 /* ---------- budget voor subrequests (gratis plan: 50 per uitvoering) ---------- */
 export function budget(n = 45) { let left = n; return { take(k = 1) { if (left < k) return false; left -= k; return true; }, get left() { return left; } }; }
-const UA = 'CSA-CryptoSignalAI/1.1 (+https://csa.rijnstadmarketing.workers.dev; info@rijnstadmarketing.nl)';
+const UA = 'Vantis/1.8 (+https://vantis.rijnstadmarketing.workers.dev; info@rijnstadmarketing.nl)';
 export async function getJSON(url, b, init = {}) { if (b && !b.take()) throw new Error('budget op'); const r = await fetch(url, { ...init, headers: { 'user-agent': UA, accept: 'application/json', ...(init.headers || {}) } }); if (!r.ok) throw new Error(new URL(url).hostname + ' HTTP ' + r.status); return r.json(); }
 export async function getText(url, b) { if (b && !b.take()) throw new Error('budget op'); const r = await fetch(url, { headers: { 'user-agent': UA, accept: 'application/rss+xml, application/xml, text/xml, */*' } }); if (!r.ok) throw new Error(new URL(url).hostname + ' HTTP ' + r.status); return r.text(); }
 /* ---------- gratis nieuws via RSS (geen sleutel nodig), meerdere onafhankelijke bronnen ---------- */

@@ -2,7 +2,7 @@
 VOICE  — kalm, precies, institutioneel: een terminal voor marktinzicht, geen chatbot.
 IDEA   — het ochtendrapport van een researchdesk: elk cijfer met bron, tijd en zekerheid.
 PICTURE— live sentimentmeter + impact-feed; koersgrafieken van TradingView, data van Bitvavo.
-COLOUR — wit vlak, CSA-navy #17243A voor merk en kleine accenten, groen/rood alleen voor koers.
+COLOUR — wit vlak, Vantis-navy #17243A voor merk en kleine accenten, groen/rood alleen voor koers.
 TYPE   — Inter Tight voor koppen, Inter voor tekst, tabulaire cijfers; strakke 3px hoeken.
 */
 :root{
@@ -775,3 +775,114 @@ summary.lnk{white-space:normal;display:list-item}
 .bpmain{padding:14px;display:grid;gap:10px;align-content:start}.bpbtn{background:var(--ba);color:#fff;padding:7px 10px;border-radius:3px;font-size:12px;font-weight:600;justify-self:start}.bpkpi{font:650 20px "Inter Tight",sans-serif}
 .wcode{font-size:12px;word-break:break-all;background:var(--bg2);padding:2px 5px;border-radius:2px}
 .kwf .btn{flex:none}.goalb{white-space:normal;text-align:left}
+
+/* ===================== VANTIS: logo ===================== */
+:root{--logo-paint:var(--navy);--logo-paint-side:#fff;--metal:linear-gradient(135deg,#ffffff 0%,#d4d7dc 18%,#8b919a 40%,#f2f3f5 56%,#a1a7b0 76%,#e6e8eb 100%)}
+.logo{-webkit-mask:__VMARK__ center/contain no-repeat;mask:__VMARK__ center/contain no-repeat;background:var(--logo-paint);aspect-ratio:879/582;width:auto!important}
+.logo svg{display:none}
+.vword{display:block;-webkit-mask:__VWORD__ left center/contain no-repeat;mask:__VWORD__ left center/contain no-repeat;background:var(--logo-paint);aspect-ratio:1902/396;height:15px}
+.vfull{display:block;-webkit-mask:__VFULL__ left center/contain no-repeat;mask:__VFULL__ left center/contain no-repeat;background:var(--logo-paint-side);aspect-ratio:2826/582;width:min(300px,70vw)}
+.brand .logo{height:30px;width:auto}.brand .bwrap{display:grid;gap:5px}.brand .vword{height:15px}.brand small{font-size:8.5px!important;letter-spacing:.42em;text-transform:uppercase;margin-top:0!important;white-space:nowrap}
+.side .logo,.side .vword{background:var(--logo-paint-side)}
+.topbar .mbrand .logo{height:24px;width:auto}.topbar .mbrand .vword{height:13px;width:62px}
+.onb-hero .logo{height:64px!important;width:auto!important}
+:root[data-theme=dark]{--logo-paint:#fff}
+.brand-custom .vword{display:none}
+
+/* ===================== VANTIS: stijlkiezer ===================== */
+.skinmenu{position:fixed;z-index:140;width:min(340px,calc(100vw - 20px));background:var(--panel);border:1px solid var(--line2);border-radius:12px;box-shadow:0 24px 60px rgba(0,0,0,.28);padding:8px;display:grid;gap:6px;animation:tin .18s ease}
+.skinmenu h3{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);padding:6px 8px 2px}
+.skinopt{display:grid;grid-template-columns:64px 1fr auto;gap:12px;align-items:center;text-align:left;padding:8px;border-radius:9px;border:1px solid transparent}
+.skinopt:hover{background:var(--bg2)}.skinopt[aria-checked=true]{border-color:var(--line2);background:var(--bg2)}
+.skinopt .sw{height:44px;border-radius:7px;border:1px solid rgba(127,127,127,.25);position:relative;overflow:hidden}
+.skinopt b{display:block;font-size:14px}.skinopt small{display:block;font-size:12px;color:var(--ink2);line-height:1.35}
+.skinopt .ck{width:18px;height:18px;stroke:var(--ink);fill:none;stroke-width:2.4;opacity:0}.skinopt[aria-checked=true] .ck{opacity:1}
+.sw-classic{background:linear-gradient(90deg,#17243A 0 34%,#F3F5F9 34%)}
+.sw-luxdark{background:radial-gradient(60% 80% at 75% 0%,rgba(255,255,255,.25),transparent 60%),#060607}.sw-luxdark::after{content:"";position:absolute;left:10px;right:10px;top:18px;height:8px;border-radius:4px;background:var(--metal)}
+.sw-luxlight{background:radial-gradient(70% 90% at 80% 0%,#fff,transparent 70%),linear-gradient(180deg,#f7f8fa,#e4e7ec)}.sw-luxlight::after{content:"";position:absolute;left:10px;right:10px;top:18px;height:8px;border-radius:4px;background:linear-gradient(135deg,#2b2e34,#9aa0a9 45%,#1c1e22 60%,#7c828c)}
+
+/* ===================== VANTIS: DARK LUXURY ===================== */
+:root[data-skin=luxdark]{--bg:#050505;--bg2:rgba(255,255,255,.045);--bg3:rgba(255,255,255,.08);--panel:rgba(16,16,19,.62);--ink:#F3F4F6;--ink2:#A8ADB6;--ink3:#737985;--line:rgba(255,255,255,.10);--line2:rgba(255,255,255,.17);
+  --navy:#0A0A0C;--navy2:#141417;--navy3:#C9CDD4;--accent:#E4E6EA;--accentInk:#0A0A0C;--chip:rgba(255,255,255,.065);--focus:#E6E9EE;--up:#3DDC97;--down:#FF5C69;--warn:#F2C14E;--upbg:rgba(61,220,151,.12);--downbg:rgba(255,92,105,.12);--warnbg:rgba(242,193,78,.12);
+  --heat0:#141417;--ring-hi:#E6E8EB;--r:10px;--logo-paint:var(--metal);--logo-paint-side:var(--metal);--shadow:inset 0 1px 0 rgba(255,255,255,.07),0 18px 44px rgba(0,0,0,.55);--glass:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.015));--hair:rgba(255,255,255,.14);--glow:rgba(225,230,240,.22);--sheen:rgba(255,255,255,.16);color-scheme:dark}
+:root[data-skin=luxdark] body{background:radial-gradient(1100px 600px at 85% -15%,rgba(205,210,220,.11),transparent 60%),radial-gradient(900px 600px at -15% 110%,rgba(150,160,175,.08),transparent 60%),linear-gradient(180deg,#070708,#050505) fixed}
+
+/* ===================== VANTIS: LIGHT LUXURY ===================== */
+:root[data-skin=luxlight]{--bg:#F3F4F6;--bg2:rgba(20,24,32,.035);--bg3:rgba(20,24,32,.06);--panel:rgba(255,255,255,.66);--ink:#0B0D12;--ink2:#535A65;--ink3:#8A909A;--line:rgba(16,20,28,.08);--line2:rgba(16,20,28,.14);
+  --navy:#15171B;--navy2:#2A2D33;--navy3:#5E6570;--accent:#15171B;--accentInk:#fff;--chip:rgba(20,24,32,.05);--focus:#3B4049;--upbg:rgba(10,135,84,.09);--downbg:rgba(204,51,64,.08);
+  --heat0:#E8EAEE;--ring-hi:#15171B;--r:10px;--metal:linear-gradient(135deg,#2a2d33 0%,#7a808a 28%,#1b1d21 48%,#a2a8b1 68%,#3a3e45 100%);--logo-paint:var(--metal);--logo-paint-side:var(--metal);
+  --shadow:inset 0 1px 0 #fff,0 1px 2px rgba(20,24,35,.05),0 14px 36px rgba(20,24,35,.10);--glass:linear-gradient(180deg,rgba(255,255,255,.88),rgba(255,255,255,.58));--hair:rgba(255,255,255,.95);--glow:rgba(120,130,145,.22);--sheen:rgba(255,255,255,.75);color-scheme:light}
+:root[data-skin=luxlight] body{background:radial-gradient(1200px 700px at 85% -10%,#ffffff,transparent 60%),radial-gradient(1000px 650px at -10% 105%,#e2e5ea,transparent 60%),linear-gradient(180deg,#f8f9fa,#eceef1) fixed}
+
+/* ===================== gedeeld door beide luxe-stijlen ===================== */
+:is([data-skin=luxdark],[data-skin=luxlight]) body{font-feature-settings:"cv11","ss01","tnum"}
+:is([data-skin=luxdark],[data-skin=luxlight]) :is(.card,.kpi,.plan,.sect,.bd,.opp,.ovaddb,.tkpicked,.fk>div,.wak>div,.ovpfk>div,.tkpos,.ulr .uld,.lrc){background:var(--glass)!important;-webkit-backdrop-filter:blur(18px) saturate(150%);backdrop-filter:blur(18px) saturate(150%);border:1px solid var(--line2)!important;box-shadow:var(--shadow);border-radius:14px}
+:is([data-skin=luxdark],[data-skin=luxlight]) :is(.kpi,.card,.plan,.sect,.bd.on){position:relative;overflow:hidden;isolation:isolate}
+:is([data-skin=luxdark],[data-skin=luxlight]) :is(.kpi,.card,.plan,.sect,.bd.on)::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;background:linear-gradient(115deg,transparent 30%,var(--sheen) 48%,transparent 62%);transform:translateX(-130%);transition:transform .9s cubic-bezier(.2,.7,.2,1)}
+:is([data-skin=luxdark],[data-skin=luxlight]) :is(.kpi,.card:not(.tkcard),.plan,.sect,.bd.on):hover::before{transform:translateX(130%)}
+:is([data-skin=luxdark],[data-skin=luxlight]) :is(.kpi,.plan,.sect,.bd.on):hover{border-color:var(--line2)!important;box-shadow:var(--shadow),0 0 0 1px var(--hair),0 0 34px var(--glow);transform:translateY(-1px);transition:box-shadow .3s,transform .3s}
+:is([data-skin=luxdark],[data-skin=luxlight]) .card.flush{overflow:hidden}
+:is([data-skin=luxdark],[data-skin=luxlight]) h1{background:var(--metal);-webkit-background-clip:text;background-clip:text;color:transparent;letter-spacing:-.02em}
+:is([data-skin=luxdark],[data-skin=luxlight]) .dprice,:is([data-skin=luxdark],[data-skin=luxlight]) .kv{letter-spacing:-.015em}
+:is([data-skin=luxdark],[data-skin=luxlight]) .btn{position:relative;overflow:hidden;border-radius:999px;background:var(--metal);color:var(--accentInk);border:1px solid var(--hair);box-shadow:inset 0 1px 0 rgba(255,255,255,.55),inset 0 -1px 0 rgba(0,0,0,.25),0 6px 18px rgba(0,0,0,.28);font-weight:650;transition:box-shadow .25s,transform .2s,filter .2s}
+:root[data-skin=luxlight] .btn{color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.35);box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 6px 16px rgba(20,24,35,.18)}
+:root[data-skin=luxdark] .btn{text-shadow:0 1px 0 rgba(255,255,255,.4)}
+:is([data-skin=luxdark],[data-skin=luxlight]) .btn::after{content:"";position:absolute;top:0;bottom:0;width:60%;left:-80%;background:linear-gradient(105deg,transparent,rgba(255,255,255,.55),transparent);transform:skewX(-18deg);transition:left .7s cubic-bezier(.2,.7,.2,1);pointer-events:none}
+:is([data-skin=luxdark],[data-skin=luxlight]) .btn:hover{filter:none;transform:translateY(-1px);box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 0 0 1px var(--hair),0 0 28px var(--glow),0 10px 26px rgba(0,0,0,.3)}
+:is([data-skin=luxdark],[data-skin=luxlight]) .btn:hover::after{left:130%}
+:is([data-skin=luxdark],[data-skin=luxlight]) .btn.ghost{background:var(--glass);color:var(--ink);text-shadow:none;border:1px solid var(--line2);box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+:is([data-skin=luxdark],[data-skin=luxlight]) .btn.ghost:hover{border-color:var(--ink3)}
+:is([data-skin=luxdark],[data-skin=luxlight]) .btn.gobuy{background:linear-gradient(180deg,#4BE3A3,#159a63);color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.25)}
+:is([data-skin=luxdark],[data-skin=luxlight]) .btn.gosell{background:linear-gradient(180deg,#FF7480,#C42A39);color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.25)}
+:is([data-skin=luxdark],[data-skin=luxlight]) .btn[disabled]{opacity:.4;transform:none;box-shadow:none}
+:is([data-skin=luxdark],[data-skin=luxlight]) :is(.inp,.tkin,select.inp){background:var(--bg2);border:1px solid var(--line2);border-radius:10px}
+:is([data-skin=luxdark],[data-skin=luxlight]) .tkin .inp{background:transparent;border:0}
+:is([data-skin=luxdark],[data-skin=luxlight]) :is(.inp,.tkin):focus-within,:is([data-skin=luxdark],[data-skin=luxlight]) .inp:focus{border-color:var(--ink3);box-shadow:0 0 0 3px var(--glow)}
+:is([data-skin=luxdark],[data-skin=luxlight]) .seg{background:var(--bg2);border:1px solid var(--line2);border-radius:999px;padding:2px}
+:is([data-skin=luxdark],[data-skin=luxlight]) .seg button{border:0;border-radius:999px}
+:is([data-skin=luxdark],[data-skin=luxlight]) .seg button.on{background:var(--metal);color:var(--accentInk);box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 2px 8px rgba(0,0,0,.25);font-weight:650}
+:root[data-skin=luxlight] .seg button.on{color:#fff}
+:is([data-skin=luxdark],[data-skin=luxlight]) .chip{border-radius:999px;border:1px solid var(--line2);background:var(--bg2)}
+:is([data-skin=luxdark],[data-skin=luxlight]) .chip.on{background:var(--metal);color:var(--accentInk);border-color:var(--hair)}
+:root[data-skin=luxlight] .chip.on{color:#fff}
+:is([data-skin=luxdark],[data-skin=luxlight]) .tag{border-radius:999px}
+:is([data-skin=luxdark],[data-skin=luxlight]) .tag.navy{background:var(--metal);color:var(--accentInk)}
+:root[data-skin=luxlight] .tag.navy{color:#fff}
+:is([data-skin=luxdark],[data-skin=luxlight]) .side{background:var(--glass);-webkit-backdrop-filter:blur(24px) saturate(150%);backdrop-filter:blur(24px) saturate(150%);border-right:1px solid var(--line2);color:var(--ink)}
+:root[data-skin=luxdark] .side{background:linear-gradient(180deg,rgba(18,18,21,.92),rgba(6,6,7,.94))}
+:is([data-skin=luxdark],[data-skin=luxlight]) .nav a{color:var(--ink2);border-radius:10px}
+:is([data-skin=luxdark],[data-skin=luxlight]) .nav a:hover{background:var(--bg3);color:var(--ink)}
+:is([data-skin=luxdark],[data-skin=luxlight]) .nav a.on{background:var(--bg3);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line2),inset 3px 0 0 var(--ink3)}
+:is([data-skin=luxdark],[data-skin=luxlight]) .nav a.on svg{stroke:url(#vmetal) currentColor}
+:is([data-skin=luxdark],[data-skin=luxlight]) .brand small,:is([data-skin=luxdark],[data-skin=luxlight]) .sidefoot{color:var(--ink3)}
+:is([data-skin=luxdark],[data-skin=luxlight]) .topbar{background:color-mix(in srgb,var(--bg) 70%,transparent);-webkit-backdrop-filter:blur(20px) saturate(160%);backdrop-filter:blur(20px) saturate(160%);border-bottom:1px solid var(--line)}
+:is([data-skin=luxdark],[data-skin=luxlight]) .tape{background:transparent;border-bottom:1px solid var(--line)}
+:is([data-skin=luxdark],[data-skin=luxlight]) .ibtn:hover{background:var(--bg3)}
+:is([data-skin=luxdark],[data-skin=luxlight]) .avatar{background:var(--metal);color:var(--accentInk)}
+:is([data-skin=luxdark],[data-skin=luxlight]) .callout{background:var(--glass);border:1px solid var(--line2);border-left:3px solid var(--ink3);border-radius:12px}
+:is([data-skin=luxdark],[data-skin=luxlight]) .tst{background:var(--glass);-webkit-backdrop-filter:blur(22px) saturate(150%);backdrop-filter:blur(22px) saturate(150%);border-radius:14px}
+:root[data-skin=luxdark] .tst{background:linear-gradient(180deg,rgba(28,28,32,.92),rgba(12,12,14,.94))}
+:is([data-skin=luxdark],[data-skin=luxlight]) #overlay .card{background:var(--panel)!important}
+:root[data-skin=luxdark] #overlay .card{background:linear-gradient(180deg,rgba(26,26,30,.96),rgba(10,10,12,.97))!important}
+:root[data-skin=luxlight] #overlay .card{background:rgba(255,255,255,.95)!important}
+:is([data-skin=luxdark],[data-skin=luxlight]) .scrim{-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+:is([data-skin=luxdark],[data-skin=luxlight]) table tr:hover td{background:var(--bg2)}
+:is([data-skin=luxdark],[data-skin=luxlight]) .tkside{border-radius:999px;padding:3px;background:var(--bg2)}
+:is([data-skin=luxdark],[data-skin=luxlight]) .tkside button{border-radius:999px;background:transparent}
+:is([data-skin=luxdark],[data-skin=luxlight]) .kbar,.wbar{border-radius:99px}
+:is([data-skin=luxdark],[data-skin=luxlight]) .lg-l{background:radial-gradient(900px 500px at 80% -10%,rgba(210,215,225,.14),transparent 60%),#050505;color:#fff}
+:root[data-skin=luxlight] .lg-l{background:radial-gradient(900px 500px at 80% -10%,#fff,transparent 60%),linear-gradient(180deg,#eef0f3,#dfe2e7);color:var(--ink)}
+:root[data-skin=luxlight] .lg-l :is(li,p){color:var(--ink2)}
+:is([data-skin=luxdark],[data-skin=luxlight]) .tabbar{background:color-mix(in srgb,var(--bg) 72%,transparent);-webkit-backdrop-filter:blur(20px) saturate(160%);backdrop-filter:blur(20px) saturate(160%);border-top:1px solid var(--line2)}
+:is([data-skin=luxdark],[data-skin=luxlight]) ::selection{background:var(--glow)}
+:root[data-skin=luxdark] ::-webkit-scrollbar{width:10px;height:10px}:root[data-skin=luxdark] ::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#5b6068,#2b2e33);border-radius:10px;border:2px solid #050505}:root[data-skin=luxdark] ::-webkit-scrollbar-track{background:#050505}
+@keyframes vshine{0%{background-position:0% 50%}100%{background-position:200% 50%}}
+:is([data-skin=luxdark],[data-skin=luxlight]) .vword,:is([data-skin=luxdark],[data-skin=luxlight]) .vfull,:is([data-skin=luxdark],[data-skin=luxlight]) .logo{background-size:200% 100%;animation:vshine 9s linear infinite}
+@media (prefers-reduced-motion:reduce){:is([data-skin=luxdark],[data-skin=luxlight]) *{animation:none!important;transition:none!important}}
+.skinrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px}
+.bname{font:650 15px/1.1 "Inter Tight",Inter,sans-serif}
+#skinbtn svg{stroke:currentColor;fill:none;stroke-width:1.7}
+:root[data-skin=luxdark] :is(a.link,.lnk,.lg-r a,.card a:not(.btn):not(.tag)){color:#E6E8EB}
+:root[data-skin=luxlight] :is(a.link,.lnk,.lg-r a,.card a:not(.btn):not(.tag)){color:#15171B}
+:root:is([data-skin=luxdark],[data-skin=luxlight]) .side .nav a.on{background:var(--bg3);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line2),inset 3px 0 0 var(--ink3)}
+:root:is([data-skin=luxdark],[data-skin=luxlight]) .sidefoot{border-top-color:var(--line)}

@@ -27,8 +27,8 @@ jobs:
         run: |
           for u in $URLS; do
             echo "=================== $u"
-            curl -sS -m 25 -A "Mozilla/5.0 CSA" -w "\n[HTTP %{http_code}, %{size_download} bytes]\n" "$u" -o /tmp/out.txt || true
+            curl -sS -m 25 -A "Mozilla/5.0 Vantis" -w "\n[HTTP %{http_code}, %{size_download} bytes]\n" "$u" -o /tmp/out.txt || true
             head -c ${HEAD:-2500} /tmp/out.txt; echo; echo "...[staart]"; tail -c ${TAIL:-0} /tmp/out.txt; echo
-            curl -sS -m 10 -I -H "Origin: https://csa.rijnstadmarketing.workers.dev" "$u" 2>/dev/null | grep -i "access-control-allow-origin" || echo "[geen CORS-header]"
+            curl -sS -m 10 -I -H "Origin: https://vantis.rijnstadmarketing.workers.dev" "$u" 2>/dev/null | grep -i "access-control-allow-origin" || echo "[geen CORS-header]"
             echo "[grootte: $(wc -c < /tmp/out.txt)]"
           done

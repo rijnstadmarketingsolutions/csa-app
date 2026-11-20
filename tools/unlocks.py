@@ -2,7 +2,7 @@
 Schrijft tools/unlocks.sql met één kv-regel ('unlocks') voor de D1-database."""
 import json, time, urllib.request, sys, re
 BASE = 'https://defillama-datasets.llama.fi'
-# DefiLlama-slug -> symbool zoals op Bitvavo/CSA
+# DefiLlama-slug -> symbool zoals op Bitvavo/Vantis
 MAP = {'arbitrum-foundation': 'ARB', 'arbitrum': 'ARB', 'optimism-foundation': 'OP', 'aptos': 'APT', 'sui-foundation': 'SUI', 'avalanche': 'AVAX', 'worldcoin': 'WLD', 'jupiter': 'JUP',
   'pyth': 'PYTH', 'layerzero': 'ZRO', 'starknet': 'STRK', 'sei': 'SEI', 'celestia': 'TIA', 'dydx': 'DYDX', 'ethena': 'ENA', 'ondo-finance': 'ONDO', 'immutablex': 'IMX',
   'axie-infinity': 'AXS', 'the-sandbox': 'SAND', 'decentraland': 'MANA', 'uniswap': 'UNI', 'aave': 'AAVE', 'lido': 'LDO', 'curve-finance': 'CRV', 'synthetix': 'SNX',
@@ -17,7 +17,7 @@ MAP = {'arbitrum-foundation': 'ARB', 'arbitrum': 'ARB', 'optimism-foundation': '
   'omni-network': 'OMNI', 'cowswap': 'COW', 'balancer': 'BAL', 'sushi': 'SUSHI', 'rocket-pool': 'RPL', 'gearbox': 'GEAR', 'yearn': 'YFI', 'liquity': 'LQTY', 'fluid': 'FLUID',
   'deepbook': 'DEEP', 'sanctum': 'CLOUD', 'axelar': 'AXL', 'notcoin': 'NOT', 'celo': 'CELO', 'moonbeam': 'GLMR', 'stader': 'SD', 'ssv-network': 'SSV', 'bouncebit': 'BB'}
 def get(path):
-  req = urllib.request.Request(BASE + path, headers={'user-agent': 'CSA-unlocks/1.0'})
+  req = urllib.request.Request(BASE + path, headers={'user-agent': 'Vantis-unlocks/1.0'})
   with urllib.request.urlopen(req, timeout=60) as r: return json.loads(r.read())
 def find_events(o, path='', out=None):
   out = [] if out is None else out

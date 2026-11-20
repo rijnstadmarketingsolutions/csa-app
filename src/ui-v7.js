@@ -10,12 +10,13 @@ const I18N={lang:S.settings.lang||'nl',dict:null,obs:null,
   dates(s){if(!/\d/.test(s))return s;return s.replace(/\b(maandag|dinsdag|woensdag|donderdag|vrijdag|zaterdag|zondag|ma|di|wo|do|vr|za|zo)\b(?=[\s.,])/g,m=>this.DAYS[m]).replace(/\b(januari|februari|maart|april|mei|juni|juli|augustus|september|oktober|november|december|jan|feb|mrt|apr|jun|jul|aug|sep|okt|nov|dec)\b/g,m=>this.MONTHS[m])},
   tr(s){if(!s||!/[a-zA-Zà-ü]/.test(s))return s;const D=this.dict;const lead=s.match(/^\s*/)[0],tail=s.match(/\s*$/)[0];const core=this.norm(s);
     if(D[core]!=null)return lead+D[core]+tail;const [k,nums]=this.key(core);const t=D[k];if(t!=null){let i=0;return lead+t.replace(/\{\}/g,()=>nums[i++]??'')+tail}
+    if(D.__rx){if(!this.rx)this.rx=D.__rx.map(([p,r])=>[new RegExp(p),r]);for(const [re,r] of this.rx)if(re.test(core)){const o=core.replace(re,r);return lead+this.dates(o)+tail}}
     const d=this.dates(core);return d!==core?lead+d+tail:s},
   skip(el){return !el||el.closest&&el.closest('script,style,[data-noi18n],.ctitle,.nt,code,textarea')},
   walk(root){if(!this.dict)return;const W=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let n;const L=[];while((n=W.nextNode()))L.push(n);
     for(const t of L){if(this.skip(t.parentElement))continue;const v=t.nodeValue;if(!v.trim())continue;const r=this.tr(v);if(r!==v)t.nodeValue=r}
     const E=root.querySelectorAll?root.querySelectorAll('[placeholder],[aria-label],[title]'):[];for(const e of [root,...E]){if(!e.getAttribute)continue;for(const a of ['placeholder','aria-label','title']){const v=e.getAttribute(a);if(v){const r=this.tr(v);if(r!==v)e.setAttribute(a,r)}}}},
-  async start(){if(this.lang!=='en')return;document.documentElement.lang='en';try{this.dict=window.CSA_EN||await (await fetch('i18n/en.json',{cache:'force-cache'})).json()}catch(e){return}
+  async start(){if(this.lang!=='en')return;document.documentElement.lang='en';try{this.dict=window.VANTIS_EN||await (await fetch('i18n/en.json',{cache:'force-cache'})).json()}catch(e){return}
     this.walk(document.body);document.title=this.tr(document.title);let busy=false;
     this.obs=new MutationObserver(ms=>{if(busy)return;busy=true;try{for(const m of ms){if(m.type==='characterData'){const t=m.target;if(!this.skip(t.parentElement)){const r=this.tr(t.nodeValue);if(r!==t.nodeValue)t.nodeValue=r}}else for(const n of m.addedNodes){if(n.nodeType===3){if(!this.skip(n.parentElement)){const r=this.tr(n.nodeValue);if(r!==n.nodeValue)n.nodeValue=r}}else if(n.nodeType===1)this.walk(n)}}}finally{busy=false}});
     this.obs.observe(document.body,{subtree:true,childList:true,characterData:true})},

@@ -1,7 +1,7 @@
 {
-  // CSA: één Worker voor de app (statische bestanden), de API en de 24/7 scanner
+  // Vantis: één Worker voor de app (statische bestanden), de API en de 24/7 scanner
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "csa",
+  "name": "vantis",
   "main": "worker/index.js",
   "compatibility_date": "2026-11-01",
   "workers_dev": true,

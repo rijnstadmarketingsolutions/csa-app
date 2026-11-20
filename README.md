@@ -1,10 +1,10 @@
-# Crypto Signal AI (CSA)
+# Vantis — Crypto Intelligence
 
-AI Market Intelligence voor crypto en aandelen. Prototype van Rijnstad Marketing Solutions.
-CSA is een **informatieplatform**: geen handel, geen bewaring van tegoeden, geen persoonlijk beleggingsadvies.
+Crypto Intelligence voor crypto en aandelen. Prototype van Rijnstad Marketing Solutions.
+Vantis is een **informatieplatform**: geen handel, geen bewaring van tegoeden, geen persoonlijk beleggingsadvies.
 
 ## Architectuur
-Eén Cloudflare Worker (`csa`) doet alles:
+Eén Cloudflare Worker (`vantis`) doet alles:
 
 | Onderdeel | Waar |
 |---|---|
@@ -47,7 +47,7 @@ Optioneel (alles werkt zonder; met sleutel komt er meer data of betalen bij):
 Voorbereid; de store-accounts komen later.
 ```bash
 npm install
-CSA_API_ORIGIN=https://csa.<jouw-subdomein>.workers.dev npm run cap:sync   # bouwt site/ met het API-adres
+VANTIS_API_ORIGIN=https://vantis.<jouw-subdomein>.workers.dev npm run cap:sync   # bouwt site/ met het API-adres
 npx cap add ios        # eenmalig, op een Mac met Xcode
 npx cap add android    # eenmalig, met Android Studio
 npm run cap:ios        # of: npm run cap:android

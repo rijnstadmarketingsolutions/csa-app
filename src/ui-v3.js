@@ -1,5 +1,5 @@
 /* =====================================================================
-   CSA 1.2 — uitleg (beginnersmodus), onboarding, koersalerts, meldingencentrum,
+   Vantis 1.2 — uitleg (beginnersmodus), onboarding, koersalerts, meldingencentrum,
    grafiek met gebeurtenissen, vergelijken, agenda-export, briefing, deelkaart
    ===================================================================== */
 if(!S.settings.mode)S.settings.mode='beginner';
@@ -26,9 +26,9 @@ const GLOSS={
   breadth:['Marktbreedte','Welk deel van de grootste munten vandaag stijgt. 80% = vrijwel alles stijgt; 20% = vrijwel alles daalt.'],
   volume:['Handelsvolume','Hoeveel er nu op de hele markt verhandeld wordt vergeleken met normaal. Hoog volume betekent dat bewegingen meer "gewicht" hebben.'],
   dom:['Bitcoin-dominantie','Het aandeel van Bitcoin in de totale waarde van alle crypto. Stijgt het, dan kiezen beleggers vaak voor de "veilige" munt; daalt het, dan gaat er meer geld naar altcoins.'],
-  fng:['Fear & Greed-index','Een externe index (alternative.me) van 0 tot 100 die de stemming meet: 0 = extreme angst, 100 = extreme hebzucht. Los van de CSA-berekening.'],
-  impact:['CSA Impact Score','Een score van 0 tot 100 voor hoe groot de invloed van een gebeurtenis op de markt kan zijn. Hij zegt iets over de omvang, niet over de richting.'],
-  senti:['CSA Sentiment','De stemming volgens CSA, berekend uit koersbeweging, trend, volume, het 20-daags gemiddelde en de toon van het nieuws. Van −100 (bearish) tot +100 (bullish).'],
+  fng:['Fear & Greed-index','Een externe index (alternative.me) van 0 tot 100 die de stemming meet: 0 = extreme angst, 100 = extreme hebzucht. Los van de Vantis-berekening.'],
+  impact:['Vantis Impact Score','Een score van 0 tot 100 voor hoe groot de invloed van een gebeurtenis op de markt kan zijn. Hij zegt iets over de omvang, niet over de richting.'],
+  senti:['Vantis Sentiment','De stemming volgens Vantis, berekend uit koersbeweging, trend, volume, het 20-daags gemiddelde en de toon van het nieuws. Van −100 (bearish) tot +100 (bullish).'],
   z:['Normale dagbeweging','Hoeveel keer groter de beweging van vandaag is dan een normale dag voor deze asset. Vanaf 2× is het statistisch ongewoon.'],
   beta:['Beta t.o.v. Bitcoin','Hoeveel deze munt gemiddeld beweegt als Bitcoin 1% beweegt. Beta 1,5 = bij +1% Bitcoin gemiddeld +1,5%.'],
   cap:['Totale marktwaarde','De waarde van alle crypto samen (koers × aantal munten), volgens CoinGecko.']
@@ -48,19 +48,19 @@ const Onb={step:0,picks:new Set(),
     const C=['BTC','ETH','SOL','XRP','ADA','DOGE','LINK','AVAX','SUI','PEPE'],A=['NVDA','AAPL','MSFT','TSLA','ASML','COIN','MSTR','PLTR'];
     const chip=s=>{const a=getAsset(s);return `<button type="button" class="pick ${this.picks.has(s)?'on':''}" data-pick="${s}">${a?ab(a):''}<span>${esc(a?a.name:s)}</span></button>`};
     const pages=[
-      `<div class="onb-hero"><span class="logo" data-logo style="width:84px;height:84px"></span></div><h2>Welkom bij Crypto Signal AI</h2><p class="muted">CSA volgt de markt voor je, 24 uur per dag, en vertelt je in gewone taal wat er gebeurt en waarom.</p>
+      `<div class="onb-hero"><span class="logo" data-logo style="width:84px;height:84px"></span></div><h2>Welkom bij Vantis</h2><p class="muted">Vantis volgt de markt voor je, 24 uur per dag, en vertelt je in gewone taal wat er gebeurt en waarom.</p>
        <ul class="onb-list"><li><b>Live koersen</b> van crypto en aandelen, met bron en tijd</li><li><b>Waarom beweegt het?</b> Oorzaken met bronnen, of eerlijk "nog onbekend"</li><li><b>Meldingen</b> bij gebeurtenissen die er echt toe doen</li></ul>`,
       `<h2>Wat wil je volgen?</h2><p class="muted">Je keuze komt op je watchlist. Je kunt dit later altijd aanpassen.</p>
        <div class="onb-toggle"><button type="button" class="${d.crypto?'on':''}" data-t="crypto">Crypto</button><button type="button" class="${d.stocks?'on':''}" data-t="stocks">Aandelen</button></div>
        ${d.crypto?`<div class="src" style="margin:14px 0 6px">Populaire munten</div><div class="picks">${C.map(chip).join('')}</div>`:''}
        ${d.stocks?`<div class="src" style="margin:14px 0 6px">Populaire aandelen</div><div class="picks">${A.map(chip).join('')}</div>`:''}`,
-      `<h2>Hoe vaak wil je een melding?</h2><p class="muted">CSA geeft elke gebeurtenis een Impact Score van 0 tot 100. Kies vanaf welke score je een melding krijgt.</p>
+      `<h2>Hoe vaak wil je een melding?</h2><p class="muted">Vantis geeft elke gebeurtenis een Impact Score van 0 tot 100. Kies vanaf welke score je een melding krijgt.</p>
        <div class="onb-opts">${[[80,'Alleen grote gebeurtenissen','Een paar keer per week'],[60,'Belangrijke gebeurtenissen','Aanbevolen · enkele per dag'],[40,'Alles wat opvalt','Voor actieve volgers']].map(([v,t,s])=>`<button type="button" class="opt ${d.min===v?'on':''}" data-min="${v}"><b>${t}</b><span>Score ${v}+ · ${s}</span></button>`).join('')}</div>
        <label class="chk" style="margin-top:14px"><input type="checkbox" id="onbbrief" ${d.brief?'checked':''}> Elke ochtend om 08:00 een korte marktbriefing</label>
-       ${Push.supported()&&Api.authed?`<button type="button" class="btn ghost" id="onbpush" style="margin-top:6px">${ico('bell')}Pushmeldingen aanzetten</button><p class="note" id="onbpushmsg"></p>`:`<p class="note">${/iPhone|iPad/.test(navigator.userAgent)?'Op iPhone: zet CSA eerst op je beginscherm om pushmeldingen te krijgen.':'Pushmeldingen zet je aan bij Instellingen.'}</p>`}`,
-      `<h2>Hoe ervaren ben je?</h2><p class="muted">Dit bepaalt hoeveel uitleg CSA geeft.</p>
+       ${Push.supported()&&Api.authed?`<button type="button" class="btn ghost" id="onbpush" style="margin-top:6px">${ico('bell')}Pushmeldingen aanzetten</button><p class="note" id="onbpushmsg"></p>`:`<p class="note">${/iPhone|iPad/.test(navigator.userAgent)?'Op iPhone: zet Vantis eerst op je beginscherm om pushmeldingen te krijgen.':'Pushmeldingen zet je aan bij Instellingen.'}</p>`}`,
+      `<h2>Hoe ervaren ben je?</h2><p class="muted">Dit bepaalt hoeveel uitleg Vantis geeft.</p>
        <div class="onb-opts">${[['beginner','Ik ben nieuw','Uitleg bij begrippen als RSI, volatiliteit en dominantie (tik op het i-teken)'],['pro','Ik ken de markt','Geen uitleg, meer cijfers zoals beta en z-score']].map(([v,t,s])=>`<button type="button" class="opt ${d.mode===v?'on':''}" data-mode="${v}"><b>${t}</b><span>${s}</span></button>`).join('')}</div>`];
-    $('#overlay').innerHTML=`<div class="scrim onb-scrim"><div class="onb" role="dialog" aria-modal="true" aria-label="Welkom bij CSA"><div class="onb-dots">${pages.map((_,i)=>`<i class="${i===st?'on':''}"></i>`).join('')}</div><div class="onb-body">${pages[st]}</div>
+    $('#overlay').innerHTML=`<div class="scrim onb-scrim"><div class="onb" role="dialog" aria-modal="true" aria-label="Welkom bij Vantis"><div class="onb-dots">${pages.map((_,i)=>`<i class="${i===st?'on':''}"></i>`).join('')}</div><div class="onb-body">${pages[st]}</div>
       <div class="onb-foot"><button type="button" class="lnk" id="onbskip">${st?'Terug':'Overslaan'}</button><button type="button" class="btn" id="onbnext">${st===pages.length-1?'Starten':'Volgende'}</button></div></div></div>`;
     $$('#overlay [data-logo]').forEach(e=>e.innerHTML=LOGO);
     const o=$('#overlay');
@@ -73,7 +73,7 @@ const Onb={step:0,picks:new Set(),
     $('#onbskip').onclick=()=>{if(st){this.step--;this.draw()}else this.finish(true)};
     $('#onbnext').onclick=()=>{if(st<pages.length-1){this.step++;this.draw()}else this.finish(false)};
   },
-  finish(skip){const s=S.settings;if(!skip){S.watch=[...this.picks];LS.set('watch',S.watch);s.minScore=this.data.min;s.briefing=this.data.brief;s.mode=this.data.mode}s.onboarded=true;saveSettings();closeOverlay();UI.route();if(!skip)UI.toast({title:'Klaar! CSA is ingesteld',body:`${S.watch.length} assets op je watchlist · meldingen vanaf score ${s.minScore}.`})}
+  finish(skip){const s=S.settings;if(!skip){S.watch=[...this.picks];LS.set('watch',S.watch);s.minScore=this.data.min;s.briefing=this.data.brief;s.mode=this.data.mode}s.onboarded=true;saveSettings();closeOverlay();UI.route();if(!skip)UI.toast({title:'Klaar! Vantis is ingesteld',body:`${S.watch.length} assets op je watchlist · meldingen vanaf score ${s.minScore}.`})}
 };
 
 /* ---------------- koersalerts ---------------- */
@@ -103,7 +103,7 @@ const PA={list:null,
       <div class="field"><label for="pakind">Wanneer</label><select class="inp" id="pakind">${KGRP.map(([g,L])=>`<optgroup label="${g}">${L.map(k=>`<option value="${k}">${KINDS[k]}</option>`).join('')}</optgroup>`).join('')}</select></div>
       <div class="field" id="pavf"><label for="paval" id="pavl">Koers</label><input class="inp" id="paval" inputmode="decimal"></div><p class="note" id="pahint"></p>
       <div class="err" id="paerr"></div><button class="btn" style="width:100%;height:44px">Alert instellen</button>
-      <p class="note" style="margin-top:10px">${Api.authed?'De CSA-server controleert elke 5 minuten, ook als de app dicht is. Met pushmeldingen aan krijg je hem direct op je telefoon.':'Zonder account werkt de alert alleen zolang CSA openstaat in deze browser.'}</p></form>`,c=>{
+      <p class="note" style="margin-top:10px">${Api.authed?'De Vantis-server controleert elke 5 minuten, ook als de app dicht is. Met pushmeldingen aan krijg je hem direct op je telefoon.':'Zonder account werkt de alert alleen zolang Vantis openstaat in deze browser.'}</p></form>`,c=>{
       const upd=()=>{const x=getAsset($('#pasym',c).value),k=$('#pakind',c).value,pc=/1h|24h/.test(k),ind=!/^(above|below|up|down)/.test(k);$('#pavf',c).classList.toggle('hidden',KNOVAL.has(k));
         $('#pavl',c).textContent=pc?'Percentage':/^rsi/.test(k)?'RSI-waarde (1–99)':k==='volx'?'Factor (bijv. 2 = twee keer zo veel)':'Koers ('+(x?.cur==='USD'?'$':'€')+')';
         $('#paval',c).placeholder=pc?'bijv. 5':k==='rsi_lt'?'30':k==='rsi_gt'?'70':k==='volx'?'2':(x?nlN(x.price*(k==='above'?1.05:.95),x.price<1?6:2):'');
@@ -127,9 +127,9 @@ const dayLabel=t=>{const d=new Date(t),n=new Date();const k=x=>x.toDateString();
 const CATLBL={alert:'Koersalert',impact:'Impact',reminder:'Herinnering',briefing:'Briefing',senti:'Sentiment',test:'Test'};
 Pages.meldingen={
   title:()=>'Meldingen',
-  html:()=>`<div class="phead"><div><h1>Meldingen</h1><p>Alles wat CSA je meldde, ook wat binnenkwam terwijl de app dicht was. Stel hier ook je koersalerts in.</p></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost" id="ncread">Alles gelezen</button><button class="btn" id="ncnew">${ico('alarm')}Nieuwe koersalert</button></div></div>
+  html:()=>`<div class="phead"><div><h1>Meldingen</h1><p>Alles wat Vantis je meldde, ook wat binnenkwam terwijl de app dicht was. Stel hier ook je koersalerts in.</p></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost" id="ncread">Alles gelezen</button><button class="btn" id="ncnew">${ico('alarm')}Nieuwe koersalert</button></div></div>
     <div class="grid g2x"><div class="card"><div class="chips" id="ncf" style="margin-bottom:6px">${[['all','Alles'],['unread','Ongelezen'],['alert','Koersalerts'],['impact','Impact'],['reminder','Herinneringen'],['briefing','Briefing'],['senti','Sentiment']].map(([k,l])=>`<button class="chip ${NC.f===k?'on':''}" data-f="${k}">${l}</button>`).join('')}</div><div id="nclist">${skel(5)}</div></div>
-    <div class="card"><div class="chead"><h2>Mijn koersalerts</h2><span class="src">${Api.authed?'24/7 via de CSA-server':'Alleen in deze browser'}</span></div><div id="palist">${skel(3)}</div></div></div>`,
+    <div class="card"><div class="chead"><h2>Mijn koersalerts</h2><span class="src">${Api.authed?'24/7 via de Vantis-server':'Alleen in deze browser'}</span></div><div id="palist">${skel(3)}</div></div></div>`,
   async mount(el){
     $('#ncf',el).onclick=e=>{const b=e.target.closest('[data-f]');if(!b)return;NC.f=b.dataset.f;$$('#ncf .chip',el).forEach(x=>x.classList.toggle('on',x===b));this.live(el,null,'calc')};
     $('#ncread',el).onclick=()=>{NC.markAll();this.live(el,null,'calc')};$('#ncnew',el).onclick=()=>PA.dialog();
@@ -151,7 +151,7 @@ async function chartData(a,range){const k=a.sym+range;const c=CH.cache[k];if(c&&
 function chartMarkers(a,t0,t1){
   const M=[];const inR=t=>t>=t0&&t<=t1+HOUR;
   for(const e of S.events.values())if((e.asset===a.sym||(e.assets||[])[0]===a.sym)&&inR(e.first))M.push({t:e.first,k:'impact',dir:e.dir,title:e.title,sub:`Impact ${e.score}/100 · ${e.I.label}`,href:'#impact',score:e.score});
-  for(const e of S.srvEvents)if(e.s===a.sym&&inR(e.t)&&!M.some(m=>m.title===e.title))M.push({t:e.t,k:'impact',dir:e.dir,title:e.title,sub:`Impact ${e.score}/100 · gemeten door de CSA-server`,href:'#impact',score:e.score});
+  for(const e of S.srvEvents)if(e.s===a.sym&&inR(e.t)&&!M.some(m=>m.title===e.title))M.push({t:e.t,k:'impact',dir:e.dir,title:e.title,sub:`Impact ${e.score}/100 · gemeten door de Vantis-server`,href:'#impact',score:e.score});
   for(const c of S.clusters)if(c.assets.includes(a.sym)&&inR(c.t))M.push({t:c.t,k:'news',dir:c.tone>.2?1:c.tone<-.2?-1:0,title:c.title,sub:`${c.sources.size} bron${c.sources.size>1?'nen':''} · ${c.kind}`,href:c.url,ext:true});
   for(const l of S.sentiLog)if(l.key===a.sym&&inR(l.t))M.push({t:l.t,k:'senti',dir:0,title:`Sentiment: ${l.from} → ${l.to}`,sub:l.why[0]||'',href:'#waarom-'+a.sym.toLowerCase()});
   return M.sort((x,y)=>x.t-y.t);
@@ -215,10 +215,10 @@ Pages.vergelijk={
 
 /* ---------------- agenda-export ---------------- */
 function icsFor(list){const z=t=>new Date(t).toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'');const e=s=>String(s).replace(/[\\,;]/g,m=>'\\'+m).replace(/\n/g,'\\n');
-  return ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Crypto Signal AI//Event Radar//NL','CALSCALE:GREGORIAN','METHOD:PUBLISH',...list.flatMap(ev=>['BEGIN:VEVENT','UID:'+ev.id+'@csa','DTSTAMP:'+z(Date.now()),'DTSTART:'+z(ev.t),'DTEND:'+z(ev.t+30*MIN),'SUMMARY:'+e(ev.title),'DESCRIPTION:'+e(`${ETYPE[ev.type]?.l||''} · ${ev.reg}. CSA Impact Score ${Radar.imp(ev).score}/100. ${ETYPE[ev.type]?.why||''} Bron: ${ev.src||''}`),...(ev.url?['URL:'+ev.url]:[]),'BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:'+e(ev.title),'TRIGGER:-PT15M','END:VALARM','END:VEVENT']),'END:VCALENDAR'].join('\r\n')}
+  return ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Vantis//Event Radar//NL','CALSCALE:GREGORIAN','METHOD:PUBLISH',...list.flatMap(ev=>['BEGIN:VEVENT','UID:'+ev.id+'@vantis','DTSTAMP:'+z(Date.now()),'DTSTART:'+z(ev.t),'DTEND:'+z(ev.t+30*MIN),'SUMMARY:'+e(ev.title),'DESCRIPTION:'+e(`${ETYPE[ev.type]?.l||''} · ${ev.reg}. Vantis Impact Score ${Radar.imp(ev).score}/100. ${ETYPE[ev.type]?.why||''} Bron: ${ev.src||''}`),...(ev.url?['URL:'+ev.url]:[]),'BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:'+e(ev.title),'TRIGGER:-PT15M','END:VALARM','END:VEVENT']),'END:VCALENDAR'].join('\r\n')}
 function downloadFile(name,text,type){const b=new Blob([text],{type});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(u);a.remove()},1500)}
-const gcal=ev=>{const z=t=>new Date(t).toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'');return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent(ev.title)+'&dates='+z(ev.t)+'/'+z(ev.t+30*MIN)+'&details='+encodeURIComponent(`${ETYPE[ev.type]?.why||''}\n\nCSA Impact Score ${Radar.imp(ev).score}/100 · Crypto Signal AI`)};
-document.addEventListener('click',e=>{const b=e.target.closest('[data-ics]');if(b){e.preventDefault();const id=b.dataset.ics;const L=id==='all'?Radar.upcoming():Radar.all().filter(x=>x.id===id);downloadFile(id==='all'?'csa-event-radar.ics':'csa-'+id+'.ics',icsFor(L),'text/calendar');UI.toast({title:'Agendabestand gedownload',body:'Open het bestand om '+(L.length>1?L.length+' gebeurtenissen':'de gebeurtenis')+' aan je agenda toe te voegen.'})}});
+const gcal=ev=>{const z=t=>new Date(t).toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'');return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent(ev.title)+'&dates='+z(ev.t)+'/'+z(ev.t+30*MIN)+'&details='+encodeURIComponent(`${ETYPE[ev.type]?.why||''}\n\nVantis Impact Score ${Radar.imp(ev).score}/100 · Vantis`)};
+document.addEventListener('click',e=>{const b=e.target.closest('[data-ics]');if(b){e.preventDefault();const id=b.dataset.ics;const L=id==='all'?Radar.upcoming():Radar.all().filter(x=>x.id===id);downloadFile(id==='all'?'vantis-event-radar.ics':'vantis-'+id+'.ics',icsFor(L),'text/calendar');UI.toast({title:'Agendabestand gedownload',body:'Open het bestand om '+(L.length>1?L.length+' gebeurtenissen':'de gebeurtenis')+' aan je agenda toe te voegen.'})}});
 
 /* ---------------- ochtendbriefing ---------------- */
 const BR={d:null};
@@ -227,7 +227,7 @@ function localBriefing(){const btc=S.crypto.get('BTC'),eth=S.crypto.get('ETH'),m
   const today=Radar.upcoming().filter(e=>e.t-Date.now()<2*DAY);
   return {t:Date.now(),day:new Date().toLocaleDateString('nl-NL',{weekday:'long',day:'numeric',month:'long'}),edition:false,tone,
     headline:Math.abs(btc.ch24)<1.5&&Math.abs(mk.vw||0)<1.5?`Rustige markt: Bitcoin ${pct(btc.ch24)}, ${Math.round(mk.breadth*100)}% van de top-${mk.n} in de plus`:`Crypto ${tone==='positief'?'in de lift':tone==='negatief'?'onder druk':'verdeeld'}: Bitcoin ${pct(btc.ch24)}, ${Math.round(mk.breadth*100)}% van de top-${mk.n} in de plus`,
-    points:[`Bitcoin staat op ${pct(btc.ch24)} in 24 uur${btc.m.z24!=null?`, ${nlN(Math.abs(btc.m.z24),1)}× de normale dagbeweging`:''}.`,mk.n?`De brede markt is ${tone}: ${Math.round(mk.breadth*100)}% van de top-${mk.n} stijgt, volumegewogen ${pct(mk.vw)}.`:null,S.senti.overall?`CSA Sentiment: ${S.senti.overall.l}.`:null,ev.length?`${ev.length} opvallende gebeurtenissen in 24 uur; hoogste Impact Score ${ev[0].score}.`:null,today.length?`Op de agenda: ${today.map(e=>e.title).join('; ')}.`:null].filter(Boolean),
+    points:[`Bitcoin staat op ${pct(btc.ch24)} in 24 uur${btc.m.z24!=null?`, ${nlN(Math.abs(btc.m.z24),1)}× de normale dagbeweging`:''}.`,mk.n?`De brede markt is ${tone}: ${Math.round(mk.breadth*100)}% van de top-${mk.n} stijgt, volumegewogen ${pct(mk.vw)}.`:null,S.senti.overall?`Vantis Sentiment: ${S.senti.overall.l}.`:null,ev.length?`${ev.length} opvallende gebeurtenissen in 24 uur; hoogste Impact Score ${ev[0].score}.`:null,today.length?`Op de agenda: ${today.map(e=>e.title).join('; ')}.`:null].filter(Boolean),
     market:{btc:{p:btc.price,ch:btc.ch24},eth:eth?{p:eth.price,ch:eth.ch24}:null},up:D.slice(0,3).map(a=>({s:a.sym,name:a.name,ch:a.ch24,p:a.price})),down:D.slice(-3).reverse().map(a=>({s:a.sym,name:a.name,ch:a.ch24,p:a.price})),
     events:ev.slice(0,5).map(e=>({title:e.title,score:e.score,s:e.asset,t:e.first})),news:S.clusters.filter(c=>Date.now()-c.t<DAY).sort((a,b)=>b.sources.size-a.sources.size).slice(0,5).map(c=>({title:c.title,url:c.url,sources:[...c.sources],t:c.t})),agenda:today.map(e=>({title:e.title,t:e.t})),note:'Samengesteld uit actuele marktdata volgens vaste regels. Geen beleggingsadvies.'}}
 Pages.briefing={
@@ -255,7 +255,7 @@ async function shareCard(o){
   const wrap=(t,x,y,max,lh,maxLines=4)=>{const ws=String(t).split(' ');let line='',n=0;for(const w of ws){const test=line?line+' '+w:w;if(g.measureText(test).width>max&&line){g.fillText(line,x,y);y+=lh;line=w;if(++n>=maxLines-1){const rest=ws.slice(ws.indexOf(w)).join(' ');let s=rest;while(g.measureText(s+'…').width>max&&s.length)s=s.slice(0,-1);g.fillText(s+(s!==rest?'…':''),x,y);return y+lh}}else line=test}g.fillText(line,x,y);return y+lh};
   g.fillStyle='#fff';g.fillRect(0,0,1080,1350);g.fillStyle=navy;g.fillRect(0,0,1080,250);
   try{const img=new Image();img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(LOGO.replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" width="140" height="140" style="color:#fff;--logo-bg:#17243A" ').replace(/currentColor/g,'#fff').replace(/var\(--logo-bg,#fff\)/g,'#17243A'));await img.decode();g.drawImage(img,70,55,140,140)}catch(e){}
-  g.fillStyle='#fff';g.font=F(700,46,'Inter Tight');g.fillText('Crypto Signal AI',240,118);g.fillStyle='#B9C6DD';g.font=F(500,30);g.fillText('AI Market Intelligence',240,164);
+  g.fillStyle='#fff';g.font=F(700,46,'Inter Tight');g.fillText('Vantis',240,118);g.fillStyle='#B9C6DD';g.font=F(500,30);g.fillText('Crypto Intelligence',240,164);
   let y=340;g.fillStyle='#566275';g.font=F(500,30);g.fillText(new Date().toLocaleString('nl-NL',{weekday:'long',day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'}),70,y);y+=70;
   if(o.kind==='why'){const a=o.a,w=o.w;const verb=a.ch24>0.3?'stijgt':a.ch24<-0.3?'daalt':'beweegt';
     g.fillStyle='#0E1828';g.font=F(700,64,'Inter Tight');y=wrap(`Waarom ${verb} ${a.name}${a.kind==='crypto'?' vandaag':''}?`,70,y,940,74,2)+10;
@@ -267,10 +267,10 @@ async function shareCard(o){
     g.fillStyle='#566275';g.font=F(500,30);g.fillText(`Zekerheid analyse: ${w.conf}${a.s?' · Sentiment: '+a.s.l:''}`,70,Math.min(y+10,1180))}
   else{const d=o.d;g.fillStyle='#0E1828';g.font=F(700,30);g.fillStyle='#566275';g.fillText('OCHTENDBRIEFING · '+d.day.toUpperCase(),70,y-10);y+=40;g.fillStyle='#0E1828';g.font=F(700,58,'Inter Tight');y=wrap(d.headline,70,y,940,68,3)+20;
     g.font=F(500,34);for(const p of d.points.slice(0,4)){g.fillStyle=navy;g.fillRect(70,y-22,12,12);g.fillStyle='#0E1828';y=wrap(p,100,y,910,46,3)+18;if(y>1150)break}}
-  g.fillStyle='#F3F5F9';g.fillRect(0,1230,1080,120);g.fillStyle='#566275';g.font=F(500,26);g.fillText('Analyse door CSA · csa.rijnstadmarketing.workers.dev',70,1282);g.fillText('Informatie, geen financieel advies.',70,1320);
-  const blob=await new Promise(r=>cv.toBlob(r,'image/png'));const url=URL.createObjectURL(blob);const name=o.kind==='why'?`csa-waarom-${o.a.sym.toLowerCase()}.png`:'csa-ochtendbriefing.png';const file=new File([blob],name,{type:'image/png'});
+  g.fillStyle='#F3F5F9';g.fillRect(0,1230,1080,120);g.fillStyle='#566275';g.font=F(500,26);g.fillText('Analyse door Vantis · vantis.rijnstadmarketing.workers.dev',70,1282);g.fillText('Informatie, geen financieel advies.',70,1320);
+  const blob=await new Promise(r=>cv.toBlob(r,'image/png'));const url=URL.createObjectURL(blob);const name=o.kind==='why'?`vantis-waarom-${o.a.sym.toLowerCase()}.png`:'vantis-ochtendbriefing.png';const file=new File([blob],name,{type:'image/png'});
   dlg(`<div class="chead"><h2>Deelbare kaart</h2><button class="ibtn" id="scx" aria-label="Sluiten">${ico('x')}</button></div><img src="${url}" alt="Voorbeeld van de deelkaart" style="width:100%;border:1px solid var(--line);border-radius:var(--r)"><div style="display:flex;gap:8px;margin-top:12px">${navigator.canShare&&navigator.canShare({files:[file]})?'<button class="btn" id="scs" style="flex:1">Delen</button>':''}<button class="btn ${navigator.canShare&&navigator.canShare({files:[file]})?'ghost':''}" id="scd" style="flex:1">Downloaden</button></div>`,c=>{
-    $('#scx',c).onclick=closeOverlay;const s=$('#scs',c);if(s)s.onclick=async()=>{try{await navigator.share({files:[file],title:'Crypto Signal AI',text:o.kind==='why'?`Waarom beweegt ${o.a.name}? Analyse door CSA`:'CSA ochtendbriefing'})}catch(e){}};
+    $('#scx',c).onclick=closeOverlay;const s=$('#scs',c);if(s)s.onclick=async()=>{try{await navigator.share({files:[file],title:'Vantis',text:o.kind==='why'?`Waarom beweegt ${o.a.name}? Analyse door Vantis`:'Vantis ochtendbriefing'})}catch(e){}};
     $('#scd',c).onclick=()=>{const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove()}});
 }
 

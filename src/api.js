@@ -1,12 +1,12 @@
 /* =====================================================================
-   CSA-SERVER — accounts, synchronisatie, 24/7 data, push, portefeuilles
+   Vantis-SERVER — accounts, synchronisatie, 24/7 data, push, portefeuilles
    Werkt de server niet (bijv. bestand lokaal geopend), dan draait de app
    in demomodus met lokale opslag. Dat wordt in de app zichtbaar gemeld.
    ===================================================================== */
 const NATIVE=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());
-const API_BASE=NATIVE?(window.CSA_API_ORIGIN||''):(/^https?:$/.test(location.protocol)?'':null);
-S.src.server={name:'CSA-server (24/7)',st:'wait',ts:0,kind:'Accounts, pushmeldingen, nieuws, marktcijfers, backtest',msg:'Verbinden…'};
-S.src.cg={name:'CoinGecko + Fear & Greed',st:'off',ts:0,kind:'Marktwaarde, dominantie, trending (via server)',msg:'Via de CSA-server'};
+const API_BASE=NATIVE?(window.VANTIS_API_ORIGIN||''):(/^https?:$/.test(location.protocol)?'':null);
+S.src.server={name:'Vantis-server (24/7)',st:'wait',ts:0,kind:'Accounts, pushmeldingen, nieuws, marktcijfers, backtest',msg:'Verbinden…'};
+S.src.cg={name:'CoinGecko + Fear & Greed',st:'off',ts:0,kind:'Marktwaarde, dominantie, trending (via server)',msg:'Via de Vantis-server'};
 const Api={
   on:false,features:{},token:LS.get('token',null),user:LS.get('srvuser',null),
   async call(path,opt={}){
@@ -48,8 +48,8 @@ async function loadServer(){
       else{S.src.cc.st='err';S.src.cc.msg='Geen artikelen: '+(bad.map(([k,v])=>k+' '+v).join('; ')||'wacht op serverscan')}}
     else{S.src.cc.st='wait';S.src.cc.msg='Wacht op de eerste serverscan (elke 15 min)'}
     if(d.stocks&&!S.settings.fhKey){let n=0;for(const [s,q] of Object.entries(d.stocks)){if(S.stocks.has(s)){Object.assign(S.stocks.get(s),{price:q.p,ch24:q.dp,open:q.o,high:q.h,low:q.l,prev:q.pc,ts:q.ts});n++}else ETFQ.set(s,{price:q.p,dp:q.dp,open:q.o,high:q.h,low:q.l,prev:q.pc,ts:q.ts})}
-      if(n){S.src.fh.st='ok';S.src.fh.ts=Date.now();S.src.fh.msg=n+' aandelenkoersen via CSA-server'}}
-    if(S.src.bitvavo.st==='err'&&d.tickers&&d.tickers.list){d.tickers.list.forEach(x=>applyTicker({market:x.s+'-EUR',last:x.p,open:x.o,high:x.h,low:x.l,volumeQuote:x.vq,timestamp:d.tickersTs},false));S.src.bitvavo.st='warn';S.src.bitvavo.msg='Directe verbinding mislukt; koersen via CSA-server (max. 5 min oud)'}
+      if(n){S.src.fh.st='ok';S.src.fh.ts=Date.now();S.src.fh.msg=n+' aandelenkoersen via Vantis-server'}}
+    if(S.src.bitvavo.st==='err'&&d.tickers&&d.tickers.list){d.tickers.list.forEach(x=>applyTicker({market:x.s+'-EUR',last:x.p,open:x.o,high:x.h,low:x.l,volumeQuote:x.vq,timestamp:d.tickersTs},false));S.src.bitvavo.st='warn';S.src.bitvavo.msg='Directe verbinding mislukt; koersen via Vantis-server (max. 5 min oud)'}
     S.src.server.ts=Date.now();recalc();
   }catch(e){S.src.server.st='err';S.src.server.msg='Fout: '+e.message}
 }
@@ -60,8 +60,8 @@ const Push={
   async reg(){if(!('serviceWorker' in navigator)||API_BASE==null||NATIVE)return null;try{return await navigator.serviceWorker.register('sw.js')}catch(e){return null}},
   async state(){const r=await navigator.serviceWorker?.getRegistration?.();const s=r&&await r.pushManager.getSubscription();return !!s},
   async enable(){
-    if(!Api.authed)throw new Error('Log in met een CSA-account om pushmeldingen 24/7 te ontvangen.');
-    if(!this.supported())throw new Error(/iPhone|iPad/.test(navigator.userAgent)?'Op iPhone werken pushmeldingen alleen als CSA op je beginscherm staat (Deel → Zet op beginscherm) en je de app vanaf daar opent.':'Deze browser ondersteunt geen pushmeldingen.');
+    if(!Api.authed)throw new Error('Log in met een Vantis-account om pushmeldingen 24/7 te ontvangen.');
+    if(!this.supported())throw new Error(/iPhone|iPad/.test(navigator.userAgent)?'Op iPhone werken pushmeldingen alleen als Vantis op je beginscherm staat (Deel → Zet op beginscherm) en je de app vanaf daar opent.':'Deze browser ondersteunt geen pushmeldingen.');
     const perm=await Notification.requestPermission();if(perm!=='granted')throw new Error('Meldingen zijn geweigerd. Sta ze toe in je browserinstellingen.');
     const reg=await this.reg();const {key}=await Api.call('/api/push/key');
     const sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlB64(key)});

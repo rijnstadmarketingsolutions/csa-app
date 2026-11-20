@@ -1,4 +1,4 @@
--- CSA 1.2: koersalerts en meldingenlog
+-- Vantis 1.2: koersalerts en meldingenlog
 CREATE TABLE IF NOT EXISTS price_alerts (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id TEXT NOT NULL,

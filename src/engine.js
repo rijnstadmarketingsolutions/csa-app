@@ -1,5 +1,5 @@
 /* =====================================================================
-   CSA ENGINE — data, analyse, impact, nieuws, meldingen
+   Vantis ENGINE — data, analyse, impact, nieuws, meldingen
    Alle cijfers komen uit echte bronnen (Bitvavo, CryptoCompare, Finnhub)
    of worden daaruit berekend. Ontbreekt een bron, dan zegt de app dat.
    ===================================================================== */
@@ -11,7 +11,7 @@ const CFG={
   HOURLY:14,        // aantal markten met uurdata (snelheid)
   STABLE:new Set(['USDC','USDT','EURC','DAI','EURT','TUSD','PYUSD','FDUSD','USDE','EURI','RLUSD','USD1','EURQ','EURR'])
 };
-const LS={get(k,d){try{const v=localStorage.getItem('csa.'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem('csa.'+k,JSON.stringify(v))}catch(e){}}};
+const LS={get(k,d){try{const v=localStorage.getItem('vantis.'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem('vantis.'+k,JSON.stringify(v))}catch(e){}}};
 const DEFAULT_SETTINGS={notify:true,browser:false,minScore:60,scope:'all',quietFrom:'23:00',quietTo:'07:00',quiet:false,
   cats:{move:true,sudden:true,volume:true,breakout:true,market:true,macro:true,regulation:true,security:true,etf:true,earnings:true,geo:true,watchnews:true,sector:true,whale:true,vol:true},
   fhKey:'',theme:'light'};
@@ -247,7 +247,7 @@ function trackSenti(key,name,s){
 }
 
 /* =====================================================================
-   CSA IMPACT SCORE — vaste methode
+   Vantis IMPACT SCORE — vaste methode
    I = 100 × (0,25·M + 0,15·B + 0,15·V + 0,15·R + 0,10·S + 0,10·H + 0,10·Q)
    ===================================================================== */
 const IW=[['M','Omvang / onverwachtheid',.25,'Beweging gedeeld door de normale 30-daagse dagbeweging (z-score/4, max 1). Bij gepland nieuws: verwachte verrassing.'],
@@ -303,7 +303,7 @@ function cluster(){
   S.clusters=cl;
 }
 async function loadCC(){
-  if(typeof Api!=='undefined'&&Api.on)return; // nieuws komt dan via de CSA-server
+  if(typeof Api!=='undefined'&&Api.on)return; // nieuws komt dan via de Vantis-server
   try{const r=await fetch(CFG.CC,{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);const j=await r.json();
     const d=Array.isArray(j.Data)?j.Data:[];if(!d.length)throw new Error(j.Message||'leeg antwoord');
     ingest(d.map(x=>({id:'cc'+x.id,title:x.title,body:x.body,url:x.url,src:(x.source_info&&x.source_info.name)||x.source||'Onbekend',t:x.published_on*1000,feed:'CryptoCompare'})));
@@ -445,7 +445,7 @@ function build(type,a,f,x){
     e.what=`Koers ${money(a,a.price)} ligt ${u?'boven':'onder'} de 30-daagse ${u?'top':'bodem'} van ${money(a,u?m.hi30:m.lo30)}.`;
     e.why='Technische beleggers letten op deze niveaus; een doorbraak kan extra kopers of verkopers activeren, maar valse doorbraken komen ook vaak voor.'}
   if(type==='sudden'){e.title=`Plotselinge beweging: ${nm} ${pct(m.ch15)} in 15 minuten`;e.what=`${nm} bewoog ${pct(m.ch15)} in het afgelopen kwartier (live Bitvavo-ticks).`;
-    e.why='Snelle bewegingen wijzen vaak op een gebeurtenis, grote order of liquidaties. CSA controleert of er nieuws bij hoort.'}
+    e.why='Snelle bewegingen wijzen vaak op een gebeurtenis, grote order of liquidaties. Vantis controleert of er nieuws bij hoort.'}
   if(type==='market'){const mk=S.market;e.title=`Brede cryptomarkt ${mk.vw>0?'in de plus':'onder druk'}: ${Math.round((mk.vw>0?mk.breadth:1-mk.breadth)*100)}% beweegt mee`;
     e.what=`${Math.round(mk.breadth*100)}% van de top-${mk.n} stijgt; volumegewogen ${pct(mk.vw)}. Handelsvolume ${nlN(mk.volRegime,2)}× normaal.`;
     e.why='Als bijna alles dezelfde kant op gaat, is de oorzaak meestal marktbreed (macro, liquiditeit of Bitcoin) en niet asset-specifiek.'}
@@ -472,7 +472,7 @@ function whyMoving(a){
     d:cl.length?`${cl.length} nieuwscluster(s) over ${a.name} in 24 uur; ${relNews.length} met een toon die past bij de beweging.`:(S.src.cc.st==='ok'||S.src.fh.st==='ok')?'Geen nieuws over deze asset gevonden in de gekoppelde bronnen.':'Nieuwsbron niet bereikbaar, dus niet te controleren.'});
   if(relNews.length)causes.push({k:'Asset-specifiek nieuws',w:clamp(.25+.15*relNews.length+.1*Math.max(...relNews.map(c=>c.sources.size)),0,.9),d:relNews[0].title,src:relNews.slice(0,3)});
   // 2 macro
-  checks.push({q:'Is er macro-economische data gepubliceerd?',st:recent.length||macro.length?'y':'n',d:recent.length?recent.map(e=>`${e.title} (${dmy(e.t)} ${hhmm(e.t)})`).join('; '):macro.length?`${macro.length} macro-berichten in 24 uur, o.a. "${macro[0].title}"`:'Geen grote publicatie in de afgelopen 24 uur volgens de CSA-agenda.'});
+  checks.push({q:'Is er macro-economische data gepubliceerd?',st:recent.length||macro.length?'y':'n',d:recent.length?recent.map(e=>`${e.title} (${dmy(e.t)} ${hhmm(e.t)})`).join('; '):macro.length?`${macro.length} macro-berichten in 24 uur, o.a. "${macro[0].title}"`:'Geen grote publicatie in de afgelopen 24 uur volgens de Vantis-agenda.'});
   // 3 sentiment
   const sc=S.sentiLog.filter(l=>l.key===a.sym&&Date.now()-l.t<24*HOUR);
   checks.push({q:'Is het sentiment veranderd?',st:sc.length?'y':a.s?'n':'u',d:sc.length?`${sc[0].from} → ${sc[0].to} om ${hhmm(sc[0].t)}`:a.s?`Huidig: ${a.s.l}; geen omslag gemeten in deze sessie.`:'Onvoldoende data.'});
@@ -509,7 +509,7 @@ function whyMoving(a){
   const nData=checks.filter(c=>c.st!=='u').length;
   const conf=unknown?'Laag':top.w>=.55&&nData>=6?'Hoog':top.w>=.35&&nData>=5?'Gemiddeld':'Laag';
   const summary=smallMove?`${a.name} beweegt ${pct(ch)}: binnen de normale dagbeweging. Er is geen bijzondere verklaring nodig.`:
-    unknown?`De oorzaak van de beweging van ${a.name} (${pct(ch)}) is nog onbekend. CSA vindt geen overtuigend nieuws, marktbrede beweging of technisch signaal.`:
+    unknown?`De oorzaak van de beweging van ${a.name} (${pct(ch)}) is nog onbekend. Vantis vindt geen overtuigend nieuws, marktbrede beweging of technisch signaal.`:
     `Meest waarschijnlijk: ${top.k.toLowerCase()}. ${top.d}`;
   return {checks,causes,unknown:unknown&&!smallMove,smallMove,conf,summary};
 }
@@ -615,7 +615,7 @@ const Alerts={
     a.t=Date.now();S.alerts.unshift(a);S.alerts=S.alerts.slice(0,60);S.unread++;LS.set('alerts',S.alerts);LS.set('unread',S.unread);
     UI.badge();if(Date.now()<this.silentUntil&&!a.force)return;
     UI.toast(a);
-    if(S.settings.browser&&'Notification' in window&&Notification.permission==='granted'){try{new Notification('CSA · '+a.title,{body:(a.score?`Impact ${a.score}/100 · `:'')+(a.body||''),tag:a.id})}catch(e){}}
+    if(S.settings.browser&&'Notification' in window&&Notification.permission==='granted'){try{new Notification('Vantis · '+a.title,{body:(a.score?`Impact ${a.score}/100 · `:'')+(a.body||''),tag:a.id})}catch(e){}}
     UI.badge();
   }
 };

@@ -1,4 +1,4 @@
-// CSA worker — API, statische app en 24/7 scanner (cron)
+// Vantis worker — API, statische app en 24/7 scanner (cron)
 import { json, err, readJSON, hashPassword, verifyPassword, b32enc, rand, totpCheck, newSession, sessionFrom, sessionByToken, sha256, seal, open,
   limited, bump, clearAttempts, kvGet, kvPutStmt, randToken, DAY, HOUR, MIN } from './lib.js';
 import { vapidKeys, sendPush } from './push.js';
@@ -8,7 +8,7 @@ import { adminApi, isAdmin } from './admin.js';
 import { handlePaper, paperCron, paperNeed } from './paper.js';
 import { newsKw, tgApi, tgWebhook, tgReady, tgSend, tgFormat, weekly, mailApi, mailReady } from './notify.js';
 
-const VERSION = '1.7.0';
+const VERSION = '1.8.0';
 const NATIVE_ORIGINS = ['capacitor://localhost', 'http://localhost', 'https://localhost', 'ionic://localhost'];
 const DEFAULT_SETTINGS = { notify: true, briefing: true, minScore: 60, scope: 'all', quiet: false, quietFrom: '23:00', quietTo: '07:00', cats: {} };
 const EMAIL_RX = /^[^@\s]{1,64}@[^@\s]{1,190}\.[^@\s]{2,}$/;
@@ -43,6 +43,8 @@ export default {
 
 /* =================================================================== API */
 async function api(req, env, ctx, url) {
+  // eenmalig overzetten van de versleutelsleutel bij de verhuizing naar de nieuwe worker (alleen actief met MIGRATE_TOKEN)
+  if (url.pathname === '/api/_migrate-key') { const t = req.headers.get('x-migrate') || ''; return env.MIGRATE_TOKEN && t.length === env.MIGRATE_TOKEN.length && t === env.MIGRATE_TOKEN ? json({ k: env.ENC_KEY || null }) : err(404, 'Niet gevonden'); }
   const p = url.pathname, m = req.method;
   if (p === '/api/health') { const st = await loadState(env, ['market', 'extra', 'news', 'scanstatus', 'scanstart', 'tickers']);
     if (url.searchParams.has('diag')) { const probe = {}; for (const sy of (url.searchParams.get('probe') || '').toUpperCase().split(',').filter(Boolean).slice(0, 4)) { const r = await lookupPrice(env, sy, budget(10), st.tickers?.usdt); probe[sy] = r.p ? { p: r.p, src: r.src, tried: r.tried } : { p: null, tried: r.tried }; }
@@ -62,7 +64,7 @@ async function api(req, env, ctx, url) {
     const name = String(b.name || email.split('@')[0]).slice(0, 60);
     await env.DB.prepare('INSERT INTO users(id,email,name,pw,totp,created) VALUES(?,?,?,?,?,?)').bind(id, email, name, await hashPassword(pw), await seal(env, secret), Date.now()).run();
     const pend = await newSession(env, id, 'pending', 20 * MIN);
-    return json({ pending: pend.token, setup: { secret, uri: `otpauth://totp/CSA:${encodeURIComponent(email)}?secret=${secret}&issuer=Crypto%20Signal%20AI&digits=6&period=30` } });
+    return json({ pending: pend.token, setup: { secret, uri: `otpauth://totp/Vantis:${encodeURIComponent(email)}?secret=${secret}&issuer=Vantis&digits=6&period=30` } });
   }
   if (p === '/api/auth/login' && m === 'POST') {
     const b = await readJSON(req); const email = String(b.email || '').trim().toLowerCase();
@@ -70,7 +72,7 @@ async function api(req, env, ctx, url) {
     const u = await env.DB.prepare('SELECT id,pw,totp,totp_on,email FROM users WHERE email=?').bind(email).first();
     if (!u || !(await verifyPassword(String(b.password || ''), u.pw))) { await bump(env, k); return err(401, 'E-mailadres of wachtwoord klopt niet.'); }
     const pend = await newSession(env, u.id, 'pending', 10 * MIN);
-    if (!u.totp_on) { const secret = await open(env, u.totp); return json({ pending: pend.token, setup: { secret, uri: `otpauth://totp/CSA:${encodeURIComponent(u.email)}?secret=${secret}&issuer=Crypto%20Signal%20AI&digits=6&period=30` } }); }
+    if (!u.totp_on) { const secret = await open(env, u.totp); return json({ pending: pend.token, setup: { secret, uri: `otpauth://totp/Vantis:${encodeURIComponent(u.email)}?secret=${secret}&issuer=Vantis&digits=6&period=30` } }); }
     return json({ pending: pend.token, need: 'totp' });
   }
   if (p === '/api/auth/verify' && m === 'POST') {
@@ -113,7 +115,7 @@ async function api(req, env, ctx, url) {
     if (m === 'DELETE') { await env.DB.prepare('DELETE FROM push_subs WHERE endpoint=? AND user_id=?').bind(b.endpoint || '', s.user_id).run(); return json({ ok: true }); } }
   if (p === '/api/push/test' && m === 'POST') { if (!s) return needAuth();
     const subs = (await env.DB.prepare('SELECT * FROM push_subs WHERE user_id=?').bind(s.user_id).all()).results; if (!subs.length) return err(400, 'Dit account heeft nog geen apparaat voor pushmeldingen.');
-    const res = []; for (const sub of subs) { const r = await sendPush(env, sub, { title: 'CSA testmelding', body: 'Pushmeldingen werken. Zo krijg je straks belangrijke marktgebeurtenissen binnen.', url: '/#impact', tag: 'test' }); res.push(r); if (r === 'gone') await env.DB.prepare('DELETE FROM push_subs WHERE endpoint=?').bind(sub.endpoint).run(); }
+    const res = []; for (const sub of subs) { const r = await sendPush(env, sub, { title: 'Vantis testmelding', body: 'Pushmeldingen werken. Zo krijg je straks belangrijke marktgebeurtenissen binnen.', url: '/#impact', tag: 'test' }); res.push(r); if (r === 'gone') await env.DB.prepare('DELETE FROM push_subs WHERE endpoint=?').bind(sub.endpoint).run(); }
     return json({ results: res }); }
 
   /* ---------- marktdata (openbaar) ---------- */
@@ -273,7 +275,7 @@ async function morning(env) {
   const b = budget(45); const ops = []; const logged = new Set(); const now = Date.now();
   for (const r of rows) { const st2 = { ...DEFAULT_SETTINGS, ...JSON.parse(r.settings || '{}') }; if (st2.briefing === false) continue; if (env.PREMIUM_ENFORCED === 'true' && r.plan !== 'premium') continue;
     if (!logged.has(r.user_id)) { logged.add(r.user_id); ops.push(env.DB.prepare('INSERT OR IGNORE INTO notif(id,user_id,title,body,url,cat,score,t) VALUES(?,?,?,?,?,?,?,?)').bind('brief:' + br.day, r.user_id, 'Ochtendbriefing · ' + br.day, br.headline, '/#briefing', 'briefing', null, now)); }
-    if (!b.take()) continue; const res = await sendPush(env, r, { title: 'CSA ochtendbriefing', body: br.headline, url: '/#briefing', tag: 'briefing' }).catch(() => 'fail');
+    if (!b.take()) continue; const res = await sendPush(env, r, { title: 'Vantis ochtendbriefing', body: br.headline, url: '/#briefing', tag: 'briefing' }).catch(() => 'fail');
     if (res === 'gone') ops.push(env.DB.prepare('DELETE FROM push_subs WHERE endpoint=?').bind(r.endpoint)); }
   if (tgReady(env)) { const T = (await env.DB.prepare('SELECT t.user_id,t.chat_id,p.settings FROM tg_links t LEFT JOIN prefs p ON p.user_id=t.user_id').all()).results;
     for (const r of T) { const st2 = JSON.parse(r.settings || '{}'); if (st2.briefing === false || (st2.tgOff || []).includes('briefing') || !b.take()) continue;

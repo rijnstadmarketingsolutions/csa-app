@@ -3,7 +3,7 @@ import { json, err, readJSON, kvPutStmt, DAY, HOUR } from './lib.js';
 import { quote } from './market.js';
 
 export const isAdmin = (env, s) => !!s && String(env.ADMIN_EMAILS || '').toLowerCase().split(/[\s,;]+/).filter(Boolean).includes(String(s.email || '').toLowerCase());
-const BRAND_DEFAULT = { name: 'Crypto Signal AI', short: 'CSA', tagline: 'Market Intelligence', navy: '#17243A', accent: '#17243A', logo: null, support: 'info@rijnstadmarketing.nl', footer: null };
+const BRAND_DEFAULT = { name: 'Vantis', short: 'Vantis', tagline: 'Crypto Intelligence', navy: '#17243A', accent: '#17243A', logo: null, support: 'info@rijnstadmarketing.nl', footer: null };
 async function kv(env, keys) { const r = await env.DB.prepare(`SELECT key,val,ts FROM kv WHERE key IN (${keys.map(() => '?').join(',')})`).bind(...keys).all(); const o = {}; for (const x of r.results) { o[x.key] = JSON.parse(x.val); o[x.key + 'Ts'] = x.ts; } return o; }
 const cleanHost = h => String(h || '').toLowerCase().replace(/[^a-z0-9.-]/g, '').slice(0, 100);
 const hex = v => /^#[0-9a-f]{6}$/i.test(v || '') ? v : null;
@@ -19,7 +19,7 @@ export async function adminApi(req, env, s, p, m, url) {
     if (key) { const k = await env.DB.prepare('SELECT user_id FROM widget_keys WHERE key=?').bind(key).first(); if (k) { const a = await env.DB.prepare('SELECT cash,holdings FROM paper WHERE user_id=?').bind(k.user_id).first();
       if (a) { const H = JSON.parse(a.holdings || '{}'); let v = a.cash; for (const [sy, h] of Object.entries(H)) { const x = quote(st, sy); v += x ? x.p * h.qty : h.cost; } out.paper = { value: Math.round(v * 100) / 100, ret: (v / 10000 - 1) * 100, positions: Object.keys(H).length }; } } }
     if (url.searchParams.get('fmt') === 'card') { const f = n => n == null ? '—' : Number(n).toLocaleString('nl-NL', { minimumFractionDigits: n >= 1 ? 2 : 4, maximumFractionDigits: n >= 1 ? 2 : 6 }); const pc = n => n == null ? '' : (n > 0 ? '+' : n < 0 ? '−' : '') + Math.abs(n).toLocaleString('nl-NL', { maximumFractionDigits: 1, minimumFractionDigits: 1 }) + '%';
-      return json({ title: 'Crypto Signal AI', rows: out.prices.map(x => ({ name: x.sym, price: '€ ' + f(x.p), ch: pc(x.ch24), color: (x.ch24 || 0) >= 0 ? 'good' : 'attention' })), paper: out.paper ? `Oefenportefeuille € ${f(out.paper.value)} (${pc(out.paper.ret)})` : '', updated: new Date().toLocaleTimeString('nl-NL', { timeZone: 'Europe/Amsterdam', hour: '2-digit', minute: '2-digit' }) }, 200, { 'access-control-allow-origin': '*' }); }
+      return json({ title: 'Vantis', rows: out.prices.map(x => ({ name: x.sym, price: '€ ' + f(x.p), ch: pc(x.ch24), color: (x.ch24 || 0) >= 0 ? 'good' : 'attention' })), paper: out.paper ? `Oefenportefeuille € ${f(out.paper.value)} (${pc(out.paper.ret)})` : '', updated: new Date().toLocaleTimeString('nl-NL', { timeZone: 'Europe/Amsterdam', hour: '2-digit', minute: '2-digit' }) }, 200, { 'access-control-allow-origin': '*' }); }
     return json(out, 200, { 'cache-control': 'public, max-age=60', 'access-control-allow-origin': '*' }); }
   if (!s) return null;
   if (p === '/api/widget/key' && m === 'POST') { const key = [...crypto.getRandomValues(new Uint8Array(18))].map(b => b.toString(16).padStart(2, '0')).join('');

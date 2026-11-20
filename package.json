@@ -1,8 +1,8 @@
 {
-  "name": "csa-app",
+  "name": "vantis-app",
   "private": true,
   "version": "1.2.0",
-  "description": "Crypto Signal AI: AI Market Intelligence voor crypto en aandelen",
+  "description": "Vantis: Crypto Intelligence voor crypto en aandelen",
   "type": "module",
   "scripts": {
     "build": "python3 build.py",

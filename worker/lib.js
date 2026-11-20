@@ -1,4 +1,4 @@
-// CSA worker — gedeelde hulpfuncties: HTTP, crypto, wachtwoorden, TOTP, sessies
+// Vantis worker — gedeelde hulpfuncties: HTTP, crypto, wachtwoorden, TOTP, sessies
 export const enc = new TextEncoder();
 export const dec = new TextDecoder();
 

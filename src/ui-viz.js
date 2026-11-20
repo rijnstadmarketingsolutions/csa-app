@@ -4,10 +4,10 @@
 const ICON_CDN='https://cdn.jsdelivr.net/npm/cryptocurrency-icons@0.18.1/svg/color/';
 const NOICON=new Set(LS.get('noicon',[]));
 function noIcon(img){const s=img.dataset.s;if(s){NOICON.add(s);LS.set('noicon',[...NOICON])}img.remove()}
-window.__csaNoIcon=noIcon;
+window.__vantisNoIcon=noIcon;
 // overschrijft ab(): coin-icoon met letters als terugval
 ab=function(a,lg){const sym=a.sym||'?';const t=sym.slice(0,a.kind==='stock'?4:3);
-  const img=a.kind==='crypto'&&!NOICON.has(sym)?`<img src="${ICON_CDN}${sym.toLowerCase()}.svg" alt="" loading="lazy" data-s="${sym}" onerror="__csaNoIcon(this)">`:'';
+  const img=a.kind==='crypto'&&!NOICON.has(sym)?`<img src="${ICON_CDN}${sym.toLowerCase()}.svg" alt="" loading="lazy" data-s="${sym}" onerror="__vantisNoIcon(this)">`:'';
   return `<span class="ab${lg?' lg':''}${a.kind==='stock'?' st':''}" aria-hidden="true">${esc(t)}${img}</span>`};
 
 /* halve-cirkel sentimentmeter */

@@ -6,4 +6,4 @@
    {"type":"Column","width":"auto","items":[{"type":"TextBlock","text":"${ch}","color":"${color}","horizontalAlignment":"Right"}]}]}]},
  {"type":"TextBlock","text":"${paper}","isSubtle":true,"wrap":true,"$when":"${paper != ''}"},
  {"type":"TextBlock","text":"Bijgewerkt ${updated}","isSubtle":true,"size":"Small"}],
- "actions":[{"type":"Action.Execute","title":"Open CSA","verb":"open"}]}
+ "actions":[{"type":"Action.Execute","title":"Open Vantis","verb":"open"}]}

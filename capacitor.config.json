@@ -1,6 +1,6 @@
 {
-  "appId": "nl.rijnstadmarketing.csa",
-  "appName": "CSA",
+  "appId": "nl.rijnstadmarketing.vantis",
+  "appName": "Vantis",
   "webDir": "site",
   "server": { "androidScheme": "https" },
   "ios": { "contentInset": "automatic", "backgroundColor": "#17243A" },
