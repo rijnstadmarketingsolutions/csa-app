@@ -1,0 +1,21 @@
+name: Domeinen controleren
+on:
+  workflow_dispatch:
+    inputs:
+      domains:
+        description: 'Domeinen, gescheiden door spaties'
+        required: true
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: RDAP-controle
+        env:
+          DOMAINS: ${{ github.event.inputs.domains }}
+        run: |
+          for d in $DOMAINS; do
+            code=$(curl -sL -m 20 -o /tmp/r.json -w "%{http_code}" -H "Accept: application/rdap+json" "https://rdap.org/domain/$d" || echo 000)
+            info=$(jq -r '[.ldhName // .errorCode // "", (.status // [] | join(",")), ((.events // []) | map(select(.eventAction=="registration")) | .[0].eventDate // "")] | join(" | ")' /tmp/r.json 2>/dev/null | head -c 160)
+            echo "RESULT $d $code $info"
+            sleep 1
+          done
