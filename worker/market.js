@@ -70,7 +70,7 @@ async function fromKraken(b) {
   const j = await getJSON('https://api.kraken.com/0/public/Ticker', b); if (j.error && j.error.length) throw new Error('Kraken: ' + j.error.join(', '));
   const MAP = { XBT: 'BTC', XDG: 'DOGE' }; const out = []; const seen = new Set();
   for (const [k, v] of Object.entries(j.result || {})) { if (!/Z?EUR$/.test(k) || /\.d$/.test(k)) continue; let base = k.replace(/Z?EUR$/, ''); if (base.length === 4 && base[0] === 'X') base = base.slice(1); base = MAP[base] || base;
-    if (seen.has(base)) continue; seen.add(base); const p = +v.c[0]; out.push({ s: base, p, o: +v.o || null, h: +v.h[1] || null, l: +v.l[1] || null, vq: (+v.v[1] || 0) * (+v.p[1] || p) }); }
+    if (seen.has(base)) continue; seen.add(base); const p = +v.c[0]; out.push({ s: base, k, p, o: +v.o || null, h: +v.h[1] || null, l: +v.l[1] || null, vq: (+v.v[1] || 0) * (+v.p[1] || p) }); }
   if (!out.length) throw new Error('Kraken gaf geen EUR-koersen'); return out;
 }
 
@@ -100,14 +100,17 @@ export async function refreshMarket(env, state, b, status = {}) {
   // 2. namen (dagelijks, alleen van Bitvavo)
   if (bitvavoOk && (!state.names || now - (state.namesTs || 0) > DAY)) await step('names', async () => { const a = await getJSON(BV + '/assets', b); state.names = { ...(state.names || {}), ...Object.fromEntries(a.map(x => [x.symbol, x.name])) }; await save('names', state.names); return { n: a.length }; });
   else if (state.names && !bitvavoOk && status.tickers?.ok) await save('names', state.names);
-  // 3. dagcandles (Bitvavo): per tik max. 6 verouderde markten
-  if (bitvavoOk) await step('candles', async () => {
-    const C = state.candles || {}; const deep = (state.tickers.list || []).slice(0, 40).map(x => x.s);
+  // 3. dagcandles: Bitvavo, of Kraken als die de koersbron is; per tik max. 6 verouderde markten
+  const krakenSrc = status.tickers?.ok && /Kraken/.test(state.priceSrc);
+  if (bitvavoOk || krakenSrc) await step('candles', async () => {
+    const C = state.candles || {}; const top = (state.tickers.list || []).slice(0, 40); const deep = top.map(x => x.s); const pair = Object.fromEntries(top.map(x => [x.s, x.k]));
     const stale = deep.filter(s => !C[s] || now - C[s].u > HOUR).slice(0, 6); let ok = 0, last = '';
-    await Promise.all(stale.map(async s => { try { const r = await getJSON(`${BV}/${s}-EUR/candles?interval=1d&limit=32`, b); const rows = r.map(x => x.map(Number)).sort((x, y) => x[0] - y[0]).filter(x => x[0] + DAY <= now);
-      C[s] = { u: now, t: rows.map(x => x[0]), c: rows.map(x => x[4]), h: rows.map(x => x[2]), l: rows.map(x => x[3]), vq: rows.map(x => x[5] * x[4]) }; ok++; } catch (e) { last = e.message; } }));
+    const put = (s, rows) => { rows = rows.sort((x, y) => x[0] - y[0]).filter(x => x[0] + DAY <= now).slice(-31); C[s] = { u: now, t: rows.map(x => x[0]), c: rows.map(x => x[4]), h: rows.map(x => x[2]), l: rows.map(x => x[3]), vq: rows.map(x => x[5] * x[4]) }; ok++; };
+    if (bitvavoOk) await Promise.all(stale.map(async s => { try { const r = await getJSON(`${BV}/${s}-EUR/candles?interval=1d&limit=32`, b); put(s, r.map(x => x.map(Number))); } catch (e) { last = e.message; } }));
+    else for (const s of stale) { if (!pair[s]) continue; try { const j = await getJSON(`https://api.kraken.com/0/public/OHLC?pair=${pair[s]}&interval=1440`, b); if (j.error && j.error.length) throw new Error(j.error.join(', '));
+      const rows = Object.entries(j.result || {}).find(([k]) => k !== 'last')?.[1] || []; put(s, rows.map(x => [x[0] * 1000, +x[1], +x[2], +x[3], +x[4], +x[6]])); } catch (e) { last = e.message; } }
     for (const k of Object.keys(C)) if (!deep.includes(k) && now - C[k].u > DAY) delete C[k];
-    state.candles = C; if (ok) await save('candles', C); return { refreshed: ok, of: stale.length, have: Object.keys(C).length, ...(last ? { lastErr: last } : {}) };
+    state.candles = C; if (ok) await save('candles', C); return { via: bitvavoOk ? 'Bitvavo' : 'Kraken', refreshed: ok, of: stale.length, have: Object.keys(C).length, ...(last ? { lastErr: last } : {}) };
   });
   // 4. nieuws: per tik 2 RSS-bronnen (roterend), plus optioneel CryptoCompare/Finnhub elk kwartier
   await step('news', async () => {
