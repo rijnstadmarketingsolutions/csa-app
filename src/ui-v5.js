@@ -294,3 +294,76 @@ function srLevels(d,price){if(!d||d.length<15)return {sup:[],res:[]};const H=d.m
 {const od=drawChart;drawChart=function(box,a,d){od(box,a,d);if(!d||d.length<15||a.price==null||LS.get('srOff',false))return;const cc=$('.cc',box);if(!cc)return;
   const mn=Math.min(...d.map(c=>c.l)),mx=Math.max(...d.map(c=>c.h)),pad=(mx-mn)*.08||1,lo=mn-pad,hi=mx+pad;const lv=srLevels(d,a.price);const y=v=>(hi-v)/(hi-lo)*100;
   cc.insertAdjacentHTML('beforeend',[...lv.res.map(c=>['res',c]),...lv.sup.map(c=>['sup',c])].filter(([,c])=>c.v>lo&&c.v<hi).map(([t,c])=>`<div class="srl ${t}" style="top:${y(c.v).toFixed(1)}%"><span>${t==='res'?'Weerstand':'Steun'} ${money(a,c.v)}${c.n>1?` · ${c.n}× geraakt`:''}</span></div>`).join(''))}}
+
+/* =====================================================================
+   v5 ronde 3 — nieuws op trefwoord, Telegram, weekoverzicht per e-mail,
+   koersdoelen per positie en een eigen geluid per soort melding
+   ===================================================================== */
+/* ---------- geluiden per soort ---------- */
+const SNDS={bel:'Bel',kassa:'Kassa',pling:'Pling',zacht:'Zacht',uit:'Uit'};
+const SNDCAT=[['alert','Koersalerts','bel'],['order','Orders en periodiek kopen','kassa'],['hot','Hoge impact (80+)','bel'],['news','Nieuws op trefwoord','pling'],['impact','Overige meldingen','zacht'],['reminder','Herinneringen','zacht']];
+NX.tone=function(name,strong){if(S.settings.sound===false||name==='uit')return;try{const C=this.ctx||(this.ctx=new (window.AudioContext||window.webkitAudioContext)());if(C.state==='suspended')C.resume();const t=C.currentTime;
+  const seq={bel:[[784,0,.22],[1046,.13,.22],[1318,.26,.22]],kassa:[[1568,0,.16],[2093,.08,.18],[2637,.16,.14]],pling:[[1318,0,.16],[1760,.09,.12]],zacht:[[660,0,.1],[880,.12,.08]]}[name]||[[880,0,.12],[1175,.11,.12]];
+  seq.forEach(([f,d,v])=>{const o=C.createOscillator(),g=C.createGain();o.type=name==='kassa'?'triangle':'sine';o.frequency.value=f;g.gain.setValueAtTime(0,t+d);g.gain.linearRampToValueAtTime(strong?v:v*.7,t+d+.012);g.gain.exponentialRampToValueAtTime(.0001,t+d+(name==='kassa'?.25:.45));o.connect(g).connect(C.destination);o.start(t+d);o.stop(t+d+.5)})}catch(e){}};
+NX.chime=function(strong,kind){const map=S.settings.snd||{};const def=Object.fromEntries(SNDCAT.map(([k,,d])=>[k,d]));const k=kind||(strong?'alert':'impact');NX.tone(map[k]||def[k]||'zacht',strong)};
+{const ot=UI.toast;UI.toast=function(a){const k=NX.kindOf(a);const cat=a.cat==='news'?'news':k;const save=NX.chime;NX.chime=(strong)=>save(strong,cat==='success'||cat==='error'||cat==='info'?null:cat);try{ot.call(this,a)}finally{NX.chime=save}}}
+TKIND.news=['news','Nieuws'];
+/* ---------- instellingen: Telegram, e-mail, geluiden ---------- */
+const TGS={st:null,poll:null};
+async function tgStatus(){if(!Api.authed)return null;try{TGS.st=await Api.call('/api/telegram/status')}catch(e){TGS.st={ready:false,err:e.message}}return TGS.st}
+function chHTML(){const s=S.settings;const F=(Api.h&&Api.h.features)||Api.features||{};const T=TGS.st;const off=s.tgOff||[];const sw=(id,on,extra='')=>`<label class="sw"><input type="checkbox" id="${id}" ${on?'checked':''} ${extra}><span></span></label>`;
+  return `<div class="card" style="margin-top:16px" id="chcard"><div class="chead"><h2>Telegram en e-mail</h2></div>
+    <div class="set"><div><b>Telegram</b><p>${!Api.authed?'Log in om Telegram te koppelen.':!F.telegram?'Binnenkort beschikbaar: de CSA-bot wordt nog ingesteld.':T&&T.linked?`Gekoppeld${T.username?' als @'+esc(T.username):''}. Je krijgt hier koersalerts, orders, nieuws en de ochtendbriefing. Commando's in de bot: /koers BTC, /briefing, /portefeuille.`:'Ontvang je meldingen ook in Telegram en vraag koersen op met /koers BTC.'}</p></div>
+      ${Api.authed&&F.telegram?(T&&T.linked?`<div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn ghost sm" id="tgtest">Test</button><button class="btn ghost sm" id="tgoff">Ontkoppelen</button></div>`:`<button class="btn sm" id="tglink">Koppel Telegram</button>`):''}</div>
+    ${T&&T.linked?`<div class="set"><div><b>Wat stuurt CSA naar Telegram?</b><div class="chips" id="tgcats" style="margin-top:8px">${[['alert','Koersalerts'],['order','Orders'],['news','Nieuws'],['impact','Impact'],['briefing','Ochtendbriefing']].map(([k,l])=>`<button class="chip ${off.includes(k)?'':'on'}" data-tgc="${k}">${l}</button>`).join('')}</div></div></div>`:''}
+    <div id="tgbox"></div>
+    <div class="set"><div><b>Weekoverzicht per e-mail</b><p>Elke zondag om 18:00: de markt van de week, je watchlist, je oefenportefeuille en wat er komende week gebeurt.${F.mail?'':' <i>Het versturen wordt nog ingesteld; je kunt het al aanzetten en het voorbeeld bekijken.</i>'}</p>
+      ${Api.authed?`<div style="display:flex;gap:10px;margin-top:6px;flex-wrap:wrap"><button class="lnk" id="mlprev">Voorbeeld bekijken</button>${F.mail?'<button class="lnk" id="mltest">Stuur mij een testmail</button>':''}</div>`:''}</div>${Api.authed?sw('mlon',!!s.weekmail):'<span class="faint">Log in</span>'}</div></div>
+  <div class="card" style="margin-top:16px"><div class="chead"><h2>Geluid per soort melding</h2></div>${SNDCAT.map(([k,l,d])=>`<div class="set"><div><b>${l}</b></div><div style="display:flex;gap:6px;align-items:center"><select class="inp sm" data-snd="${k}" style="width:auto">${Object.entries(SNDS).map(([v,n])=>`<option value="${v}" ${((s.snd||{})[k]||d)===v?'selected':''}>${n}</option>`).join('')}</select><button class="ibtn" data-sndp="${k}" aria-label="Laat horen">▶</button></div></div>`).join('')}</div>`}
+{const ih=Pages.instellingen.html,im=Pages.instellingen.mount;
+  Pages.instellingen.html=function(){return ih.call(this)+`<div id="chwrap">${chHTML()}</div>`};
+  Pages.instellingen.mount=function(el,arg){im.call(this,el,arg);const wrap=$('#chwrap',el);const redraw=()=>{if(wrap.isConnected)wrap.innerHTML=chHTML()};tgStatus().then(redraw);
+    wrap.addEventListener('change',e=>{const t=e.target;if(t.id==='mlon'){S.settings.weekmail=t.checked;saveSettings();UI.toast({kind:'success',title:t.checked?'Weekoverzicht staat aan':'Weekoverzicht staat uit',body:t.checked?'Je krijgt het elke zondag om 18:00.':''})}
+      if(t.dataset.snd){S.settings.snd={...(S.settings.snd||{}),[t.dataset.snd]:t.value};saveSettings();NX.tone(t.value,true)}});
+    wrap.addEventListener('click',async e=>{const b=e.target.closest('button');if(!b)return;
+      if(b.dataset.sndp){const k=b.dataset.sndp;NX.tone((S.settings.snd||{})[k]||SNDCAT.find(x=>x[0]===k)[2],true);return}
+      if(b.dataset.tgc){const k=b.dataset.tgc;const off=new Set(S.settings.tgOff||[]);off.has(k)?off.delete(k):off.add(k);S.settings.tgOff=[...off];saveSettings();b.classList.toggle('on',!off.has(k));return}
+      try{if(b.id==='tglink'){const r=await Api.call('/api/telegram/link',{method:'POST',body:{}});const w=window.open(r.url,'_blank');
+          $('#tgbox',wrap).innerHTML=`<div class="callout"><b>Bijna klaar.</b> ${w?'Telegram is geopend: tik daar op <b>Start</b>.':`Open <a href="${esc(r.url)}" target="_blank" rel="noopener">t.me/${esc(r.bot)}</a> en tik op <b>Start</b>.`} Op je computer? Scan de code met je telefoon.<div id="tgqr" style="margin-top:10px"></div><p class="note">Wacht op koppeling…</p></div>`;
+          try{if(window.QRCode)new QRCode($('#tgqr',wrap),{text:r.url,width:140,height:140,colorDark:'#17243A',colorLight:'#ffffff'})}catch(x){}
+          clearInterval(TGS.poll);let n=0;TGS.poll=setInterval(async()=>{n++;const st=await tgStatus();if(st&&st.linked){clearInterval(TGS.poll);redraw();UI.toast({kind:'success',title:'Telegram gekoppeld',body:'Je ontvangt je meldingen nu ook in Telegram.'})}else if(n>60||!wrap.isConnected)clearInterval(TGS.poll)},3000)}
+        else if(b.id==='tgtest'){await Api.call('/api/telegram/test',{method:'POST',body:{}});UI.toast({kind:'success',title:'Testbericht verstuurd naar Telegram'})}
+        else if(b.id==='tgoff'){await Api.call('/api/telegram/link',{method:'DELETE'});await tgStatus();redraw();UI.toast({kind:'info',title:'Telegram ontkoppeld'})}
+        else if(b.id==='mlprev'){const r=await fetch(API_BASE+'/api/mail/preview',{headers:{authorization:'Bearer '+Api.token}});const html=await r.text();dlg(`<div class="chead"><h2>Voorbeeld weekoverzicht</h2><button class="ibtn" id="mpx" aria-label="Sluiten">${ico('x')}</button></div><iframe id="mpf" style="width:100%;height:65vh;border:1px solid var(--line);border-radius:var(--r);background:#fff"></iframe>`,c=>{c.style.width='min(680px,100%)';$('#mpx',c).onclick=closeOverlay;$('#mpf',c).srcdoc=html})}
+        else if(b.id==='mltest'){const r=await Api.call('/api/mail/test',{method:'POST',body:{}});UI.toast({kind:'success',title:'Testmail verstuurd',body:'Naar '+r.to})}}
+      catch(x){UI.toast({kind:'error',title:'Niet gelukt',body:x.message})}})}}
+
+/* ---------- Meldingen: nieuws op trefwoord ---------- */
+function kwHTML(){const s=S.settings;const L=s.kw||[];return `<div class="card" id="kwcard"><div class="chead"><h2>${ico('news','class="h2i"')}Nieuws op trefwoord</h2><span class="src">${Api.authed?'24/7 via de CSA-server':'Log in voor meldingen'}</span></div>
+  <p class="note" style="margin-top:0">Krijg een melding zodra er een artikel verschijnt met een woord dat jij volgt, bijvoorbeeld een coin, een bedrijf of een onderwerp als "ETF" of "SEC".</p>
+  <div class="chips kwl">${L.map((w,i)=>`<button class="chip on" data-kwdel="${i}" aria-label="Verwijder ${esc(w)}">${esc(w)} ×</button>`).join('')||'<span class="faint">Nog geen trefwoorden.</span>'}</div>
+  <form id="kwform" class="kwf"><input class="inp" name="w" maxlength="30" placeholder="Bijv. ETF, Solana, BlackRock" aria-label="Trefwoord"><button class="btn sm">${ico('plus')}Toevoegen</button></form>
+  <div class="chips" style="margin-top:8px">${['ETF','SEC','BlackRock','Fed','halving','hack','Bitvavo'].filter(w=>!L.includes(w)).map(w=>`<button class="chip" data-kwadd="${w}">+ ${w}</button>`).join('')}</div>
+  <label class="imrep"><input type="checkbox" id="kwwatch" ${s.kwWatch?'checked':''}> Ook nieuws over alle munten op mijn watchlist</label></div>`}
+{const mh=Pages.meldingen.html,mm=Pages.meldingen.mount;
+  Pages.meldingen.html=function(){return mh.call(this).replace(`<div class="card"><div class="chead"><h2>Mijn koersalerts</h2>`,`<div class="grid" style="align-content:start;gap:16px"><div id="kwwrap">${kwHTML()}</div><div class="card"><div class="chead"><h2>Mijn koersalerts</h2>`).replace(/(<div id="palist">[\s\S]*?<\/div><\/div>)(<\/div>)/,'$1</div>$2')};
+  Pages.meldingen.mount=function(el,arg){const r=mm.call(this,el,arg);const w=$('#kwwrap',el);if(!w)return r;const save=L=>{S.settings.kw=[...new Set(L.map(x=>x.trim()).filter(x=>x.length>=2))].slice(0,25);saveSettings();w.innerHTML=kwHTML()};
+    w.addEventListener('submit',e=>{e.preventDefault();const v=e.target.w.value;if(v.trim().length<2)return;save([...(S.settings.kw||[]),v]);UI.toast({kind:'success',title:`Je volgt nu "${v.trim()}"`})});
+    w.addEventListener('click',e=>{const d=e.target.closest('[data-kwdel]'),a=e.target.closest('[data-kwadd]');if(d){const L=(S.settings.kw||[]).slice();L.splice(+d.dataset.kwdel,1);save(L)}if(a)save([...(S.settings.kw||[]),a.dataset.kwadd])});
+    w.addEventListener('change',e=>{if(e.target.id==='kwwatch'){S.settings.kwWatch=e.target.checked;saveSettings()}});return r}}
+
+/* ---------- Mijn bezit: koersdoel en ondergrens per positie ---------- */
+function goalDialog(sym){const a=getAsset(sym);const L=(PA.list||[]).filter(x=>x.sym===sym&&x.active&&/^(above|below)$/.test(x.kind));const up=L.find(x=>x.kind==='above'),dn=L.find(x=>x.kind==='below');
+  dlg(`<h2>Doelen voor ${esc(a?.name||sym)}</h2><p class="muted">Je krijgt een melding (push${Api.authed?', meldingencentrum en Telegram als gekoppeld':''}) zodra de koers je doel of ondergrens raakt.${a&&a.price!=null?` Nu ${money(a,a.price)}.`:''}</p>
+    <div class="tkgrid" style="margin-top:0"><div class="field"><label for="gup">Koersdoel (verkoopdoel)</label><div class="tkin"><span>${a?.cur==='USD'?'$':'€'}</span><input class="inp" id="gup" inputmode="decimal" value="${up?nlN(up.value,up.value<1?6:2).replace(/\./g,''):''}" placeholder="${a&&a.price?nlN(a.price*1.2,a.price<1?6:2).replace(/\./g,''):''}"></div></div>
+    <div class="field"><label for="gdn">Ondergrens</label><div class="tkin"><span>${a?.cur==='USD'?'$':'€'}</span><input class="inp" id="gdn" inputmode="decimal" value="${dn?nlN(dn.value,dn.value<1?6:2).replace(/\./g,''):''}" placeholder="${a&&a.price?nlN(a.price*.85,a.price<1?6:2).replace(/\./g,''):''}"></div></div></div>
+    <div class="err" id="gerr"></div><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn ghost" id="no">Annuleren</button><button class="btn" id="yes">Bewaren</button></div>`,c=>{$('#no',c).onclick=closeOverlay;
+    $('#yes',c).onclick=async()=>{const u=numIn($('#gup',c).value),d=numIn($('#gdn',c).value);try{for(const [old,v,k] of [[up,u,'above'],[dn,d,'below']]){if(old&&(v==null||v!==old.value))await PA.del(old.id);if(v!=null&&(!old||v!==old.value))await PA.add({sym,kind:k,value:v,note:'Positiedoel'})}
+      PA.list=null;await PA.load();closeOverlay();UI.toast({kind:'success',title:'Doelen bewaard',body:[u?`doel ${money(a,u)}`:'',d?`ondergrens ${money(a,d)}`:''].filter(Boolean).join(' · ')});if(UI.cur==='portefeuille')Pages.portefeuille.live(UI.el,null,'calc')}catch(x){$('#gerr',c).textContent=x.message}}})}
+{const pl=Pages.portefeuille.live,pm=Pages.portefeuille.mount;
+  Pages.portefeuille.mount=function(el,arg){const r=pm.call(this,el,arg);PA.load().then(()=>this.live(el,arg,'calc'));el.addEventListener('click',e=>{const g=e.target.closest('[data-goal]');if(g){e.preventDefault();goalDialog(g.dataset.goal)}});return r};
+  Pages.portefeuille.live=function(el,arg,kind){pl.call(this,el,arg,kind);if(PF.tab!=='mijn'||!PF.pos)return;
+    $$('#pfbody [data-del]',el).forEach(btn=>{const p=PF.pos.find(x=>String(x.id)===String(btn.dataset.del));const td=btn.closest('td');if(!p||!td||btn.closest('tr').querySelector('[data-goal]'))return;const a=getAsset(p.sym);
+      const L=(PA.list||[]).filter(x=>x.sym===p.sym&&x.active&&/^(above|below)$/.test(x.kind));const up=L.find(x=>x.kind==='above'),dn=L.find(x=>x.kind==='below');
+      const lbl=up||dn?[up?`doel ${a?money(a,up.value):nlN(up.value)}${a&&a.price?` (${pct((up.value/a.price-1)*100,0)})`:''}`:'',dn?`grens ${a?money(a,dn.value):nlN(dn.value)}`:''].filter(Boolean).join(' · '):'Doel instellen';
+      const at=btn.closest('tr')?.querySelector('td[data-l="Asset"]')||td;if(at.querySelector('[data-goal]'))return;at.insertAdjacentHTML('beforeend',`<div style="margin-top:4px"><button class="goalb ${up||dn?'set':''}" data-goal="${esc(p.sym)}" title="Koersdoel en ondergrens">🎯 ${esc(lbl)}</button></div>`)})}}

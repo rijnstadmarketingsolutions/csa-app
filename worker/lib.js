@@ -67,7 +67,7 @@ export async function sessionFrom(env, request, kind = 'full') {
   if (!token) return null; return sessionByToken(env, token, kind);
 }
 export async function sessionByToken(env, token, kind = 'full') {
-  const row = await env.DB.prepare('SELECT s.user_id,s.expires,s.kind,u.email,u.name,u.plan,u.totp_on,u.stripe_customer FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token=?').bind(await sha256(token)).first();
+  const row = await env.DB.prepare('SELECT s.user_id,s.expires,s.kind,u.email,u.name,u.plan,u.totp_on,u.stripe_customer,u.last_seen FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token=?').bind(await sha256(token)).first();
   if (!row || row.expires < Date.now() || row.kind !== kind) return null; return { ...row, token };
 }
 /* ---------- simpele rate limit ---------- */
