@@ -19,7 +19,7 @@ const Api={
   },
   async health(){
     if(API_BASE==null){S.src.server.st='off';S.src.server.msg='Niet beschikbaar: app is als los bestand geopend (demomodus)';return false}
-    try{const h=await this.call('/api/health');this.on=true;this.features=h.features||{};S.src.server.st='ok';S.src.server.ts=Date.now();S.src.server.msg='Verbonden · versie '+h.version;return true}
+    try{const h=await this.call('/api/health');this.on=true;this.h=h;this.features=h.features||{};srvStatus(h);return true}
     catch(e){this.on=false;S.src.server.st='err';S.src.server.msg='Niet bereikbaar ('+e.message+'), demomodus';return false}
   },
   setSession(token,user){this.token=token;this.user=user||null;LS.set('token',token);LS.set('srvuser',this.user)},
@@ -69,6 +69,11 @@ const Push={
   },
   async disable(){const r=await navigator.serviceWorker?.getRegistration?.();const s=r&&await r.pushManager.getSubscription();if(s){try{await Api.call('/api/push/subscribe',{method:'DELETE',body:{endpoint:s.endpoint}})}catch(e){}await s.unsubscribe()}}
 };
+S.src.srvp={name:'Serverkoersen (24/7-scanner)',st:'wait',ts:0,kind:'Voor koersalerts, oefenportefeuille, scanner en briefing',msg:'Wacht op de eerste serverscan'};
+function srvStatus(h){const s=S.src.server,p=S.src.srvp;s.st='ok';s.ts=Date.now();s.msg=`Verbonden · versie ${h.version}`+(h.lastScan?` · laatste scan ${ago(h.lastScan)}`:' · nog geen scan');
+  if(h.prices&&h.prices.n){p.st=/reserve/.test(h.prices.src)?'warn':'ok';p.ts=h.prices.t;p.msg=`${h.prices.n} koersen via ${h.prices.src}`}
+  else{p.st=h.lastScan?'err':'wait';p.msg=h.lastScan?'De server krijgt nu geen koersen binnen; we zoeken het uit.':'Wacht op de eerste serverscan'}}
+setInterval(()=>{if(Api.on)Api.call('/api/health').then(srvStatus).catch(()=>{})},2*60*1000);
 function urlB64(s){const p='='.repeat((4-s.length%4)%4);const b=atob((s+p).replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from(b,c=>c.charCodeAt(0))}
 
 /* ---------- portefeuilles: server als je bent ingelogd, anders lokaal ---------- */

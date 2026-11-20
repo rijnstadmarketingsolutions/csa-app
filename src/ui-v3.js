@@ -102,7 +102,7 @@ const PA={list:null,
         $('#paval',c).placeholder=pc?'bijv. 5':(x?nlN(x.price*(k==='above'?1.05:.95),x.price<1?6:2):'');$('#pahint',c).textContent=x?`Nu ${money(x,x.price)} · ${pct(x.ch24)} in 24 uur`:''};
       $('#pasym',c).onchange=upd;$('#pakind',c).onchange=upd;upd();$('#pax',c).onclick=closeOverlay;
       $('#paf',c).onsubmit=async e=>{e.preventDefault();const v=Number(String($('#paval',c).value).replace(/\./g,'').replace(',','.'));if(!(v>0)){$('#paerr',c).textContent='Vul een geldige waarde in.';return}
-        try{await this.add({sym:$('#pasym',c).value,kind:$('#pakind',c).value,value:v});closeOverlay();UI.toast({title:'Koersalert ingesteld',body:`${$('#pasym',c).value}: ${KINDS[$('#pakind',c).value].toLowerCase()} ${/1h|24h/.test($('#pakind',c).value)?nlN(v,1)+'%':nlN(v,2)}`});this.list=null;if(UI.cur==='meldingen')UI.route()}catch(x){$('#paerr',c).textContent=x.message}}})}
+        try{const sym=$('#pasym',c).value,k=$('#pakind',c).value;const r=await this.add({sym,kind:k,value:v});closeOverlay();UI.toast({title:'Koersalert ingesteld',body:(r&&r.message)?r.message:`${sym}: ${KINDS[k].toLowerCase()} ${/1h|24h/.test(k)?nlN(v,1)+'%':nlN(v,2)}`});this.list=null;if(UI.cur==='meldingen')UI.route()}catch(x){$('#paerr',c).textContent=x.message}}})}
 };
 
 /* ---------------- meldingencentrum ---------------- */

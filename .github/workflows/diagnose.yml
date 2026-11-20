@@ -1,0 +1,17 @@
+name: Diagnose live server
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  diag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Status van de 24/7-scanner ophalen
+        run: |
+          curl -sS "https://csa.rijnstadmarketing.workers.dev/api/health?diag=1" | python3 -m json.tool
+      - name: Bereikbaarheid koersbronnen vanaf GitHub (ter vergelijking)
+        run: |
+          for u in "https://api.bitvavo.com/v2/ticker/price?market=BTC-EUR" "https://api.coingecko.com/api/v3/ping" "https://api.kraken.com/0/public/Time"; do
+            echo "$u -> $(curl -s -o /dev/null -w '%{http_code}' "$u")"
+          done

@@ -5,7 +5,7 @@ import { vapidKeys, sendPush } from './push.js';
 import { refreshMarket, analyse, detect, backtest, budget, RADAR, STOCK_SYMS, ALERT_KINDS, quote, alertHit, alertText, buildBriefing } from './market.js';
 import { checkout, portal, webhook, stripeReady } from './billing.js';
 
-const VERSION = '1.2.0';
+const VERSION = '1.2.1';
 const NATIVE_ORIGINS = ['capacitor://localhost', 'http://localhost', 'https://localhost', 'ionic://localhost'];
 const DEFAULT_SETTINGS = { notify: true, briefing: true, minScore: 60, scope: 'all', quiet: false, quietFrom: '23:00', quietTo: '07:00', cats: {} };
 const EMAIL_RX = /^[^@\s]{1,64}@[^@\s]{1,190}\.[^@\s]{2,}$/;
@@ -41,8 +41,9 @@ export default {
 /* =================================================================== API */
 async function api(req, env, ctx, url) {
   const p = url.pathname, m = req.method;
-  if (p === '/api/health') { const st = await loadState(env, ['market', 'extra', 'news']);
-    return json({ ok: true, version: VERSION, lastScan: st.marketTs || null, data: { extra: st.extra ? { global: !!st.extra.global, fng: !!(st.extra.fng && st.extra.fng.length), trending: !!(st.extra.trending && st.extra.trending.length), errors: [st.extra.globalErr, st.extra.trendErr, st.extra.fngErr].filter(Boolean) } : null, news: st.news ? { items: (st.news.items || []).length, sources: st.news.sources || {} } : null }, features: { accounts: true, push: true, stripe: stripeReady(env), finnhub: !!env.FINNHUB_KEY, ai: false, premiumEnforced: env.PREMIUM_ENFORCED === 'true' } }); }
+  if (p === '/api/health') { const st = await loadState(env, ['market', 'extra', 'news', 'scanstatus', 'scanstart', 'tickers']);
+    if (url.searchParams.has('diag')) return json({ version: VERSION, now: Date.now(), scanstart: st.scanstart || null, scan: st.scanstatus || null, prices: st.tickers ? { src: st.tickers.src || 'Bitvavo', n: (st.tickers.list || []).length, age: Date.now() - st.tickers.t } : null });
+    return json({ ok: true, version: VERSION, lastScan: st.marketTs || null, prices: st.tickers ? { src: st.tickers.src || 'Bitvavo', n: (st.tickers.list || []).length, t: st.tickers.t } : null, scanOk: st.scanstatus ? Object.fromEntries(Object.entries(st.scanstatus).filter(([, v]) => v && typeof v === 'object' && 'ok' in v).map(([k, v]) => [k, v.ok])) : null, data: { extra: st.extra ? { global: !!st.extra.global, fng: !!(st.extra.fng && st.extra.fng.length), trending: !!(st.extra.trending && st.extra.trending.length), errors: [st.extra.globalErr, st.extra.trendErr, st.extra.fngErr].filter(Boolean) } : null, news: st.news ? { items: (st.news.items || []).length, sources: st.news.sources || {} } : null }, features: { accounts: true, push: true, stripe: stripeReady(env), finnhub: !!env.FINNHUB_KEY, ai: false, premiumEnforced: env.PREMIUM_ENFORCED === 'true' } }); }
 
   /* ---------- account ---------- */
   if (p === '/api/auth/register' && m === 'POST') {
@@ -160,11 +161,12 @@ async function api(req, env, ctx, url) {
       if (!sym || !ALERT_KINDS[b.kind] || !(value > 0)) return err(400, 'Kies een asset, een soort alert en een geldige waarde.');
       if (/1h|24h/.test(b.kind) && value > 90) return err(400, 'Kies een percentage tot 90%.');
       const n = await env.DB.prepare('SELECT COUNT(*) n FROM price_alerts WHERE user_id=? AND active=1').bind(s.user_id).first(); if (n.n >= 50) return err(400, 'Maximaal 50 actieve koersalerts.');
-      const st = await loadState(env, ['tickers', 'stocks', 'names']); const q = quote(st, sym); if (!q) return err(404, `Geen koers gevonden voor ${sym}.`);
-      if (b.kind === 'above' && q.p >= value) return err(400, `De koers staat al boven deze waarde (nu ${q.p}).`);
-      if (b.kind === 'below' && q.p <= value) return err(400, `De koers staat al onder deze waarde (nu ${q.p}).`);
+      const st = await loadState(env, ['tickers', 'stocks', 'names']); const q = quote(st, sym);
+      if (q && b.kind === 'above' && q.p >= value) return err(400, `De koers staat al boven deze waarde (nu ${q.p.toLocaleString('nl-NL')}).`);
+      if (q && b.kind === 'below' && q.p <= value) return err(400, `De koers staat al onder deze waarde (nu ${q.p.toLocaleString('nl-NL')}).`);
+      if (!q && !/^[A-Z0-9]{2,10}$/.test(sym)) return err(400, 'Onbekend symbool.');
       const r = await env.DB.prepare('INSERT INTO price_alerts(user_id,sym,kind,value,active,created,note) VALUES(?,?,?,?,1,?,?)').bind(s.user_id, sym, b.kind, value, Date.now(), String(b.note || '').slice(0, 80)).run();
-      return json({ ok: true, id: r.meta.last_row_id }); } }
+      return json({ ok: true, id: r.meta.last_row_id, pending: !q, message: q ? null : `De server heeft op dit moment geen koers voor ${sym}. Je alert is opgeslagen en wordt gecontroleerd zodra er een koers is.` }); } }
   const am = p.match(/^\/api\/alerts\/(\d+)$/);
   if (am && m === 'DELETE') { if (!s) return needAuth(); await env.DB.prepare('DELETE FROM price_alerts WHERE id=? AND user_id=?').bind(+am[1], s.user_id).run(); return json({ ok: true }); }
   if (am && m === 'PUT') { if (!s) return needAuth(); const b = await readJSON(req); await env.DB.prepare('UPDATE price_alerts SET active=?, fired=NULL WHERE id=? AND user_id=?').bind(b.active ? 1 : 0, +am[1], s.user_id).run(); return json({ ok: true }); }
@@ -191,18 +193,21 @@ async function api(req, env, ctx, url) {
 
 /* =================================================================== CRON */
 async function tick(env) {
-  const b = budget(45);
+  const b = budget(45); const status = { t: Date.now() };
+  await kvPutStmt(env, 'scanstart', { t: status.t }).run();
   const state = await loadState(env, ['tickers', 'ticks', 'names', 'candles', 'news', 'extra', 'stocks']);
-  let writes = [];
-  try { writes = await refreshMarket(env, state, b); } catch (e) { console.error('refresh', e.message); }
-  const an = analyse(state); const found = detect(an);
-  const prev = new Set((await env.DB.prepare('SELECT id FROM events WHERE first>?').bind(Date.now() - 2 * DAY).all()).results.map(r => r.id));
-  const now = Date.now();
-  for (const e of found) { e.t = now; writes.push(env.DB.prepare('INSERT INTO events(id,data,score,first,updated) VALUES(?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET data=excluded.data,score=excluded.score,updated=excluded.updated').bind(e.id, JSON.stringify(e), e.score, now, now)); }
-  writes.push(kvPutStmt(env, 'market', { t: now, mk: an.mk }));
-  if (writes.length) await env.DB.batch(writes);
-  const fresh = found.filter(e => !prev.has(e.id));
-  try { await dispatch(env, fresh, b, state); } catch (e) { console.error('push', e.message); }
+  await refreshMarket(env, state, b, status);
+  try {
+    const an = analyse(state); const found = detect(an); status.analyse = { ok: true, assets: an.A.length, withHistory: an.A.filter(a => a.vol).length, events: found.length };
+    const prev = new Set((await env.DB.prepare('SELECT id FROM events WHERE first>?').bind(Date.now() - 2 * DAY).all()).results.map(r => r.id));
+    const now = Date.now(); const writes = [];
+    for (const e of found) { e.t = now; writes.push(env.DB.prepare('INSERT INTO events(id,data,score,first,updated) VALUES(?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET data=excluded.data,score=excluded.score,updated=excluded.updated').bind(e.id, JSON.stringify(e), e.score, now, now)); }
+    writes.push(kvPutStmt(env, 'market', { t: now, mk: an.mk, src: state.tickers?.src || null }));
+    await env.DB.batch(writes);
+    try { await dispatch(env, found.filter(e => !prev.has(e.id)), b, state); status.push = { ok: true }; } catch (e) { status.push = { ok: false, err: e.message }; }
+  } catch (e) { status.analyse = { ok: false, err: e.message }; }
+  status.done = Date.now(); status.subrequestsLeft = b.left;
+  await kvPutStmt(env, 'scanstatus', status).run();
 }
 function localHM(tz = 'Europe/Amsterdam') { const p = new Intl.DateTimeFormat('nl-NL', { timeZone: tz, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date()); return +p.find(x => x.type === 'hour').value * 60 + +p.find(x => x.type === 'minute').value; }
 function inQuiet(st) { if (!st.quiet) return false; const m = localHM(); const [fh, fm] = (st.quietFrom || '23:00').split(':').map(Number), [th, tm] = (st.quietTo || '07:00').split(':').map(Number); const f = fh * 60 + fm, t = th * 60 + tm; return f < t ? (m >= f && m < t) : (m >= f || m < t); }

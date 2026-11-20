@@ -56,54 +56,88 @@ export function parseRSS(xml, src) {
 }
 function hashStr(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36); }
 
-/* ---------- verversen: één cron-tik ---------- */
-export async function refreshMarket(env, state, b) {
-  const BV = env.BV_BASE || BV_DEFAULT; const now = Date.now(); const writes = [];
-  // 1. tickers (elke tik)
-  const t24 = await getJSON(BV + '/ticker/24h', b);
-  const list = t24.filter(d => /-EUR$/.test(d.market) && d.last != null).map(d => ({ s: d.market.split('-')[0], p: +d.last, o: +d.open || null, h: +d.high || null, l: +d.low || null, vq: +d.volumeQuote || 0 }))
-    .filter(x => !STABLE.has(x.s)).sort((a, b) => b.vq - a.vq);
-  state.tickers = { t: now, list }; writes.push(kvPutStmt(env, 'tickers', state.tickers));
-  // prijsgeschiedenis voor 15-minutenbewegingen (laatste 6 tikken)
-  const hist = state.ticks || { t: [], p: {} }; hist.t.push(now); const top = list.slice(0, 40);
-  for (const x of top) { (hist.p[x.s] = hist.p[x.s] || []).push(x.p); }
-  while (hist.t.length > 13) { hist.t.shift(); for (const k in hist.p) hist.p[k].shift(); }
-  for (const k in hist.p) if (hist.p[k].length > hist.t.length) hist.p[k] = hist.p[k].slice(-hist.t.length);
-  state.ticks = hist; writes.push(kvPutStmt(env, 'ticks', hist));
-  // 2. namen (dagelijks)
-  if (!state.names || now - (state.namesTs || 0) > DAY) { try { const a = await getJSON(BV + '/assets', b); state.names = Object.fromEntries(a.map(x => [x.symbol, x.name])); writes.push(kvPutStmt(env, 'names', state.names)); } catch { } }
-  // 3. dagcandles: per tik max. 10 verouderde markten (>1 uur)
-  const C = state.candles || {}; const deep = top.map(x => x.s);
-  const stale = deep.filter(s => !C[s] || now - C[s].u > HOUR).slice(0, 10);
-  await Promise.all(stale.map(async s => { try { const r = await getJSON(`${BV}/${s}-EUR/candles?interval=1d&limit=32`, b); const rows = r.map(x => x.map(Number)).sort((a, b) => a[0] - b[0]).filter(x => x[0] + DAY <= now);
-    C[s] = { u: now, t: rows.map(x => x[0]), c: rows.map(x => x[4]), h: rows.map(x => x[2]), l: rows.map(x => x[3]), vq: rows.map(x => x[5] * x[4]) }; } catch { } }));
-  for (const k of Object.keys(C)) if (!deep.includes(k) && now - C[k].u > DAY) delete C[k];
-  state.candles = C; if (stale.length) writes.push(kvPutStmt(env, 'candles', C));
-  // 4. nieuws (elke 15 min): RSS van meerdere bronnen, optioneel CryptoCompare/Finnhub met sleutel
-  if (now - (state.newsTs || 0) > 15 * MIN) {
-    const items = [], st = {};
-    await Promise.all(FEEDS.map(async ([name, url]) => { try { const got = parseRSS(await getText(url, b), name); items.push(...got); st[name] = got.length; } catch (e) { st[name] = 'fout: ' + e.message; } }));
-    if (env.CRYPTOCOMPARE_KEY) { try { const j = await getJSON('https://min-api.cryptocompare.com/data/v2/news/?lang=EN&api_key=' + env.CRYPTOCOMPARE_KEY, b); const d = (j.Data || []).slice(0, 50); items.push(...d.map(x => ({ id: 'cc' + x.id, title: x.title, body: (x.body || '').slice(0, 300), url: x.url, src: (x.source_info && x.source_info.name) || x.source, t: x.published_on * 1000, feed: 'CryptoCompare' }))); st.CryptoCompare = d.length; } catch (e) { st.CryptoCompare = 'fout: ' + e.message; } }
-    if (env.FINNHUB_KEY) { for (const cat of ['general', 'crypto']) { try { const l = await getJSON(`https://finnhub.io/api/v1/news?category=${cat}&token=${env.FINNHUB_KEY}`, b); items.push(...l.slice(0, 40).map(x => ({ id: 'fh' + x.id, title: x.headline, body: (x.summary || '').slice(0, 300), url: x.url, src: x.source, t: x.datetime * 1000, feed: 'Finnhub' }))); st['Finnhub ' + cat] = l.length; } catch (e) { st['Finnhub ' + cat] = 'fout: ' + e.message; } } }
+/* ---------- koersbronnen: Bitvavo, met CoinGecko en Kraken als reserve ---------- */
+function fromBitvavo(t24) { return t24.filter(d => /-EUR$/.test(d.market) && d.last != null).map(d => ({ s: d.market.split('-')[0], p: +d.last, o: +d.open || null, h: +d.high || null, l: +d.low || null, vq: +d.volumeQuote || 0 })); }
+async function fromCoinGecko(env, b) {
+  const h = env.COINGECKO_KEY ? { headers: { 'x-cg-demo-api-key': env.COINGECKO_KEY } } : undefined;
+  const rows = await getJSON('https://api.coingecko.com/api/v3/coins/markets?vs_currency=eur&order=market_cap_desc&per_page=150&page=1&price_change_percentage=24h', b, h);
+  const seen = new Set(); const out = [];
+  for (const c of rows) { const s = String(c.symbol || '').toUpperCase(); if (!s || seen.has(s) || c.current_price == null) continue; seen.add(s);
+    const ch = c.price_change_percentage_24h; out.push({ s, name: c.name, p: c.current_price, o: ch != null ? c.current_price / (1 + ch / 100) : null, h: c.high_24h, l: c.low_24h, vq: c.total_volume || 0 }); }
+  if (!out.length) throw new Error('CoinGecko gaf geen koersen'); return out;
+}
+async function fromKraken(b) {
+  const j = await getJSON('https://api.kraken.com/0/public/Ticker', b); if (j.error && j.error.length) throw new Error('Kraken: ' + j.error.join(', '));
+  const MAP = { XBT: 'BTC', XDG: 'DOGE' }; const out = []; const seen = new Set();
+  for (const [k, v] of Object.entries(j.result || {})) { if (!/Z?EUR$/.test(k) || /\.d$/.test(k)) continue; let base = k.replace(/Z?EUR$/, ''); if (base.length === 4 && base[0] === 'X') base = base.slice(1); base = MAP[base] || base;
+    if (seen.has(base)) continue; seen.add(base); const p = +v.c[0]; out.push({ s: base, p, o: +v.o || null, h: +v.h[1] || null, l: +v.l[1] || null, vq: (+v.v[1] || 0) * (+v.p[1] || p) }); }
+  if (!out.length) throw new Error('Kraken gaf geen EUR-koersen'); return out;
+}
+
+/* ---------- verversen: één cron-tik, elke stap los en direct opgeslagen ---------- */
+export async function refreshMarket(env, state, b, status = {}) {
+  const BV = env.BV_BASE || BV_DEFAULT; const now = Date.now();
+  const save = (k, v) => kvPutStmt(env, k, v).run();
+  const step = async (name, fn) => { const t = Date.now(); try { const r = await fn(); status[name] = { ok: true, ms: Date.now() - t, ...(r || {}) }; } catch (e) { status[name] = { ok: false, ms: Date.now() - t, err: String(e && e.message || e).slice(0, 240) }; } };
+  // 1. koersen: Bitvavo, anders CoinGecko, anders Kraken
+  await step('tickers', async () => {
+    let list = null, src = 'Bitvavo'; const tried = {};
+    try { list = fromBitvavo(await getJSON(BV + '/ticker/24h', b)); } catch (e) { tried.Bitvavo = e.message; }
+    if (!list) { try { list = await fromCoinGecko(env, b); src = 'CoinGecko (reserve)'; } catch (e) { tried.CoinGecko = e.message; } }
+    if (!list) { try { list = await fromKraken(b); src = 'Kraken (reserve)'; } catch (e) { tried.Kraken = e.message; } }
+    if (!list) throw new Error('Geen enkele koersbron bereikbaar: ' + JSON.stringify(tried));
+    list = list.filter(x => !STABLE.has(x.s) && x.p > 0).sort((a, b2) => b2.vq - a.vq);
+    if (list.some(x => x.name)) { state.names = { ...(state.names || {}), ...Object.fromEntries(list.filter(x => x.name).map(x => [x.s, x.name])) }; }
+    state.tickers = { t: now, src, list: list.map(({ name, ...x }) => x) }; await save('tickers', state.tickers);
+    const hist = state.ticks || { t: [], p: {} }; hist.t.push(now);
+    for (const x of list.slice(0, 40)) (hist.p[x.s] = hist.p[x.s] || []).push(x.p);
+    while (hist.t.length > 13) { hist.t.shift(); for (const k in hist.p) hist.p[k].shift(); }
+    for (const k in hist.p) { if (hist.p[k].length > hist.t.length) hist.p[k] = hist.p[k].slice(-hist.t.length); if (!hist.p[k].length) delete hist.p[k]; }
+    state.ticks = hist; await save('ticks', hist);
+    state.priceSrc = src; return { n: list.length, src, tried };
+  });
+  const bitvavoOk = status.tickers?.ok && state.priceSrc === 'Bitvavo';
+  // 2. namen (dagelijks, alleen van Bitvavo)
+  if (bitvavoOk && (!state.names || now - (state.namesTs || 0) > DAY)) await step('names', async () => { const a = await getJSON(BV + '/assets', b); state.names = { ...(state.names || {}), ...Object.fromEntries(a.map(x => [x.symbol, x.name])) }; await save('names', state.names); return { n: a.length }; });
+  else if (state.names && !bitvavoOk && status.tickers?.ok) await save('names', state.names);
+  // 3. dagcandles (Bitvavo): per tik max. 6 verouderde markten
+  if (bitvavoOk) await step('candles', async () => {
+    const C = state.candles || {}; const deep = (state.tickers.list || []).slice(0, 40).map(x => x.s);
+    const stale = deep.filter(s => !C[s] || now - C[s].u > HOUR).slice(0, 6); let ok = 0, last = '';
+    await Promise.all(stale.map(async s => { try { const r = await getJSON(`${BV}/${s}-EUR/candles?interval=1d&limit=32`, b); const rows = r.map(x => x.map(Number)).sort((x, y) => x[0] - y[0]).filter(x => x[0] + DAY <= now);
+      C[s] = { u: now, t: rows.map(x => x[0]), c: rows.map(x => x[4]), h: rows.map(x => x[2]), l: rows.map(x => x[3]), vq: rows.map(x => x[5] * x[4]) }; ok++; } catch (e) { last = e.message; } }));
+    for (const k of Object.keys(C)) if (!deep.includes(k) && now - C[k].u > DAY) delete C[k];
+    state.candles = C; if (ok) await save('candles', C); return { refreshed: ok, of: stale.length, have: Object.keys(C).length, ...(last ? { lastErr: last } : {}) };
+  });
+  // 4. nieuws: per tik 2 RSS-bronnen (roterend), plus optioneel CryptoCompare/Finnhub elk kwartier
+  await step('news', async () => {
+    const N = state.news || { items: [], sources: {} }; const idx = (N.idx || 0) % FEEDS.length; const pick = [FEEDS[idx], FEEDS[(idx + 1) % FEEDS.length]];
+    const fresh = []; N.sources = N.sources || {};
+    await Promise.all(pick.map(async ([name, url]) => { try { const got = parseRSS(await getText(url, b), name); fresh.push(...got); N.sources[name] = got.length; } catch (e) { N.sources[name] = 'fout: ' + e.message; } }));
+    if (now - (N.extraT || 0) > 15 * MIN) { N.extraT = now;
+      if (env.CRYPTOCOMPARE_KEY) { try { const j = await getJSON('https://min-api.cryptocompare.com/data/v2/news/?lang=EN&api_key=' + env.CRYPTOCOMPARE_KEY, b); const d = (j.Data || []).slice(0, 50); fresh.push(...d.map(x => ({ id: 'cc' + x.id, title: x.title, body: (x.body || '').slice(0, 300), url: x.url, src: (x.source_info && x.source_info.name) || x.source, t: x.published_on * 1000, feed: 'CryptoCompare' }))); N.sources.CryptoCompare = d.length; } catch (e) { N.sources.CryptoCompare = 'fout: ' + e.message; } }
+      if (env.FINNHUB_KEY) { for (const cat of ['general', 'crypto']) { try { const l = await getJSON(`https://finnhub.io/api/v1/news?category=${cat}&token=${env.FINNHUB_KEY}`, b); fresh.push(...l.slice(0, 40).map(x => ({ id: 'fh' + x.id, title: x.headline, body: (x.summary || '').slice(0, 300), url: x.url, src: x.source, t: x.datetime * 1000, feed: 'Finnhub' }))); N.sources['Finnhub ' + cat] = l.length; } catch (e) { N.sources['Finnhub ' + cat] = 'fout: ' + e.message; } } } }
     const cut = now - 3 * DAY; const seen = new Set();
-    const keep = items.filter(x => x.title && x.url && x.t > cut && !seen.has(x.id) && seen.add(x.id)).sort((p, q) => q.t - p.t).slice(0, 200);
-    state.news = { t: now, items: keep.length ? keep : (state.news?.items || []), sources: st }; writes.push(kvPutStmt(env, 'news', state.news));
-  }
+    N.items = [...fresh, ...(N.items || [])].filter(x => x && x.title && x.url && x.t > cut && !seen.has(x.id) && seen.add(x.id)).sort((p, q) => q.t - p.t).slice(0, 200);
+    N.idx = (idx + 2) % FEEDS.length; N.t = now; state.news = N; await save('news', N);
+    return { items: N.items.length, fetched: pick.map(p => p[0]).join(', '), sources: N.sources };
+  });
   // 5. extra marktcijfers (elke 10 min): CoinGecko + Fear & Greed
-  if (now - (state.extraTs || 0) > 10 * MIN) {
-    const ex = state.extra || {}; const h = env.COINGECKO_KEY ? { headers: { 'x-cg-demo-api-key': env.COINGECKO_KEY } } : undefined;
+  if (now - (state.extraTs || 0) > 10 * MIN || !state.extra || !state.extra.global) await step('extra', async () => {
+    const ex = { ...(state.extra || {}) }; const h = env.COINGECKO_KEY ? { headers: { 'x-cg-demo-api-key': env.COINGECKO_KEY } } : undefined;
+    delete ex.globalErr; delete ex.trendErr; delete ex.fngErr;
     try { const g = (await getJSON('https://api.coingecko.com/api/v3/global', b, h)).data; ex.global = { cap: g.total_market_cap?.eur, vol: g.total_volume?.eur, capCh: g.market_cap_change_percentage_24h_usd, btcDom: g.market_cap_percentage?.btc, ethDom: g.market_cap_percentage?.eth, coins: g.active_cryptocurrencies, t: now }; } catch (e) { ex.globalErr = e.message; }
     try { const tr = await getJSON('https://api.coingecko.com/api/v3/search/trending', b, h); ex.trending = (tr.coins || []).slice(0, 10).map(c => ({ s: (c.item.symbol || '').toUpperCase(), name: c.item.name, rank: c.item.market_cap_rank, ch: c.item.data?.price_change_percentage_24h?.eur ?? null })); ex.trendT = now; } catch (e) { ex.trendErr = e.message; }
     try { const f = await getJSON('https://api.alternative.me/fng/?limit=8', b); ex.fng = (f.data || []).map(d => ({ v: +d.value, l: d.value_classification, t: +d.timestamp * 1000 })); } catch (e) { ex.fngErr = e.message; }
-    state.extra = ex; writes.push(kvPutStmt(env, 'extra', ex));
-  }
-  // 6. aandelen via Finnhub (alleen met FINNHUB_KEY), roterend 10 per tik
-  if (env.FINNHUB_KEY) {
-    const Q = state.stocks || {}; const order = STOCK_SYMS.slice().sort((a, b) => (Q[a]?.u || 0) - (Q[b]?.u || 0)).slice(0, Math.min(10, b.left - 4));
-    await Promise.all(order.map(async s => { try { const q = await getJSON(`https://finnhub.io/api/v1/quote?symbol=${s}&token=${env.FINNHUB_KEY}`, b); if (q && q.c) Q[s] = { p: q.c, dp: q.dp, o: q.o, h: q.h, l: q.l, pc: q.pc, ts: q.t * 1000, u: now }; } catch { } }));
-    state.stocks = Q; writes.push(kvPutStmt(env, 'stocks', Q));
-  }
-  return writes;
+    state.extra = ex; await save('extra', ex); return { global: !!ex.global, trending: !!ex.trending, fng: !!ex.fng, errors: [ex.globalErr, ex.trendErr, ex.fngErr].filter(Boolean) };
+  });
+  // 6. aandelen via Finnhub (alleen met FINNHUB_KEY), roterend
+  if (env.FINNHUB_KEY) await step('stocks', async () => {
+    const Q = state.stocks || {}; const order = STOCK_SYMS.slice().sort((a, b2) => (Q[a]?.u || 0) - (Q[b2]?.u || 0)).slice(0, Math.max(0, Math.min(8, b.left - 6))); let ok = 0;
+    await Promise.all(order.map(async s => { try { const q = await getJSON(`https://finnhub.io/api/v1/quote?symbol=${s}&token=${env.FINNHUB_KEY}`, b); if (q && q.c) { Q[s] = { p: q.c, dp: q.dp, o: q.o, h: q.h, l: q.l, pc: q.pc, ts: q.t * 1000, u: now }; ok++; } } catch { } }));
+    state.stocks = Q; await save('stocks', Q); return { refreshed: ok };
+  });
+  return status;
 }
 
 /* ---------- analyse op serverdata ---------- */
