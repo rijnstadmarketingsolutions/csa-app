@@ -25,7 +25,7 @@ jobs:
         run: |
           sudo apt-get install -y -qq whois >/dev/null 2>&1 || true
           for d in $DOMAINS; do
-            out=$(timeout 25 whois "$d" 2>&1 | grep -iE "no match|not found|no entries|status:|available|free|registrar:|creation date|registered|domain name:" | head -4 | tr '\n' ' ' | head -c 220)
+            out=$(timeout 25 whois "$d" 2>&1 | grep -iE "^(no match|domain not found|not found|no data found|status:|creation date:|registrar:)|^\s*status:|^%? *Status:" | head -3 | tr '\n' ' ' | head -c 220)
             echo "WHOIS $d :: $out"
             sleep 2
           done
