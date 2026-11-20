@@ -33,7 +33,7 @@ const S={
   restOK:null,ws:null,wsReady:false,wsQ:new Map(),wsId:1,lastCalc:0
 };
 S.settings.cats=Object.assign({},DEFAULT_SETTINGS.cats,S.settings.cats||{});
-const saveSettings=()=>LS.set('settings',S.settings);
+const saveSettings=()=>{LS.set('settings',S.settings);Sync.schedule()};
 
 /* ---------- helpers ---------- */
 const mean=a=>a.length?a.reduce((s,x)=>s+x,0)/a.length:0;

@@ -1,0 +1,25 @@
+{
+  "name": "csa-app",
+  "private": true,
+  "version": "1.1.0",
+  "description": "Crypto Signal AI: AI Market Intelligence voor crypto en aandelen",
+  "type": "module",
+  "scripts": {
+    "build": "python3 build.py",
+    "dev": "python3 build.py && wrangler dev --test-scheduled",
+    "deploy": "python3 build.py && wrangler deploy",
+    "db:migrate": "wrangler d1 migrations apply csa-db --remote",
+    "test": "node --test test/unit.test.mjs",
+    "cap:sync": "python3 build.py --native && npx cap sync",
+    "cap:ios": "npx cap open ios",
+    "cap:android": "npx cap open android"
+  },
+  "devDependencies": {
+    "@capacitor/android": "^7.6.10",
+    "@capacitor/cli": "^7.6.10",
+    "@capacitor/core": "^7.6.10",
+    "@capacitor/ios": "^7.6.10",
+    "http_ece": "^1.2.1",
+    "wrangler": "^4.0.0"
+  }
+}

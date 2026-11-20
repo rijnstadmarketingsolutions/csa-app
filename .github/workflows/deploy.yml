@@ -1,30 +1,75 @@
-name: Deploy CSA naar Cloudflare Pages
+name: Deploy CSA (Worker + D1 + app)
 on:
   push:
     branches: [main]
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+env:
+  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: App bouwen (src/ -> site/index.html)
+      - name: Installeren en testen
+        run: |
+          npm ci
+          npm test
+      - name: App bouwen (src/ -> site/)
         run: python build.py
-      - name: Pages-project aanmaken (eenmalig, faalt stil als het al bestaat)
-        continue-on-error: true
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages project create csa-app --production-branch=main
-      - name: Publiceren op Cloudflare Pages
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy site --project-name=csa-app --branch=main
+
+      - name: D1-database klaarzetten (eenmalig aanmaken, EU)
+        run: |
+          npx wrangler d1 list --json > d1.json || echo '[]' > d1.json
+          if ! python3 -c "import json,sys;sys.exit(0 if any(d.get('name')=='csa-db' for d in json.load(open('d1.json'))) else 1)"; then
+            npx wrangler d1 create csa-db --jurisdiction eu
+            npx wrangler d1 list --json > d1.json
+          fi
+          ID=$(python3 -c "import json;print(next((d.get('uuid') or d.get('id')) for d in json.load(open('d1.json')) if d.get('name')=='csa-db'))")
+          sed -i "s/00000000-0000-0000-0000-000000000000/$ID/" wrangler.jsonc
+          npx wrangler d1 migrations apply csa-db --remote
+
+      - name: Worker publiceren
+        run: |
+          npx wrangler deploy 2>&1 | tee deploy.log
+          URL=$(grep -oE 'https://[a-z0-9.-]+\.workers\.dev' deploy.log | head -1)
+          echo "Worker: $URL"
+          echo "WORKER_URL=$URL" >> "$GITHUB_ENV"
+
+      - name: Geheimen instellen (alleen als ze zijn opgegeven)
+        env:
+          FINNHUB_KEY: ${{ secrets.FINNHUB_KEY }}
+          COINGECKO_KEY: ${{ secrets.COINGECKO_KEY }}
+          CRYPTOCOMPARE_KEY: ${{ secrets.CRYPTOCOMPARE_KEY }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          STRIPE_PRICE_ID: ${{ secrets.STRIPE_PRICE_ID }}
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+          PREMIUM_PRICE_LABEL: ${{ secrets.PREMIUM_PRICE_LABEL }}
+        run: |
+          EXIST=$(npx wrangler secret list --format json 2>/dev/null || echo '[]')
+          # sleutel voor het versleutelen van 2FA-geheimen: eenmalig automatisch aanmaken, nooit overschrijven
+          if ! echo "$EXIST" | grep -q '"ENC_KEY"'; then openssl rand -base64 48 | npx wrangler secret put ENC_KEY; fi
+          for NAME in FINNHUB_KEY COINGECKO_KEY CRYPTOCOMPARE_KEY STRIPE_SECRET_KEY STRIPE_PRICE_ID STRIPE_WEBHOOK_SECRET PREMIUM_PRICE_LABEL; do
+            VAL="${!NAME}"
+            if [ -n "$VAL" ]; then printf '%s' "$VAL" | npx wrangler secret put "$NAME"; fi
+          done
+
+      - name: Oude link (pages.dev) doorsturen naar de nieuwe app
+        if: env.WORKER_URL != ''
+        run: |
+          mkdir -p pages-redirect
+          printf '/* %s/:splat 302\n' "$WORKER_URL" > pages-redirect/_redirects
+          printf '<!doctype html><meta http-equiv="refresh" content="0;url=%s"><a href="%s">Crypto Signal AI</a>' "$WORKER_URL" "$WORKER_URL" > pages-redirect/index.html
+          npx wrangler pages deploy pages-redirect --project-name=csa-app --branch=main

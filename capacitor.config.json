@@ -1,0 +1,8 @@
+{
+  "appId": "nl.rijnstadmarketing.csa",
+  "appName": "CSA",
+  "webDir": "site",
+  "server": { "androidScheme": "https" },
+  "ios": { "contentInset": "automatic", "backgroundColor": "#17243A" },
+  "android": { "backgroundColor": "#17243A" }
+}

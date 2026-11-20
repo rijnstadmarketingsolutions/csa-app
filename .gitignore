@@ -1,2 +1,7 @@
 __pycache__/
 .DS_Store
+node_modules/
+.wrangler/
+.dev.vars
+android/
+ios/

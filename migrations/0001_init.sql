@@ -1,0 +1,33 @@
+-- CSA: eerste databaseschema
+CREATE TABLE IF NOT EXISTS users (
+  id TEXT PRIMARY KEY,
+  email TEXT UNIQUE NOT NULL,
+  name TEXT,
+  pw TEXT NOT NULL,
+  totp TEXT,
+  totp_on INTEGER NOT NULL DEFAULT 0,
+  backup TEXT,
+  plan TEXT NOT NULL DEFAULT 'free',
+  stripe_customer TEXT,
+  created INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS sessions (
+  token TEXT PRIMARY KEY,           -- SHA-256 van het token
+  user_id TEXT NOT NULL,
+  expires INTEGER NOT NULL,
+  kind TEXT NOT NULL DEFAULT 'full' -- 'full' | 'pending' (na wachtwoord, vóór 2FA)
+);
+CREATE INDEX IF NOT EXISTS sessions_user ON sessions(user_id);
+CREATE TABLE IF NOT EXISTS attempts (key TEXT PRIMARY KEY, n INTEGER NOT NULL, until INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS prefs (user_id TEXT PRIMARY KEY, settings TEXT, watch TEXT, rem TEXT, updated INTEGER);
+CREATE TABLE IF NOT EXISTS push_subs (endpoint TEXT PRIMARY KEY, user_id TEXT NOT NULL, p256dh TEXT NOT NULL, auth TEXT NOT NULL, created INTEGER, fails INTEGER NOT NULL DEFAULT 0);
+CREATE INDEX IF NOT EXISTS push_user ON push_subs(user_id);
+CREATE TABLE IF NOT EXISTS positions (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id TEXT NOT NULL, sym TEXT NOT NULL, kind TEXT NOT NULL, qty REAL NOT NULL, avg REAL, note TEXT, created INTEGER);
+CREATE INDEX IF NOT EXISTS positions_user ON positions(user_id);
+CREATE TABLE IF NOT EXISTS paper (user_id TEXT PRIMARY KEY, cash REAL NOT NULL, holdings TEXT NOT NULL, updated INTEGER);
+CREATE TABLE IF NOT EXISTS paper_trades (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id TEXT NOT NULL, sym TEXT NOT NULL, side TEXT NOT NULL, eur REAL NOT NULL, qty REAL NOT NULL, price REAL NOT NULL, t INTEGER NOT NULL);
+CREATE INDEX IF NOT EXISTS paper_trades_user ON paper_trades(user_id, t);
+CREATE TABLE IF NOT EXISTS kv (key TEXT PRIMARY KEY, val TEXT NOT NULL, ts INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS events (id TEXT PRIMARY KEY, data TEXT NOT NULL, score INTEGER NOT NULL, first INTEGER NOT NULL, updated INTEGER NOT NULL);
+CREATE INDEX IF NOT EXISTS events_first ON events(first);
+CREATE TABLE IF NOT EXISTS sent (user_id TEXT NOT NULL, key TEXT NOT NULL, t INTEGER NOT NULL, PRIMARY KEY (user_id, key));

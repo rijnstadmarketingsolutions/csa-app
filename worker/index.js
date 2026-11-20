@@ -1,0 +1,214 @@
+// CSA worker — API, statische app en 24/7 scanner (cron)
+import { json, err, readJSON, hashPassword, verifyPassword, b32enc, rand, totpCheck, newSession, sessionFrom, sessionByToken, sha256, seal, open,
+  limited, bump, clearAttempts, kvGet, kvPutStmt, randToken, DAY, HOUR, MIN } from './lib.js';
+import { vapidKeys, sendPush } from './push.js';
+import { refreshMarket, analyse, detect, backtest, budget, RADAR, STOCK_SYMS } from './market.js';
+import { checkout, portal, webhook, stripeReady } from './billing.js';
+
+const VERSION = '1.1.0';
+const NATIVE_ORIGINS = ['capacitor://localhost', 'http://localhost', 'https://localhost', 'ionic://localhost'];
+const DEFAULT_SETTINGS = { notify: true, minScore: 60, scope: 'all', quiet: false, quietFrom: '23:00', quietTo: '07:00', cats: {} };
+const EMAIL_RX = /^[^@\s]{1,64}@[^@\s]{1,190}\.[^@\s]{2,}$/;
+
+function cors(req, res) {
+  const o = req.headers.get('origin'); if (!o || !NATIVE_ORIGINS.includes(o)) return res;
+  const h = new Headers(res.headers); h.set('access-control-allow-origin', o); h.set('vary', 'origin');
+  h.set('access-control-allow-headers', 'authorization, content-type'); h.set('access-control-allow-methods', 'GET, POST, PUT, DELETE, OPTIONS'); h.set('access-control-max-age', '86400');
+  return new Response(res.body, { status: res.status, headers: h });
+}
+const premiumOnly = (env, s) => env.PREMIUM_ENFORCED === 'true' && s.plan !== 'premium';
+const ip = req => req.headers.get('cf-connecting-ip') || 'local';
+const userOut = s => ({ email: s.email, name: s.name, plan: s.plan, totp: !!s.totp_on });
+
+async function loadState(env, keys) {
+  const r = await env.DB.prepare(`SELECT key,val,ts FROM kv WHERE key IN (${keys.map(() => '?').join(',')})`).bind(...keys).all();
+  const st = {}; for (const row of r.results) { st[row.key] = JSON.parse(row.val); st[row.key + 'Ts'] = row.ts; } return st;
+}
+
+export default {
+  async fetch(request, env, ctx) {
+    const url = new URL(request.url);
+    if (!url.pathname.startsWith('/api/')) return env.ASSETS.fetch(request);
+    if (request.method === 'OPTIONS') return cors(request, new Response(null, { status: 204 }));
+    try { return cors(request, await api(request, env, ctx, url)); }
+    catch (e) { console.error(e); return cors(request, err(500, 'Serverfout: ' + e.message)); }
+  },
+  async scheduled(event, env, ctx) {
+    if (event.cron === '17 3 * * *') ctx.waitUntil(daily(env)); else ctx.waitUntil(tick(env));
+  }
+};
+
+/* =================================================================== API */
+async function api(req, env, ctx, url) {
+  const p = url.pathname, m = req.method;
+  if (p === '/api/health') return json({ ok: true, version: VERSION, features: { accounts: true, push: true, stripe: stripeReady(env), finnhub: !!env.FINNHUB_KEY, ai: false, premiumEnforced: env.PREMIUM_ENFORCED === 'true' } });
+
+  /* ---------- account ---------- */
+  if (p === '/api/auth/register' && m === 'POST') {
+    const b = await readJSON(req); const email = String(b.email || '').trim().toLowerCase(); const pw = String(b.password || '');
+    if (!EMAIL_RX.test(email)) return err(400, 'Vul een geldig e-mailadres in.');
+    if (pw.length < 8) return err(400, 'Kies een wachtwoord van minimaal 8 tekens.');
+    const wait = await limited(env, 'reg:' + ip(req), 5, HOUR); if (wait) return err(429, 'Te veel registraties vanaf dit netwerk. Probeer het later opnieuw.');
+    await bump(env, 'reg:' + ip(req), HOUR);
+    const exists = await env.DB.prepare('SELECT id FROM users WHERE email=?').bind(email).first(); if (exists) return err(409, 'Er bestaat al een account met dit e-mailadres. Log in.');
+    const id = crypto.randomUUID(); const secret = b32enc(rand(20));
+    const name = String(b.name || email.split('@')[0]).slice(0, 60);
+    await env.DB.prepare('INSERT INTO users(id,email,name,pw,totp,created) VALUES(?,?,?,?,?,?)').bind(id, email, name, await hashPassword(pw), await seal(env, secret), Date.now()).run();
+    const pend = await newSession(env, id, 'pending', 20 * MIN);
+    return json({ pending: pend.token, setup: { secret, uri: `otpauth://totp/CSA:${encodeURIComponent(email)}?secret=${secret}&issuer=Crypto%20Signal%20AI&digits=6&period=30` } });
+  }
+  if (p === '/api/auth/login' && m === 'POST') {
+    const b = await readJSON(req); const email = String(b.email || '').trim().toLowerCase();
+    const k = 'login:' + email; const wait = await limited(env, k, 6); if (wait) return err(429, `Te veel pogingen. Probeer het over ${Math.ceil(wait / 60)} minuten opnieuw.`);
+    const u = await env.DB.prepare('SELECT id,pw,totp,totp_on,email FROM users WHERE email=?').bind(email).first();
+    if (!u || !(await verifyPassword(String(b.password || ''), u.pw))) { await bump(env, k); return err(401, 'E-mailadres of wachtwoord klopt niet.'); }
+    const pend = await newSession(env, u.id, 'pending', 10 * MIN);
+    if (!u.totp_on) { const secret = await open(env, u.totp); return json({ pending: pend.token, setup: { secret, uri: `otpauth://totp/CSA:${encodeURIComponent(u.email)}?secret=${secret}&issuer=Crypto%20Signal%20AI&digits=6&period=30` } }); }
+    return json({ pending: pend.token, need: 'totp' });
+  }
+  if (p === '/api/auth/verify' && m === 'POST') {
+    const b = await readJSON(req); const s = await sessionByToken(env, String(b.pending || ''), 'pending'); if (!s) return err(401, 'Sessie verlopen. Log opnieuw in.');
+    const k = 'otp:' + s.user_id; const wait = await limited(env, k, 6); if (wait) return err(429, 'Te veel onjuiste codes. Probeer het later opnieuw.');
+    const u = await env.DB.prepare('SELECT totp,totp_on,backup FROM users WHERE id=?').bind(s.user_id).first();
+    const code = String(b.code || '').replace(/\s/g, ''); let ok = await totpCheck(await open(env, u.totp), code); let backup = null;
+    if (!ok && u.totp_on && /^[a-z0-9]{10}$/i.test(code)) { const list = JSON.parse(u.backup || '[]'); const h = await sha256(code.toLowerCase()); if (list.includes(h)) { ok = true; await env.DB.prepare('UPDATE users SET backup=? WHERE id=?').bind(JSON.stringify(list.filter(x => x !== h)), s.user_id).run(); } }
+    if (!ok) { await bump(env, k); return err(401, 'Onjuiste code.'); }
+    await clearAttempts(env, k); await clearAttempts(env, 'login:' + s.email);
+    if (!u.totp_on) { backup = Array.from({ length: 8 }, () => [...rand(5)].map(x => x.toString(16).padStart(2, '0')).join(''));
+      await env.DB.prepare('UPDATE users SET totp_on=1, backup=? WHERE id=?').bind(JSON.stringify(await Promise.all(backup.map(x => sha256(x)))), s.user_id).run(); }
+    await env.DB.prepare('DELETE FROM sessions WHERE token=?').bind(await sha256(s.token)).run();
+    const full = await newSession(env, s.user_id, 'full', b.trust ? 30 * DAY : 12 * HOUR);
+    return json({ token: full.token, expires: full.expires, backup, user: { email: s.email, name: s.name, plan: s.plan, totp: true } });
+  }
+
+  const s = await sessionFrom(env, req);
+  const needAuth = () => err(401, 'Log in om dit te gebruiken.');
+
+  if (p === '/api/auth/logout' && m === 'POST') { if (s) await env.DB.prepare('DELETE FROM sessions WHERE token=?').bind(await sha256(s.token)).run(); return json({ ok: true }); }
+  if (p === '/api/me' && m === 'GET') { if (!s) return needAuth(); return json({ user: userOut(s) }); }
+  if (p === '/api/me' && m === 'DELETE') { if (!s) return needAuth(); const id = s.user_id;
+    await env.DB.batch(['sessions', 'prefs', 'push_subs', 'positions', 'paper', 'paper_trades', 'sent'].map(t => env.DB.prepare(`DELETE FROM ${t} WHERE user_id=?`).bind(id)).concat([env.DB.prepare('DELETE FROM users WHERE id=?').bind(id)]));
+    return json({ ok: true, deleted: true }); }
+
+  /* ---------- voorkeuren ---------- */
+  if (p === '/api/prefs') { if (!s) return needAuth();
+    if (m === 'GET') { const r = await env.DB.prepare('SELECT settings,watch,rem,updated FROM prefs WHERE user_id=?').bind(s.user_id).first(); return json(r ? { settings: JSON.parse(r.settings || '{}'), watch: JSON.parse(r.watch || '[]'), rem: JSON.parse(r.rem || '{}'), updated: r.updated } : { settings: null }); }
+    if (m === 'PUT') { const b = await readJSON(req); const settings = { ...(b.settings || {}) }; delete settings.fhKey;
+      await env.DB.prepare('INSERT INTO prefs(user_id,settings,watch,rem,updated) VALUES(?,?,?,?,?) ON CONFLICT(user_id) DO UPDATE SET settings=excluded.settings,watch=excluded.watch,rem=excluded.rem,updated=excluded.updated')
+        .bind(s.user_id, JSON.stringify(settings), JSON.stringify((b.watch || []).slice(0, 200)), JSON.stringify(b.rem || {}), Date.now()).run(); return json({ ok: true }); } }
+
+  /* ---------- push ---------- */
+  if (p === '/api/push/key') return json({ key: (await vapidKeys(env)).pub });
+  if (p === '/api/push/subscribe') { if (!s) return needAuth(); if (premiumOnly(env, s)) return err(402, 'Pushmeldingen 24/7 zijn onderdeel van Premium.');
+    const b = await readJSON(req);
+    if (m === 'POST') { if (!(/^https:\/\//.test(b.endpoint || '') || (env.DEV_ALLOW_HTTP_PUSH === 'true' && /^http:\/\/127\.0\.0\.1/.test(b.endpoint || ''))) || !b.keys?.p256dh || !b.keys?.auth) return err(400, 'Ongeldig abonnement');
+      await env.DB.prepare('INSERT INTO push_subs(endpoint,user_id,p256dh,auth,created) VALUES(?,?,?,?,?) ON CONFLICT(endpoint) DO UPDATE SET user_id=excluded.user_id,p256dh=excluded.p256dh,auth=excluded.auth,fails=0').bind(b.endpoint, s.user_id, b.keys.p256dh, b.keys.auth, Date.now()).run(); return json({ ok: true }); }
+    if (m === 'DELETE') { await env.DB.prepare('DELETE FROM push_subs WHERE endpoint=? AND user_id=?').bind(b.endpoint || '', s.user_id).run(); return json({ ok: true }); } }
+  if (p === '/api/push/test' && m === 'POST') { if (!s) return needAuth();
+    const subs = (await env.DB.prepare('SELECT * FROM push_subs WHERE user_id=?').bind(s.user_id).all()).results; if (!subs.length) return err(400, 'Dit account heeft nog geen apparaat voor pushmeldingen.');
+    const res = []; for (const sub of subs) { const r = await sendPush(env, sub, { title: 'CSA testmelding', body: 'Pushmeldingen werken. Zo krijg je straks belangrijke marktgebeurtenissen binnen.', url: '/#impact', tag: 'test' }); res.push(r); if (r === 'gone') await env.DB.prepare('DELETE FROM push_subs WHERE endpoint=?').bind(sub.endpoint).run(); }
+    return json({ results: res }); }
+
+  /* ---------- marktdata (openbaar) ---------- */
+  if (p === '/api/market' && m === 'GET') {
+    const st = await loadState(env, ['tickers', 'extra', 'stocks', 'news']);
+    const ev = (await env.DB.prepare('SELECT data FROM events WHERE first>? ORDER BY score DESC LIMIT 60').bind(Date.now() - 2 * DAY).all()).results.map(r => JSON.parse(r.data));
+    return json({ t: Date.now(), tickers: st.tickers || null, tickersTs: st.tickersTs || null, extra: st.extra || null, stocks: st.stocks || null, news: st.news || null, events: ev, radar: RADAR }, 200, { 'cache-control': 'public, max-age=20' });
+  }
+  if (p === '/api/backtest' && m === 'GET') { const r = await kvGet(env, 'backtest'); if (!r) return json({ pending: true });
+    const out = r.val; if (s && premiumOnly(env, s) || (!s && env.PREMIUM_ENFORCED === 'true')) return json({ ...out, recent: [], locked: true }); return json(out); }
+  if (p === '/api/ai/briefing') return json({ status: 'later', message: 'De AI-laag wordt in een volgende fase gekoppeld.' }, 501);
+
+  /* ---------- eigen portefeuille ---------- */
+  if (p === '/api/portfolio') { if (!s) return needAuth();
+    if (m === 'GET') return json({ positions: (await env.DB.prepare('SELECT id,sym,kind,qty,avg,note,created FROM positions WHERE user_id=? ORDER BY created').bind(s.user_id).all()).results });
+    if (m === 'POST') { const b = await readJSON(req); const sym = String(b.sym || '').toUpperCase().replace(/[^A-Z0-9.]/g, '').slice(0, 12); const qty = Number(b.qty), avg = b.avg == null || b.avg === '' ? null : Number(b.avg);
+      if (!sym || !(qty > 0) || (avg != null && !(avg >= 0))) return err(400, 'Vul een geldig symbool, aantal en (optioneel) aankoopprijs in.');
+      const n = await env.DB.prepare('SELECT COUNT(*) n FROM positions WHERE user_id=?').bind(s.user_id).first(); if (n.n >= 200) return err(400, 'Maximaal 200 posities.');
+      const r = await env.DB.prepare('INSERT INTO positions(user_id,sym,kind,qty,avg,note,created) VALUES(?,?,?,?,?,?,?)').bind(s.user_id, sym, b.kind === 'stock' ? 'stock' : 'crypto', qty, avg, String(b.note || '').slice(0, 120), Date.now()).run();
+      return json({ ok: true, id: r.meta.last_row_id }); } }
+  const pm = p.match(/^\/api\/portfolio\/(\d+)$/);
+  if (pm && m === 'DELETE') { if (!s) return needAuth(); await env.DB.prepare('DELETE FROM positions WHERE id=? AND user_id=?').bind(+pm[1], s.user_id).run(); return json({ ok: true }); }
+
+  /* ---------- oefenportefeuille (virtueel geld, koersen van de server) ---------- */
+  if (p.startsWith('/api/paper')) { if (!s) return needAuth();
+    const START = 10000, FEE = 0.0025;
+    let acc = await env.DB.prepare('SELECT cash,holdings FROM paper WHERE user_id=?').bind(s.user_id).first();
+    if (!acc || p === '/api/paper/reset') { acc = { cash: START, holdings: '{}' };
+      await env.DB.batch([env.DB.prepare('INSERT INTO paper(user_id,cash,holdings,updated) VALUES(?,?,?,?) ON CONFLICT(user_id) DO UPDATE SET cash=excluded.cash,holdings=excluded.holdings,updated=excluded.updated').bind(s.user_id, START, '{}', Date.now()), ...(p === '/api/paper/reset' ? [env.DB.prepare('DELETE FROM paper_trades WHERE user_id=?').bind(s.user_id)] : [])]); }
+    const H = JSON.parse(acc.holdings);
+    if (p === '/api/paper/order' && m === 'POST') {
+      const b = await readJSON(req); const sym = String(b.sym || '').toUpperCase(); const eur = Math.round(Number(b.eur) * 100) / 100; const side = b.side === 'sell' ? 'sell' : 'buy';
+      if (!(eur >= 1)) return err(400, 'Minimaal € 1.');
+      const t = await kvGet(env, 'tickers'); const q = t?.val?.list?.find(x => x.s === sym); if (!q || Date.now() - t.ts > 15 * MIN) return err(409, 'Geen actuele koers voor ' + sym + ' beschikbaar.');
+      const price = q.p; const fee = eur * FEE; let cash = acc.cash; const h = H[sym] || { qty: 0, cost: 0 };
+      if (side === 'buy') { if (eur + fee > cash + 1e-9) return err(400, 'Onvoldoende virtueel saldo (inclusief 0,25% kosten).'); const qty = eur / price; h.qty += qty; h.cost += eur + fee; cash -= eur + fee; H[sym] = h;
+        await env.DB.batch([env.DB.prepare('UPDATE paper SET cash=?,holdings=?,updated=? WHERE user_id=?').bind(cash, JSON.stringify(H), Date.now(), s.user_id), env.DB.prepare('INSERT INTO paper_trades(user_id,sym,side,eur,qty,price,t) VALUES(?,?,?,?,?,?,?)').bind(s.user_id, sym, side, eur, qty, price, Date.now())]); }
+      else { const qty = eur / price; if (qty > h.qty * (1 + 1e-9)) return err(400, 'Je hebt niet genoeg ' + sym + ' in je oefenportefeuille.'); const part = Math.min(1, qty / h.qty); h.cost -= h.cost * part; h.qty -= qty; cash += eur - fee; if (h.qty < 1e-12) delete H[sym]; else H[sym] = h;
+        await env.DB.batch([env.DB.prepare('UPDATE paper SET cash=?,holdings=?,updated=? WHERE user_id=?').bind(cash, JSON.stringify(H), Date.now(), s.user_id), env.DB.prepare('INSERT INTO paper_trades(user_id,sym,side,eur,qty,price,t) VALUES(?,?,?,?,?,?,?)').bind(s.user_id, sym, side, eur, qty, price, Date.now())]); }
+      acc = { cash, holdings: JSON.stringify(H) };
+    }
+    const trades = (await env.DB.prepare('SELECT sym,side,eur,qty,price,t FROM paper_trades WHERE user_id=? ORDER BY t DESC LIMIT 50').bind(s.user_id).all()).results;
+    return json({ start: START, fee: FEE, cash: acc.cash, holdings: JSON.parse(acc.holdings), trades });
+  }
+
+  /* ---------- premium / Stripe ---------- */
+  if (p === '/api/billing/status') return json({ ready: stripeReady(env), enforced: env.PREMIUM_ENFORCED === 'true', plan: s ? s.plan : null, price: env.PREMIUM_PRICE_LABEL || null });
+  if (p === '/api/billing/checkout' && m === 'POST') { if (!s) return needAuth(); return checkout(env, s, url.origin); }
+  if (p === '/api/billing/portal' && m === 'POST') { if (!s) return needAuth(); return portal(env, s, url.origin); }
+  if (p === '/api/billing/webhook' && m === 'POST') return webhook(env, req);
+
+  return err(404, 'Onbekend endpoint');
+}
+
+/* =================================================================== CRON */
+async function tick(env) {
+  const b = budget(45);
+  const state = await loadState(env, ['tickers', 'ticks', 'names', 'candles', 'news', 'extra', 'stocks']);
+  let writes = [];
+  try { writes = await refreshMarket(env, state, b); } catch (e) { console.error('refresh', e.message); }
+  const an = analyse(state); const found = detect(an);
+  const prev = new Set((await env.DB.prepare('SELECT id FROM events WHERE first>?').bind(Date.now() - 2 * DAY).all()).results.map(r => r.id));
+  const now = Date.now();
+  for (const e of found) { e.t = now; writes.push(env.DB.prepare('INSERT INTO events(id,data,score,first,updated) VALUES(?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET data=excluded.data,score=excluded.score,updated=excluded.updated').bind(e.id, JSON.stringify(e), e.score, now, now)); }
+  writes.push(kvPutStmt(env, 'market', { t: now, mk: an.mk }));
+  if (writes.length) await env.DB.batch(writes);
+  const fresh = found.filter(e => !prev.has(e.id));
+  try { await dispatch(env, fresh, b); } catch (e) { console.error('push', e.message); }
+}
+function localHM(tz = 'Europe/Amsterdam') { const p = new Intl.DateTimeFormat('nl-NL', { timeZone: tz, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date()); return +p.find(x => x.type === 'hour').value * 60 + +p.find(x => x.type === 'minute').value; }
+function inQuiet(st) { if (!st.quiet) return false; const m = localHM(); const [fh, fm] = (st.quietFrom || '23:00').split(':').map(Number), [th, tm] = (st.quietTo || '07:00').split(':').map(Number); const f = fh * 60 + fm, t = th * 60 + tm; return f < t ? (m >= f && m < t) : (m >= f || m < t); }
+async function dispatch(env, fresh, b) {
+  const rows = (await env.DB.prepare('SELECT s.endpoint,s.user_id,s.p256dh,s.auth,p.settings,p.watch,p.rem,u.plan FROM push_subs s JOIN users u ON u.id=s.user_id LEFT JOIN prefs p ON p.user_id=s.user_id').all()).results;
+  if (!rows.length) return;
+  const now = Date.now(); const sentRows = (await env.DB.prepare('SELECT user_id,key FROM sent WHERE t>?').bind(now - 3 * HOUR).all()).results; const sent = new Set(sentRows.map(r => r.user_id + '|' + r.key));
+  const ops = []; const gone = new Set(); const perUser = {};
+  const radarDue = []; for (const e of RADAR) for (const off of [1440, 60, 15]) { const at = e.t - off * MIN; if (now >= at && now < at + 6 * MIN) radarDue.push({ e, off }); }
+  for (const r of rows) {
+    if (env.PREMIUM_ENFORCED === 'true' && r.plan !== 'premium') continue;
+    const st = { ...DEFAULT_SETTINGS, ...JSON.parse(r.settings || '{}') }; const watch = JSON.parse(r.watch || '[]'); const rem = JSON.parse(r.rem || '{}'); const cats = st.cats || {};
+    const msgs = [];
+    for (const { e, off } of radarDue) if ((rem[e.id] || []).includes(off)) msgs.push({ key: `rem:${e.id}:${off}`, title: `Over ${off >= 60 ? off / 60 + ' uur' : off + ' minuten'}: ${e.title}`, body: new Date(e.t).toLocaleString('nl-NL', { timeZone: 'Europe/Amsterdam', weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }), url: '/#radar', tag: 'rem-' + e.id, force: true });
+    if (st.notify !== false && !inQuiet(st)) for (const e of fresh.sort((a, b2) => b2.score - a.score)) {
+      if (e.score < (st.minScore ?? 60) || cats[e.cat] === false) continue;
+      if (st.scope === 'watch' && e.s && !watch.includes(e.s)) continue;
+      msgs.push({ key: e.type + ':' + (e.s || 'market'), title: e.title, body: `Impact ${e.score}/100 · ${e.body}`, url: e.s ? '/#asset-' + e.s.toLowerCase() : '/#impact', tag: e.id });
+    }
+    for (const msg of msgs.slice(0, 3)) {
+      const k = r.user_id + '|' + msg.key; if (sent.has(k) && !msg.force) continue; if (gone.has(r.endpoint)) continue; if (!b.take()) return finish();
+      const res = await sendPush(env, r, msg).catch(e => 'fail:' + e.message);
+      if (res === 'gone') { gone.add(r.endpoint); ops.push(env.DB.prepare('DELETE FROM push_subs WHERE endpoint=?').bind(r.endpoint)); }
+      else if (res === 'ok' && !perUser[k]) { perUser[k] = 1; ops.push(env.DB.prepare('INSERT INTO sent(user_id,key,t) VALUES(?,?,?) ON CONFLICT(user_id,key) DO UPDATE SET t=excluded.t').bind(r.user_id, msg.key, now)); }
+    }
+  }
+  return finish();
+  async function finish() { if (ops.length) await env.DB.batch(ops); }
+}
+async function daily(env) {
+  const now = Date.now();
+  await env.DB.batch([env.DB.prepare('DELETE FROM sessions WHERE expires<?').bind(now), env.DB.prepare('DELETE FROM events WHERE first<?').bind(now - 7 * DAY), env.DB.prepare('DELETE FROM sent WHERE t<?').bind(now - 2 * DAY), env.DB.prepare('DELETE FROM attempts WHERE until<?').bind(now)]);
+  const t = await kvGet(env, 'tickers'); const top = (t?.val?.list || []).slice(0, 20).map(x => x.s);
+  if (!top.length) return;
+  try { const bt = await backtest(env, budget(45), top); await kvPutStmt(env, 'backtest', bt).run(); } catch (e) { console.error('backtest', e.message); }
+}
+export { STOCK_SYMS };

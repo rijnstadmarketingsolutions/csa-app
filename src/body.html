@@ -17,13 +17,15 @@
   <section class="lg-r">
     <form class="lg-box" id="step1" autocomplete="on">
       <div class="logo msh" data-logo style="width:52px;height:52px;margin-bottom:18px"></div>
-      <h2>Inloggen</h2>
-      <p class="muted" style="margin:0 0 22px">Log in op je CSA-account. Na je wachtwoord vragen we altijd een beveiligingscode.</p>
+      <h2 id="s1title">Inloggen</h2>
+      <p class="muted" style="margin:0 0 22px" id="s1sub">Log in op je CSA-account. Daarna vragen we altijd een beveiligingscode.</p>
+      <div class="field hidden" id="namef"><label for="lgname">Naam</label><input class="inp" id="lgname" autocomplete="name" placeholder="Je voornaam"></div>
       <div class="field"><label for="lgmail">E-mailadres</label><input class="inp" id="lgmail" type="email" required placeholder="naam@voorbeeld.nl" autocomplete="username"></div>
-      <div class="field"><label for="lgpw">Wachtwoord</label><input class="inp" id="lgpw" type="password" required minlength="6" placeholder="Minimaal 6 tekens" autocomplete="current-password"></div>
+      <div class="field"><label for="lgpw">Wachtwoord</label><input class="inp" id="lgpw" type="password" required minlength="6" placeholder="Minimaal 8 tekens" autocomplete="current-password"></div>
       <div class="err" id="err1"></div>
-      <button class="btn" style="width:100%;height:46px" type="submit">Doorgaan</button>
-      <p class="note" style="margin-top:18px">Prototype: accounts worden lokaal in deze browser gesimuleerd. Gebruik geen echt wachtwoord.</p>
+      <button class="btn" style="width:100%;height:46px" type="submit" id="s1btn">Doorgaan</button>
+      <p class="note" style="margin-top:16px;text-align:center" id="regline">Nog geen account? <button type="button" class="lnk" id="toreg">Account aanmaken</button></p>
+      <p class="note" style="margin-top:10px" id="modenote"></p>
     </form>
     <form class="lg-box hidden" id="step2">
       <div class="logo" data-logo style="width:52px;height:52px;margin-bottom:18px"></div>
@@ -31,11 +33,30 @@
       <p class="muted" style="margin:0" id="otpmsg">Vul de 6-cijferige code in.</p>
       <div class="democode hidden" id="democode"></div>
       <div class="otp" id="otp"></div>
+      <div class="field hidden" id="backupf" style="margin-top:14px"><label for="backupc">Back-upcode</label><input class="inp" id="backupc" autocomplete="off" placeholder="10 tekens"></div>
       <label class="chk"><input type="checkbox" id="trust"> Vertrouw dit apparaat 30 dagen</label>
       <div class="err" id="err2"></div>
       <button class="btn" style="width:100%;height:46px" type="submit">Verifiëren en inloggen</button>
-      <div style="display:flex;justify-content:space-between;margin-top:16px;font-size:14px"><button type="button" class="lnk" id="back1">Terug</button><button type="button" class="lnk" id="resend">Nieuwe code sturen</button></div>
+      <div style="display:flex;justify-content:space-between;gap:10px;margin-top:16px;font-size:14px;flex-wrap:wrap"><button type="button" class="lnk" id="back1">Terug</button><button type="button" class="lnk" id="usebackup">Back-upcode gebruiken</button><button type="button" class="lnk" id="resend">Nieuwe code sturen</button></div>
     </form>
+    <form class="lg-box hidden" id="step3">
+      <div class="logo" data-logo style="width:52px;height:52px;margin-bottom:18px"></div>
+      <h2>Beveilig je account</h2>
+      <p class="muted" style="margin:0 0 6px">CSA gebruikt een authenticator-app (Google Authenticator, Microsoft Authenticator, 1Password) voor je beveiligingscodes.</p>
+      <ol class="note" style="padding-left:18px;margin:10px 0"><li>Scan de QR-code met je app, of voer de sleutel handmatig in.</li><li>Vul de 6-cijferige code uit de app in.</li></ol>
+      <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin:8px 0 6px"><div id="qrbox" style="background:#fff;padding:8px;border:1px solid var(--line)"></div><div class="num" style="font-size:13px;word-break:break-all;flex:1;min-width:160px">Sleutel:<br><b id="secretbox" style="font-size:15px;letter-spacing:.06em"></b></div></div>
+      <div class="field"><label for="setupcode">Code uit je app</label><input class="inp" id="setupcode" inputmode="numeric" maxlength="6" placeholder="123456" autocomplete="one-time-code"></div>
+      <label class="chk"><input type="checkbox" id="trust3"> Vertrouw dit apparaat 30 dagen</label>
+      <div class="err" id="err3"></div>
+      <button class="btn" style="width:100%;height:46px" type="submit">Bevestigen</button>
+    </form>
+    <div class="lg-box hidden" id="step4">
+      <div class="logo" data-logo style="width:52px;height:52px;margin-bottom:18px"></div>
+      <h2>Bewaar je back-upcodes</h2>
+      <p class="muted" style="margin:0 0 14px">Ben je je telefoon kwijt? Met deze codes kom je toch binnen. Elke code werkt één keer. Je ziet ze alleen nu.</p>
+      <div id="backuplist" class="bcodes"></div>
+      <div style="display:flex;gap:8px;margin-top:14px"><button class="btn ghost" type="button" id="copyb">Kopiëren</button><button class="btn" type="button" id="doneb" style="flex:1">Ik heb ze bewaard</button></div>
+    </div>
   </section>
 </div>
 
