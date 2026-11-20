@@ -4,8 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Vantis</title>
+<script>try{var v=localStorage.getItem("vantis.skin"),k=(v&&JSON.parse(v))||"luxdark",R=document.documentElement;R.dataset.skin=k;if(k==="luxdark")R.dataset.theme="dark";else if(k==="luxlight")R.dataset.theme="light"}catch(e){document.documentElement.dataset.skin="luxdark";document.documentElement.dataset.theme="dark"}</script>
 <meta name="description" content="Vantis: Crypto Intelligence voor crypto en aandelen.">
-<meta name="theme-color" content="#17243A">
+<meta name="theme-color" content="#050505">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Vantis">
@@ -972,6 +973,94 @@ summary.lnk{white-space:normal;display:list-item}
 .lg-r{position:relative}.lgback{position:absolute;top:18px;right:22px;font-size:13.5px;color:var(--ink2);text-decoration:none;padding:6px 8px;border-radius:8px}.lgback:hover{color:var(--ink);background:var(--bg2)}
 .brand .vword{width:72px;height:15px;flex:none}.brand .bwrap{flex:none}
 
+/* ===================== v10: Vantis Academy ===================== */
+.achero{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) minmax(0,1.2fr);gap:0;padding:0!important;overflow:hidden}
+.achero>*{padding:18px 20px;min-width:0}.achero>*+*{border-left:1px solid var(--line)}
+.aclv{display:flex;gap:14px;align-items:center}
+.aclvn{flex:none;width:56px;height:56px;border-radius:50%;display:grid;place-items:center;font:700 22px/1 "Inter Tight",Inter,sans-serif;background:var(--navy);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.4)}
+:is([data-skin=luxdark],[data-skin=luxlight]) .aclvn{background:var(--metal);color:var(--accentInk)}
+:root[data-skin=luxlight] .aclvn{color:#fff}
+.aclv small,.acst small,.acnext small{display:block;font-size:11.5px;color:var(--ink3)}
+.aclv b{display:block;font-size:18px;margin:1px 0 6px}.aclv span{font-size:12px;color:var(--ink2)}
+.acxp{height:6px;border-radius:9px;background:var(--bg3);overflow:hidden;margin-bottom:5px}.acxp i{display:block;height:100%;background:var(--up);border-radius:9px}
+.acst{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;align-content:center}.acst b{font-size:17px}
+.acnext{display:grid;gap:2px;text-decoration:none;color:inherit;align-content:center}.acnext b{font-size:15px;line-height:1.3}.acnext span{font-size:12px;color:var(--ink2)}
+a.acnext:hover b{text-decoration:underline}
+.actabs{margin-top:16px;overflow-x:auto;max-width:100%;flex-wrap:nowrap}.actabs button{flex:none}
+.acpaths{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,420px),1fr));gap:12px;align-items:start}
+.acpath{padding:0!important;overflow:hidden}
+.acph{display:grid;grid-template-columns:58px minmax(0,1fr) 20px;gap:14px;align-items:center;width:100%;text-align:left;padding:16px 18px;background:none;border:0;color:inherit;cursor:pointer;font:inherit}
+.acph small{display:block;font-size:11.5px;color:var(--ink3)}.acph b{display:block;font-size:16px;margin:1px 0 3px}.acpd{display:block;font-size:13px;color:var(--ink2);line-height:1.4}
+.acph .chev{width:18px;height:18px;stroke:var(--ink3);fill:none;stroke-width:2}
+.acring{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--up) calc(var(--p)*1%),var(--bg3) 0);position:relative}
+.acring::before{content:"";position:absolute;inset:5px;border-radius:50%;background:var(--panel)}
+:root[data-skin=luxdark] .acring::before{background:#0d0d10}:root[data-skin=luxlight] .acring::before{background:#fff}
+.acring b{position:relative;font-size:12.5px;font-weight:650}
+.acll{list-style:none;margin:0;padding:6px 10px 10px;border-top:1px solid var(--line)}
+.acll a,.actask{display:grid;grid-template-columns:28px minmax(0,1fr);gap:12px;align-items:center;padding:10px 8px;border-radius:10px;color:inherit;text-decoration:none}
+.acll a:hover,.actask:hover{background:var(--bg2)}
+.acll b,.actask b{display:block;font-size:14px;font-weight:600}.acll small,.actask small{display:block;font-size:12px;color:var(--ink2)}
+.acln{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:650;border:1px solid var(--line2);color:var(--ink2);flex:none}
+.acll a.done .acln,.actask.done .acln,.acside li.done .acln{background:var(--up);border-color:var(--up);color:#fff}.acln svg{width:14px;height:14px;stroke:#fff;fill:none;stroke-width:2.6}
+.accert{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:0 18px 16px;padding:12px 14px;border:1px solid var(--line2);border-radius:12px;background:var(--bg2)}
+.accert>span{display:flex;gap:10px;align-items:center}.accert svg{width:22px;height:22px;stroke:var(--ink);fill:none;stroke-width:1.8}.accert small{display:block;font-size:12px;color:var(--ink2)}
+.actasks{padding:6px!important;display:grid}.actask{grid-template-columns:28px minmax(0,1fr) auto}
+.actask .tag{white-space:nowrap}
+.acback{display:inline-flex;gap:6px;align-items:center;font-size:13.5px;color:var(--ink2);text-decoration:none;margin-bottom:12px}.acback svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}.acback:hover{color:var(--ink)}
+.acles{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px;align-items:start}
+.aclbody{padding:28px 32px!important}
+.aclbody h1{font-size:30px;line-height:1.15;margin:10px 0 18px;max-width:22em}
+.acmeta{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:12.5px;color:var(--ink2)}.acmeta .tag svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2.6;vertical-align:-1px}
+.aclbody section{max-width:68ch}.aclbody section+section,.aclbody section+div+section{margin-top:22px}
+.aclbody h2{font-size:18px;margin:0 0 8px}
+.aclbody p,.aclbody li{font-size:15.5px;line-height:1.65;color:var(--ink)}.aclbody p{margin:0 0 10px}
+.aclbody ul{margin:0;padding-left:20px;display:grid;gap:6px}
+.ackey{border:1px solid var(--line2);border-radius:12px;padding:14px 18px;background:var(--bg2)}.ackey h2{font-size:14px;color:var(--ink2)}
+.actip{display:grid;grid-template-columns:20px 1fr;gap:10px;margin-top:10px;padding:12px 14px;border-radius:10px;background:var(--bg2);border-left:3px solid var(--ink3);font-size:14px;line-height:1.5}
+.actip svg{width:18px;height:18px;stroke:var(--ink2);fill:none;stroke-width:1.8}
+.acquiz{margin-top:28px;padding-top:22px;border-top:1px solid var(--line);max-width:68ch}.acquiz h2{font-size:20px;margin:0 0 14px}
+.acquiz .lrqq{margin-bottom:16px}.acquiz .lrqq>b{display:block;margin-bottom:8px;font-size:15px}
+.acquiz .lrqa{display:grid;gap:6px}.acquiz .lrqa button{color:var(--ink);font-size:14.5px;cursor:pointer;font-family:inherit}
+.acquiz .lrqa button[disabled]{cursor:default;opacity:1}
+.acexp{margin:8px 0 0!important;font-size:14px!important;padding:10px 12px;border-radius:10px;background:var(--bg2)}.acexp.up{color:var(--ink)!important;border-left:3px solid var(--up)}.acexp.down{color:var(--ink)!important;border-left:3px solid var(--down)}
+.acqbtn{margin-top:8px}
+.acnav{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:28px;padding-top:18px;border-top:1px solid var(--line)}
+.acside{position:sticky;top:84px;padding:16px!important}.acside small{display:block;font-size:11.5px;color:var(--ink3)}.acside b{display:block;margin:2px 0 10px}
+.acside ol{list-style:none;margin:0;padding:0;display:grid;gap:2px}.acside a{display:grid;grid-template-columns:26px 1fr;gap:10px;align-items:center;padding:7px 6px;border-radius:8px;font-size:13px;color:var(--ink2);text-decoration:none;line-height:1.35}
+.acside a:hover{background:var(--bg2);color:var(--ink)}.acside li.cur a{background:var(--bg2);color:var(--ink);font-weight:600}
+.acside .acln{width:22px;height:22px;font-size:11px}
+.acw{margin:18px 0;border:1px solid var(--line2);border-radius:14px;padding:16px 18px;background:var(--bg2);max-width:760px}
+.acwh{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}.acwh b{font-size:14.5px}
+.acsvg{width:100%;height:auto;display:block}
+.acsvg .acgrid{stroke:var(--line2);stroke-width:1}.acsvg .acax,.acsvg .actxt{fill:var(--ink2);font:12px Inter,sans-serif}
+.acsvg .acprice{fill:none;stroke:var(--ink);stroke-width:2}.acsvg .acs20{fill:none;stroke:#E0A43A;stroke-width:1.5}.acsvg .acs50{fill:none;stroke:#6E8BC9;stroke-width:1.5}
+.acsvg .aclev{stroke:var(--ink3);stroke-width:1.2;stroke-dasharray:5 4}.acsvg .acrsi{fill:none;stroke:#A07CDB;stroke-width:1.5}
+.acsvg .accut{stroke:var(--ink3);stroke-dasharray:3 3}.acsvg .acafter{fill:none;stroke-width:2.4}.acsvg .acafter.up{stroke:var(--up)}.acsvg .acafter.down{stroke:var(--down)}
+.acsvg .acwick{stroke:var(--ink2);stroke-width:3}.acsvg .acbody.up{fill:var(--up)}.acsvg .acbody.down{fill:var(--down)}
+.aclegend{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;font-size:12px;color:var(--ink2)}.aclegend i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:6px;vertical-align:middle;background:var(--ink)}
+.aclegend i.acs20{background:#E0A43A}.aclegend i.acs50{background:#6E8BC9}.aclegend i.aclev{background:repeating-linear-gradient(90deg,var(--ink3) 0 4px,transparent 4px 7px)}.aclegend i.acrsi{background:#A07CDB}.aclegend i.acafter.up{background:var(--up)}
+.acsvw{display:grid;grid-template-columns:minmax(0,360px) minmax(0,1fr);gap:16px;align-items:center}.acsvw p{margin:0!important;font-size:14px!important}
+.acform{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}.acform label{display:grid;gap:4px;font-size:12.5px;color:var(--ink2)}
+.acout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:12px}
+.acout>div{padding:10px 12px;border-radius:10px;background:var(--panel);border:1px solid var(--line)}.acout small{display:block;font-size:11.5px;color:var(--ink3)}.acout b{display:block;font-size:19px;margin:2px 0}.acout span{font-size:12px;color:var(--ink2)}
+.acrange{display:grid;gap:6px;font-size:13px;color:var(--ink2)}.acrange input{width:100%}
+.acrec{display:grid;gap:10px;margin-top:12px}.acrec>div{display:grid;grid-template-columns:150px minmax(0,1fr) 64px;gap:10px;align-items:center;font-size:13px}
+.acrec i{display:block;height:12px;border-radius:6px}.acrec i.down{background:var(--down)}.acrec i.up{background:var(--up)}.acrec b{text-align:right}
+.actools{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,460px),1fr));gap:12px}.actools .acw{margin:0;max-width:none;background:var(--panel)}
+.acterms{margin-top:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr));gap:0 28px}
+.acterms>div{padding:10px 0;border-top:1px solid var(--line)}.acterms dt{font-weight:600;font-size:14px}.acterms dd{margin:2px 0 0;font-size:13.5px;color:var(--ink2);line-height:1.45}
+.acchead{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:12px}.acchead p{margin:4px 0 0;font-size:13.5px;color:var(--ink2);max-width:52ch}
+.acstats{display:flex;gap:18px}.acstats small{display:block;font-size:11.5px;color:var(--ink3)}.acstats b{font-size:18px}
+.acchart{border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--bg2)}
+.acchbtn{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}.acchbtn .btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.2}
+.acres{margin-top:12px;padding:12px 14px;border-radius:12px;display:grid;gap:2px}.acres.good{background:var(--upbg);border-left:3px solid var(--up)}.acres.bad{background:var(--downbg);border-left:3px solid var(--down)}.acres span{font-size:13px;color:var(--ink2)}
+.acwhy{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:10px}.acwhy>div{padding:10px 12px;border:1px solid var(--line);border-radius:10px}.acwhy small{display:block;font-size:11.5px;color:var(--ink3)}.acwhy b{display:block;font-size:16px;margin:2px 0}.acwhy span{font-size:12px;color:var(--ink2)}
+@media (max-width:1100px){.acles{grid-template-columns:1fr}.acside{position:static;order:-1}.acside ol{display:none}.acside b{margin:2px 0 0}}
+@media (max-width:900px){.achero{grid-template-columns:1fr}.achero>*+*{border-left:0;border-top:1px solid var(--line)}}
+@media (max-width:640px){.aclbody{padding:20px 16px!important}.aclbody h1{font-size:24px}.acsvw{grid-template-columns:1fr}.acwhy{grid-template-columns:1fr}.acrec>div{grid-template-columns:110px minmax(0,1fr) 54px}.actask{grid-template-columns:28px minmax(0,1fr)}.actask .tag{display:none}.acstats{gap:12px}}
+.aclegend i.acafter.down{background:var(--down)}
+.lg-l li b{width:84px!important;font-size:12.5px!important}:is([data-skin=luxdark],[data-skin=luxlight]) .lg-l li b{color:var(--ink2)!important}
+
 </style>
 </head>
 <body>
@@ -981,14 +1070,14 @@ summary.lnk{white-space:normal;display:list-item}
     <div class="grid-bg"></div>
     <div style="position:relative"><span class="vfull" role="img" aria-label="Vantis, Crypto Intelligence"></span></div>
     <div style="position:relative">
-      <h1>Zie wat de markt beweegt, voordat je zoekt.</h1>
-      <p style="margin-top:14px">Vantis volgt koersen, nieuws en economische agenda voor crypto en aandelen, en vertaalt het naar heldere inzichten met bron, tijd en zekerheid.</p>
+      <h1>Leer traden. Begrijp de markt.</h1>
+      <p style="margin-top:14px">Vantis leert je stap voor stap handelen in crypto en aandelen, en laat je live zien wat de markt beweegt: wat er gebeurt, waarom, en hoe zeker dat is.</p>
     </div>
     <ul style="position:relative">
-      <li><b>01</b>Live koersen, met zichtbare bron en tijdstempel</li>
-      <li><b>02</b>Vantis Impact Score met vaste, uitlegbare methode</li>
-      <li><b>03</b>"Waarom beweegt de markt?" met bronnen erbij</li>
-      <li><b>04</b>Geen verzonnen data: ontbrekende bronnen worden eerlijk gemeld</li>
+      <li><b>Academy</b>33 lessen in zes leerpaden, met oefeningen op echte koersen</li>
+      <li><b>Uitleg</b>Bij elke marktbeweging: wat er gebeurt en waarom, met bron</li>
+      <li><b>Handelen</b>Orders met winstdoel en stop-loss, en een logboek erbij</li>
+      <li><b>Eerlijk</b>Geen verzonnen data: ontbrekende bronnen worden gemeld</li>
     </ul>
   </section>
   <section class="lg-r">
@@ -2611,7 +2700,7 @@ Pages.instellingen={
     <div class="card"><div class="chead"><h2>Vantis op je telefoon</h2></div><p class="note" style="margin:0"><b>iPhone:</b> open Vantis in Safari → Deel → <i>Zet op beginscherm</i>.<br><b>Android:</b> open Vantis in Chrome → ⋮ → <i>Toevoegen aan startscherm</i>.<br>De versies voor de App Store en Google Play zijn voorbereid en volgen zodra de store-accounts er zijn.</p></div>
     <div class="card"><div class="chead"><h2>Koppelingen</h2><span class="lockbadge">Vergunning nodig</span></div>
       ${[['Bankrekening koppelen','Saldo en stortingen via een gelicenseerde partner.'],['Beleggen in Vantis','Kopen en verkopen in de app. Vereist een MiCA-vergunning (AFM) of een gelicenseerde partner.'],['Autopilot','Belegt automatisch binnen jouw risicoprofiel. Vereist een vergunning voor vermogensbeheer.']].map(([t,d])=>`<div class="set lock"><div><b>${t}</b><p>${d}</p></div><span class="tag warn">Later</span></div>`).join('')}</div>
-    <div class="card"><div class="chead"><h2>Over Vantis</h2></div><p class="note" style="margin:0">Vantis · versie 1.9. Koersen: Bitvavo (realtime). Marktcijfers: CoinGecko (reserve: CoinPaprika, CoinLore), Fear & Greed van alternative.me. Nieuws: CryptoCompare, Finnhub, TradingView. Grafieken en kalender: TradingView. Vantis geeft geen financieel advies.</p></div>
+    <div class="card"><div class="chead"><h2>Over Vantis</h2></div><p class="note" style="margin:0">Vantis · versie 2.0. Koersen: Bitvavo (realtime). Marktcijfers: CoinGecko (reserve: CoinPaprika, CoinLore), Fear & Greed van alternative.me. Nieuws: CryptoCompare, Finnhub, TradingView. Grafieken en kalender: TradingView. Vantis geeft geen financieel advies.</p></div>
     </div></div>`},
   async mount(el){
     const s=S.settings;
@@ -3926,7 +4015,7 @@ I18N.start();
    ===================================================================== */
 const SKINS=[['classic','Huidig','Het vertrouwde navy en wit, met licht en donker.'],['luxdark','Dark Luxury','Pikzwart met chroom en zilver, glas en glans.'],['luxlight','Light Luxury','Parelwit met gepolijst zilver en matglas.']];
 const Skin={
-  get(){return S.settings.skin||LS.get('skin','classic')},
+  get(){return S.settings.skin||LS.get('skin','luxdark')},
   apply(k){const R=document.documentElement;R.dataset.skin=k;if(k==='luxdark')R.dataset.theme='dark';else if(k==='luxlight')R.dataset.theme='light';else R.dataset.theme=S.settings.theme==='dark'?'dark':'light';
     document.querySelector('meta[name=theme-color]')?.setAttribute('content',k==='luxdark'?'#050505':k==='luxlight'?'#F3F4F6':'#17243A');const b=$('#themebtn');if(b)b.setAttribute('aria-label',k==='classic'?'Licht of donker':'Dark of Light Luxury')},
   set(k){S.settings.skin=k;LS.set('skin',k);saveSettings();this.apply(k);if(UI.el)UI.route();UI.toast({kind:'success',title:'Stijl: '+SKINS.find(x=>x[0]===k)[1]})},
@@ -4008,6 +4097,497 @@ OV.B.prices.live=function(el){const c=OV.cfg();const L=c.prices.map(ovA).filter(
 {const ol=OV.B.impact.live;OV.B.impact.live=function(el,kind){const b=$('#dimp',el);if(!b||(kind!=='calc'&&b.dataset.f))return;b.dataset.f=1;const ev=[...S.events.values()].sort((a,b)=>b.score-a.score||b.first-a.first).slice(0,3);b.innerHTML=ev.length?ev.map(e=>impRow(e)).join(''):`<div class="empty">Nog geen gebeurtenissen boven de drempel. Vantis meldt pas iets als data daar aanleiding toe geeft.</div>`}}
 /* vanaf de landingspagina: "Gratis account maken" opent direct het registratieformulier */
 if(/[?&]start=register\b/.test(location.search)&&!(Api&&Api.authed)){const go=()=>{const b=$('#toreg');if(b&&!b.closest('.hidden'))b.click()};setTimeout(go,60);try{history.replaceState(null,'',location.pathname+location.hash)}catch(e){}}
+
+/* =====================================================================
+   Vantis Academy — leerpaden en lesinhoud
+   Les: {id, t, min, s:[{h, p:[...], li:[...], tip, w}], q:[[vraag,[antwoorden],goed,uitleg]], go:[href,label]}
+   w = interactief onderdeel (zie ACW in ui-v10.js)
+   ===================================================================== */
+const AC_PATHS=[
+  {id:'start',t:'Starten met beleggen',lvl:'Beginner',d:'Wat je moet weten voordat je je eerste euro inlegt: hoe crypto en aandelen werken, hoe je veilig handelt en wat het kost.',L:['basis','aandelen','wallet','koers','kosten','belasting']},
+  {id:'grafiek',t:'Grafieken lezen',lvl:'Beginner',d:'Trends, steun en weerstand, candles en indicatoren. Leer kijken naar een grafiek zoals een trader dat doet.',L:['trend','steun','indic','patronen','timeframe','volat']},
+  {id:'handel',t:'Handelen in de praktijk',lvl:'Gevorderd',d:'Van idee naar order: een handelsplan, risico per trade, positiegrootte en het bijhouden van je resultaten.',L:['orders','plan','rr','positie','dca','dagboek']},
+  {id:'risico',t:'Risico en psychologie',lvl:'Gevorderd',d:'Het verschil tussen winnen en verliezen zit vaak tussen je oren. Leer je risico beheersen en je eigen valkuilen herkennen.',L:['risico','verlies','fomo','biases','scams']},
+  {id:'macro',t:'Nieuws, macro en sentiment',lvl:'Gevorderd',d:'Waarom markten bewegen op rente, inflatie en nieuws, en hoe je Vantis gebruikt om dat te volgen.',L:['macro','rente','cijfers','impactscore','sentiment2']},
+  {id:'pro',t:'Voor gevorderden',lvl:'Expert',d:'Futures en funding, on-chain data, tokenomics, correlaties en het testen van strategieën.',L:['futures','onchain','tokenomics','correlatie','backtest']}
+];
+
+const AC_LESSONS={
+/* ---------- Starten met beleggen ---------- */
+aandelen:{t:'Wat is een aandeel en hoe werkt de beurs?',min:5,go:['#markten-aandelen','Bekijk aandelen'],s:[
+  {h:'Een stukje van een bedrijf',p:["Met een aandeel word je mede-eigenaar van een bedrijf. Gaat het bedrijf beter verdienen, dan wordt het aandeel meestal meer waard. Sommige bedrijven keren een deel van de winst uit aan aandeelhouders: dat heet dividend.","Aandelen worden verhandeld op een beurs, zoals Euronext in Amsterdam of de NYSE en Nasdaq in New York. De koers ontstaat door vraag en aanbod: willen meer mensen kopen dan verkopen, dan stijgt de prijs."]},
+  {h:'Handelstijden',p:["Een beurs is niet altijd open. Euronext Amsterdam handelt op werkdagen van 09:00 tot 17:30. De Amerikaanse beurzen zijn open van 15:30 tot 22:00 Nederlandse tijd. Crypto wordt daarentegen 24 uur per dag, 7 dagen per week verhandeld."],tip:'Nieuws dat buiten de handelstijden uitkomt, zie je vaak terug als een koerssprong bij de opening.'},
+  {h:'Indexen en ETF\'s',p:["Een index volgt een mandje aandelen, zoals de AEX (25 grote Nederlandse bedrijven) of de S&P 500 (500 grote Amerikaanse bedrijven). Een ETF is een fonds dat je als één aandeel koopt en dat zo’n index volgt. Daarmee spreid je in één keer over veel bedrijven."]},
+  {h:'Kernpunten',li:['Een aandeel is een deel van een bedrijf; de koers volgt vraag en aanbod.','Beurzen hebben vaste handelstijden; crypto handelt altijd.','Met een ETF koop je in één keer een hele index.']}],
+ q:[['Wat is dividend?',['Een vergoeding voor de beurs','Een uitkering van winst aan aandeelhouders','Een soort transactiekosten'],1,'Dividend is het deel van de winst dat een bedrijf uitkeert aan zijn aandeelhouders.'],
+  ['Wanneer zijn de Amerikaanse beurzen open, in Nederlandse tijd?',['09:00–17:30','15:30–22:00','24 uur per dag'],1,'De NYSE en Nasdaq openen om 9:30 lokale tijd, dat is 15:30 bij ons, en sluiten om 22:00 Nederlandse tijd.'],
+  ['Wat doet een ETF die de S&P 500 volgt?',['Hij belegt in één Amerikaans bedrijf','Hij volgt de 500 grote Amerikaanse bedrijven uit de index','Hij belegt alleen in crypto'],1,'Een index-ETF koopt de bedrijven uit de index, zodat jij met één aankoop over al die bedrijven spreidt.']]},
+
+wallet:{t:'Exchanges, wallets en veiligheid',min:6,go:['#instellingen','Naar je beveiliging'],s:[
+  {h:'Exchange of eigen wallet',p:["Bij een exchange (handelsplatform) bewaart het platform je crypto voor jou. Dat is makkelijk, maar je vertrouwt erop dat het platform veilig en solvabel is. Met een eigen wallet bewaar je de sleutels zelf.","Een eigen wallet geeft je een herstelzin (seed phrase) van 12 of 24 woorden. Wie die woorden heeft, heeft je crypto. Schrijf ze op papier, bewaar ze veilig en deel ze nooit, met niemand."],tip:'Geen enkele echte helpdesk vraagt ooit om je herstelzin. Wie dat wel doet, is een oplichter.'},
+  {h:'Je account beveiligen',li:['Gebruik een uniek, lang wachtwoord per platform.','Zet tweestapsverificatie aan met een authenticator-app, niet via sms.','Controleer altijd het webadres voordat je inlogt; nepsites lijken vaak sprekend op het origineel.','Klik niet op links in onverwachte mails of berichten over je account.']},
+  {h:'Hardware wallet',p:["Een hardware wallet is een klein apparaat dat je sleutels offline bewaart. Het is de veiligste manier voor bedragen die je lang wilt aanhouden. Voor actief handelen houden de meeste mensen een deel op een betrouwbare exchange."]},
+  {h:'Kernpunten',li:['Op een exchange bewaart het platform je crypto; in een eigen wallet doe je dat zelf.','Je herstelzin is je crypto: deel hem nooit.','Tweestapsverificatie met een app is een minimale beveiliging.']}],
+ q:[['Iemand van de “support” vraagt om je herstelzin om je account te herstellen. Wat doe je?',['Ik geef hem, het is de helpdesk','Ik geef hem nooit: dit is oplichting','Ik geef alleen de eerste zes woorden'],1,'Met je herstelzin kan iemand al je crypto overmaken. Echte supportmedewerkers vragen er nooit om.'],
+  ['Welke tweestapsverificatie is het veiligst?',['Via sms','Via een authenticator-app','Geen, een sterk wachtwoord is genoeg'],1,'Sms kan worden onderschept met een simkaartfraude. Een authenticator-app is veel lastiger te misbruiken.'],
+  ['Waarvoor is een hardware wallet het meest geschikt?',['Voor bedragen die je lang wilt aanhouden','Voor snel en vaak handelen','Om belasting te besparen'],0,'Een hardware wallet bewaart je sleutels offline. Dat is ideaal voor langdurig bewaren, maar minder handig voor dagelijks handelen.']]},
+
+kosten:{t:'Kosten, spread en slippage',min:5,w:'fees',go:['#handel','Bekijk een orderticket'],s:[
+  {h:'Transactiekosten',p:["Bijna elk platform rekent een vergoeding per transactie, vaak een percentage van het bedrag, zoals 0,15% tot 0,25%. Bij een aankoop van € 1.000 betaal je dan € 1,50 tot € 2,50. Bij verkoop betaal je opnieuw."]},
+  {h:'Spread en slippage',p:["De spread is het verschil tussen de hoogste biedprijs en de laagste laatprijs. Koop je direct (een marktorder), dan betaal je de laatprijs. Bij munten met weinig handel kan de spread groot zijn.","Slippage ontstaat als je order groter is dan wat er tegen de beste prijs beschikbaar is. Een deel wordt dan tegen een slechtere prijs uitgevoerd. Een limietorder voorkomt dat: je bepaalt zelf de maximale prijs."]},
+  {h:'Kosten tellen op',p:["Wie vaak handelt, betaalt vaak. Twee trades per dag met 0,25% kosten per transactie kosten je over een jaar al snel meer dan je hele inleg. Reken het hieronder zelf uit."]},
+  {h:'Kernpunten',li:['Kosten worden bij aan- én verkoop gerekend.','Spread en slippage zijn verborgen kosten; met limietorders beperk je ze.','Hoe vaker je handelt, hoe zwaarder kosten wegen.']}],
+ q:[['Wat is de spread?',['De transactiekosten van het platform','Het verschil tussen bied- en laatprijs','De koersstijging van vandaag'],1,'De spread is het verschil tussen wat kopers bieden en wat verkopers vragen.'],
+  ['Hoe beperk je slippage?',['Met een marktorder','Met een limietorder','Door vaker te handelen'],1,'Met een limietorder stel je zelf de prijs in waarop je maximaal koopt of minimaal verkoopt.'],
+  ['Je koopt voor € 1.000 en verkoopt meteen weer, met 0,25% kosten per transactie. Wat ben je ongeveer kwijt?',['€ 0,25','€ 2,50','€ 5'],2,'Je betaalt twee keer 0,25% van ongeveer € 1.000: samen zo’n € 5.']]},
+
+belasting:{t:'Belasting op beleggingen in Nederland',min:4,go:['#portefeuille','Naar je portefeuille'],s:[
+  {h:'Box 3',p:["Particuliere beleggers in Nederland betalen meestal geen belasting per transactie. Aandelen, ETF’s en crypto vallen in box 3: sparen en beleggen. De Belastingdienst kijkt naar de waarde van je bezittingen op 1 januari, de peildatum.","Over je vermogen boven het heffingsvrije bedrag betaal je belasting op een (veronderstelde of werkelijke) opbrengst. De regels en bedragen veranderen de laatste jaren regelmatig."],tip:'Noteer elk jaar de waarde van je bezit op 1 januari. Dat heb je nodig voor je aangifte.'},
+  {h:'Uitzonderingen',p:["Handel je zo veel en zo professioneel dat het lijkt op werk, dan kan de Belastingdienst je resultaten zien als inkomen uit overige werkzaamheden (box 1). Dat is uitzonderlijk, maar goed om te weten."]},
+  {h:'Kernpunten',li:['Beleggingen en crypto vallen meestal in box 3.','De waarde op 1 januari is bepalend.','Kijk voor de actuele regels op belastingdienst.nl of vraag een belastingadviseur.']}],
+ q:[['Welke datum is bepalend voor box 3?',['1 januari','31 december','De dag dat je verkoopt'],0,'Box 3 kijkt naar de waarde van je bezittingen op 1 januari van het belastingjaar.'],
+  ['Betaal je als particulier belasting bij elke verkoop met winst?',['Ja, altijd','Meestal niet: je vermogen valt in box 3','Alleen bij crypto'],1,'In Nederland wordt bij gewone beleggers geen belasting per transactie geheven; het vermogen valt in box 3.'],
+  ['Waar vind je de actuele regels?',['Op social media','Bij de Belastingdienst of een adviseur','In de koersgrafiek'],1,'De regels veranderen regelmatig. De Belastingdienst en een belastingadviseur hebben de actuele informatie.']]},
+
+/* ---------- Grafieken lezen ---------- */
+trend:{t:'Trends herkennen',min:5,w:'trend',go:['#asset-btc','Bekijk de trend van Bitcoin'],s:[
+  {h:'Hogere toppen, hogere bodems',p:["Een stijgende trend herken je aan hogere toppen en hogere bodems: elke terugval stopt hoger dan de vorige. Bij een dalende trend is het omgekeerd: lagere toppen en lagere bodems. Daartussen zit een zijwaartse markt zonder duidelijke richting."]},
+  {h:'Voortschrijdende gemiddelden',p:["Een voortschrijdend gemiddelde (SMA) middelt de slotkoersen van de laatste dagen. Ligt de koers boven het 20- en 50-daags gemiddelde, en ligt het 20-daags gemiddelde boven het 50-daags, dan is de trend op korte termijn omhoog.","Kruist een korter gemiddelde een langer gemiddelde naar boven, dan spreken traders van een golden cross; naar beneden heet het een death cross. Het zijn signalen achteraf, geen voorspellingen."]},
+  {h:'Met de trend mee',p:["Veel traders handelen liever met de trend mee dan ertegenin. Een trend kan lang aanhouden, maar ook plotseling breken. Daarom combineer je een trend altijd met een plan voor als het tegenvalt."],tip:'Kijk hieronder naar de echte grafiek: ligt de koers boven of onder de gemiddelden?'},
+  {h:'Kernpunten',li:['Stijgende trend: hogere toppen en hogere bodems.','Gemiddelden maken de richting zichtbaar.','Een trend is geen garantie: houd altijd rekening met een omslag.']}],
+ q:[['Wat kenmerkt een dalende trend?',['Hogere toppen en hogere bodems','Lagere toppen en lagere bodems','Een vlakke lijn'],1,'In een dalende trend stopt elke opleving lager dan de vorige.'],
+  ['Wat is een golden cross?',['Een korter gemiddelde kruist een langer gemiddelde naar boven','De koers raakt een rond getal','Een dag met extreem veel volume'],0,'Bij een golden cross stijgt het kortere gemiddelde boven het langere, een teken dat de trend omhoog is gedraaid.'],
+  ['Zijn voortschrijdende gemiddelden voorspellend?',['Ja, ze voorspellen de toekomst','Nee, ze vatten het verleden samen','Alleen bij aandelen'],1,'Gemiddelden zijn gebaseerd op koersen uit het verleden. Ze helpen de richting te zien, maar voorspellen niets.']]},
+
+steun:{t:'Steun en weerstand',min:5,w:'sr',go:['#asset-btc','Bekijk de niveaus bij Bitcoin'],s:[
+  {h:'Zones waar kopers en verkopers reageren',p:["Steun is een prijsgebied waar een daling eerder stopte, omdat kopers daar instapten. Weerstand is een gebied waar een stijging eerder stopte, omdat verkopers daar winst namen. Zie ze als zones, niet als exacte prijzen."]},
+  {h:'Rollen die omdraaien',p:["Breekt de koers door een weerstand, dan wordt die oude weerstand vaak de nieuwe steun. Hetzelfde geldt andersom. Een uitbraak met hoog volume is overtuigender dan een uitbraak met weinig handel.","Ronde getallen, zoals € 50.000 of € 100.000, werken vaak als psychologische steun of weerstand."]},
+  {h:'Hoe Vantis helpt',p:["Op elke assetpagina tekent Vantis automatisch de belangrijkste niveaus van de laatste 30 dagen in de grafiek, en de scanner meldt uitbraken boven het 30-daags hoogste punt."]},
+  {h:'Kernpunten',li:['Steun: waar kopers eerder instapten. Weerstand: waar verkopers eerder verkochten.','Een gebroken weerstand wordt vaak steun.','Uitbraken met volume zijn sterker.']}],
+ q:[['Wat gebeurt er vaak met een weerstand nadat de koers erdoorheen breekt?',['Hij verdwijnt','Hij wordt steun','Hij wordt sterker als weerstand'],1,'Wie eerder bij die prijs verkocht, koopt vaak terug op hetzelfde niveau. Zo wordt oude weerstand nieuwe steun.'],
+  ['Welke uitbraak is het meest overtuigend?',['Met weinig volume','Met hoog volume','In het weekend'],1,'Hoog volume betekent dat veel handelaren de nieuwe prijs accepteren.'],
+  ['Waarom werken ronde getallen vaak als niveau?',['Omdat veel mensen daar orders plaatsen','Omdat de beurs daar sluit','Dat is toeval'],0,'Veel handelaren zetten koop- en verkooporders rond ronde getallen. Daardoor reageert de koers er vaak op.']]},
+
+patronen:{t:'Candlestickpatronen',min:6,w:'candle',go:['#asset-btc','Bekijk de candles van Bitcoin'],s:[
+  {h:'Eén candle vertelt een verhaal',p:["Een candle laat de opening, het hoogste punt, het laagste punt en de slotkoers zien. Het lijfje (de body) loopt van opening naar slot; de lonten (wicks) tonen de uitersten. Een lange onderste lont betekent dat verkopers de koers omlaag duwden, maar kopers hem weer omhoog kregen."]},
+  {h:'Bekende patronen',li:['Doji: opening en slot liggen bijna gelijk. Kopers en verkopers houden elkaar in evenwicht.','Hamer: kleine body met een lange onderste lont, na een daling. Kopers grepen in.','Engulfing: een candle die de body van de vorige volledig omsluit, in de tegenovergestelde kleur. Teken van een mogelijke omslag.']},
+  {h:'Context is alles',p:["Een patroon zegt weinig als het los staat. Een hamer op een sterke steun na een lange daling betekent meer dan een hamer midden in een zijwaartse markt. Wacht op bevestiging: de volgende candle moet de richting ondersteunen."],tip:'Zie candlepatronen als een aanwijzing, nooit als een zeker signaal.'},
+  {h:'Kernpunten',li:['De body loopt van opening naar slot; lonten tonen de uitersten.','Doji, hamer en engulfing zijn bekende omslagpatronen.','Kijk altijd naar de plek in de grafiek en wacht op bevestiging.']}],
+ q:[['Wat betekent een lange onderste lont?',['Kopers duwden de koers terug omhoog','De beurs was gesloten','Er was geen handel'],0,'De koers zakte tijdelijk diep, maar kopers stapten in en de slotkoers kwam veel hoger uit.'],
+  ['Wat kenmerkt een doji?',['Een heel grote groene body','Opening en slot liggen bijna gelijk','Een gat tussen twee candles'],1,'Bij een doji eindigt de periode ongeveer waar hij begon: evenwicht tussen kopers en verkopers.'],
+  ['Wanneer zegt een hamer het meest?',['Midden in een zijwaartse markt','Na een daling, op een steunniveau','Op elk moment evenveel'],1,'Een hamer is een mogelijk omslagsignaal; dat is vooral betekenisvol na een daling op een belangrijke steun.']]},
+
+timeframe:{t:'Tijdsframes: van uur tot week',min:4,go:['#asset-btc','Wissel tussen 24 uur en 30 dagen'],s:[
+  {h:'Elke tijdschaal een ander verhaal',p:["Op een uurgrafiek kan Bitcoin dalen, terwijl de weekgrafiek een stijgende trend toont. Beide zijn waar. Het tijdsframe dat je kiest moet passen bij hoe lang je een positie wilt aanhouden."]},
+  {h:'Van groot naar klein',p:["Veel traders analyseren van boven naar beneden: eerst de week- of daggrafiek voor de grote trend, dan een kleiner tijdsframe om een moment te kiezen. Signalen op een hoger tijdsframe wegen zwaarder dan signalen op een lager tijdsframe."]},
+  {h:'Ruis',p:["Hoe kleiner het tijdsframe, hoe meer toevallige bewegingen (ruis). Wie op minutengrafieken handelt, krijgt veel signalen die niets betekenen en betaalt veel transactiekosten."]},
+  {h:'Kernpunten',li:['Kies een tijdsframe dat past bij je beleggingsduur.','Bepaal de trend op een hoger tijdsframe.','Kleine tijdsframes bevatten veel ruis.']}],
+ q:[['Je wilt een positie enkele weken aanhouden. Welk tijdsframe is het belangrijkst?',['De minutengrafiek','De dag- en weekgrafiek','Het tijdsframe maakt niet uit'],1,'Voor posities van weken is de dag- en weekgrafiek leidend; minutenbewegingen zijn dan vooral ruis.'],
+  ['Wat betekent top-down analyseren?',['Eerst het grote tijdsframe, dan het kleine','Alleen naar de hoogste koers kijken','Van de duurste naar de goedkoopste munt'],0,'Je bepaalt eerst de grote richting en zoekt daarna op een kleiner tijdsframe een goed moment.'],
+  ['Wat is het nadeel van handelen op heel kleine tijdsframes?',['Te weinig signalen','Veel ruis en hoge kosten','Je ziet geen candles'],1,'Kleine tijdsframes geven veel toevallige signalen, en vaak handelen kost veel.']]},
+
+volat:{t:'Volatiliteit meten',min:5,w:'atr',go:['#marktdata','Naar Marktdata'],s:[
+  {h:'Hoe wild beweegt een koers?',p:["Volatiliteit meet hoe sterk een koers schommelt. Vantis berekent die als de gemiddelde dagelijkse beweging over 30 dagen. Bitcoin beweegt vaak 2 tot 3% per dag, kleine munten soms meer dan 8%."]},
+  {h:'ATR en Bollinger Bands',p:["De Average True Range (ATR) is de gemiddelde afstand tussen het hoogste en laagste punt per dag, inclusief gaten tussen dagen. Bollinger Bands liggen twee standaarddeviaties boven en onder het 20-daags gemiddelde: als de banden smal worden, volgt vaak een grotere beweging."]},
+  {h:'Volatiliteit en je stop-loss',p:["Een stop-loss die dichter bij de koers staat dan de normale dagbeweging, wordt vaak geraakt door gewone schommelingen. Veel traders zetten hun stop daarom op 1,5 tot 2 keer de ATR. Hoe groter de volatiliteit, hoe kleiner je positie moet zijn om hetzelfde risico te lopen."],tip:'Gebruik de rekenhulp hieronder om te zien hoe ver je stop zou moeten staan.'},
+  {h:'Kernpunten',li:['Volatiliteit is de gemiddelde schommeling van een koers.','ATR helpt je stop-loss buiten de normale ruis te zetten.','Meer volatiliteit betekent een kleinere positie bij gelijk risico.']}],
+ q:[['Wat betekent een hoge volatiliteit?',['De koers schommelt sterk','De koers stijgt zeker','Er is weinig handel'],0,'Volatiliteit zegt iets over de grootte van de bewegingen, niet over de richting.'],
+  ['Waarom zet je een stop-loss niet te dicht bij de koers?',['Omdat gewone schommelingen hem dan raken','Omdat dat niet mag','Omdat de kosten dan hoger zijn'],0,'Staat je stop binnen de normale dagbeweging, dan word je vaak uitgestopt door ruis.'],
+  ['Wat gebeurt er vaak na smalle Bollinger Bands?',['Een grotere beweging','De beurs sluit','Niets'],0,'Smalle banden wijzen op een rustige periode; daarna volgt vaak een uitbraak, de richting is onbekend.']]},
+
+/* ---------- Handelen in de praktijk ---------- */
+plan:{t:'Een handelsplan maken',min:5,go:['#handel','Naar Handelen'],s:[
+  {h:'Beslis vóór je instapt',p:["Een handelsplan schrijf je voordat je een order plaatst, als je nog rustig kunt nadenken. Na het instappen nemen emoties het vaak over. Het plan beantwoordt een paar vaste vragen."]},
+  {h:'De vijf vragen',li:['Waarom stap ik in? (de reden of setup)','Waar stap ik in? (instapprijs)','Wanneer heb ik ongelijk? (stop-loss: de prijs waarop het idee niet meer klopt)','Waar neem ik winst? (koersdoel)','Hoe groot is mijn positie? (op basis van het risico dat ik accepteer)']},
+  {h:'Als-dan',p:["Formuleer je plan als als-dan-regels: “Als de koers sluit boven € 60.000 met hoog volume, dan koop ik. Als hij daarna onder € 57.000 sluit, dan verkoop ik.” Zo weet je precies wat je doet, ook als het spannend wordt."],tip:'In Vantis zet je stop-loss en winstdoel direct bij je order, en schrijf je je reden in de notitie.'},
+  {h:'Kernpunten',li:['Maak je plan vóór je instapt.','Bepaal altijd vooraf waar je ongelijk hebt.','Schrijf je plan op in als-dan-regels.']}],
+ q:[['Wanneer maak je een handelsplan?',['Nadat de koers is gedaald','Voordat je een order plaatst','Aan het eind van het jaar'],1,'Vooraf denk je rationeel na; tijdens een trade nemen emoties het makkelijk over.'],
+  ['Wat bepaal je met de stop-loss in je plan?',['Waar je winst neemt','Waar je idee niet meer klopt','Hoeveel kosten je betaalt'],1,'De stop-loss is de prijs waarop je toegeeft dat je ongelijk had, voordat het verlies groter wordt.'],
+  ['Wat is een voorbeeld van een als-dan-regel?',['“Ik denk dat het stijgt”','“Als de koers boven € 60.000 sluit, dan koop ik”','“Ik zie wel”'],1,'Een als-dan-regel beschrijft precies welke situatie tot welke actie leidt.']]},
+
+rr:{t:'Risico, rendement en je winkans',min:6,w:'rr',go:['#handel','Zet een winstdoel en stop-loss'],s:[
+  {h:'Risico tegenover beloning',p:["Stel: je koopt op € 100, je stop-loss staat op € 95 en je koersdoel op € 110. Je riskeert € 5 om € 10 te verdienen: een verhouding van 1 op 2. Traders noemen het risico per trade ook wel 1R; deze trade levert dan 2R op als het doel wordt geraakt."]},
+  {h:'Hoe vaak moet je gelijk hebben?',p:["Bij een verhouding van 1 op 2 hoef je maar iets meer dan één op de drie trades te winnen om quitte te spelen (zonder kosten). De formule: benodigde winkans = 1 ÷ (1 + verhouding). Bij 1 op 1 is dat 50%, bij 1 op 3 is dat 25%."]},
+  {h:'Verwachte waarde',p:["De verwachte waarde per trade is: winkans × gemiddelde winst − verlieskans × gemiddeld verlies. Is die positief, dan verdien je op de lange termijn, ook al verlies je veel losse trades. Professionele traders verliezen vaak meer dan de helft van hun trades, maar houden verliezen klein en laten winsten lopen."],tip:'Probeer de rekenhulp hieronder met je eigen instap, stop en doel.'},
+  {h:'Kernpunten',li:['Vergelijk altijd wat je riskeert met wat je kunt verdienen.','Met een goede verhouding hoef je niet vaak gelijk te hebben.','Een positieve verwachte waarde telt, niet het aantal winnende trades.']}],
+ q:[['Instap € 50, stop € 48, doel € 56. Wat is de verhouding?',['1 op 2','1 op 3','1 op 6'],1,'Je riskeert € 2 om € 6 te verdienen: 6 ÷ 2 = 3, dus 1 op 3.'],
+  ['Welke winkans heb je minimaal nodig bij een verhouding van 1 op 2?',['Ongeveer 33%','50%','67%'],0,'1 ÷ (1 + 2) = 0,33. Je moet dus ongeveer één op de drie trades winnen om quitte te spelen.'],
+  ['Kun je winstgevend zijn als je de helft van je trades verliest?',['Nee, nooit','Ja, als je winsten groter zijn dan je verliezen','Alleen met crypto'],1,'Als je gemiddelde winst groter is dan je gemiddelde verlies, kan je verwachte waarde positief zijn.']]},
+
+positie:{t:'Hoe groot moet je positie zijn?',min:6,w:'pos',go:['#handel','Naar Handelen'],s:[
+  {h:'Begin bij het risico, niet bij het bedrag',p:["De vraag is niet “hoeveel koop ik?”, maar “hoeveel wil ik maximaal verliezen als ik ongelijk heb?”. Veel ervaren traders riskeren per trade 1 tot 2% van hun totale kapitaal."]},
+  {h:'De berekening',p:["Positiegrootte = (kapitaal × risicopercentage) ÷ (instapprijs − stop-loss).","Voorbeeld: je hebt € 10.000 en riskeert 1%, dus € 100. Je koopt op € 50 met een stop op € 45: € 5 risico per stuk. Je koopt dan 100 ÷ 5 = 20 stuks, samen € 1.000. Wordt je stop geraakt, dan verlies je € 100 plus kosten."]},
+  {h:'Waarom dit werkt',p:["Met 1% risico per trade kun je tien keer op rij ongelijk hebben en heb je nog steeds ongeveer 90% van je kapitaal. Wie per trade de helft inzet, is na twee pechtrades het grootste deel kwijt."],tip:'Let op: bij een koersgat (bijvoorbeeld na slecht nieuws) kan je stop-loss lager worden uitgevoerd dan ingesteld.'},
+  {h:'Kernpunten',li:['Bepaal eerst je maximale verlies per trade, bijvoorbeeld 1% van je kapitaal.','Positie = risicobedrag ÷ afstand tot je stop.','Kleine risico’s per trade houden je in het spel.']}],
+ q:[['Kapitaal € 5.000, risico 2%, instap € 20, stop € 18. Hoeveel stuks koop je?',['25','50','100'],1,'2% van € 5.000 is € 100. Het risico per stuk is € 2. 100 ÷ 2 = 50 stuks.'],
+  ['Waarom kiezen veel traders 1–2% risico per trade?',['Zo overleef je een reeks verliezen','Omdat het verplicht is','Omdat de kosten dan lager zijn'],0,'Met een klein risico per trade blijft je kapitaal grotendeels intact, ook na meerdere verliezen achter elkaar.'],
+  ['Kan een stop-loss lager worden uitgevoerd dan ingesteld?',['Nee, nooit','Ja, bij een koersgat of snelle markt','Alleen bij aandelen'],1,'Een stop-loss wordt een marktorder zodra de prijs is bereikt. Springt de koers voorbij die prijs, dan word je lager uitgevoerd.']]},
+
+dagboek:{t:'Een handelsdagboek bijhouden',min:4,go:['#handel','Schrijf een notitie bij je order'],s:[
+  {h:'Leren van je eigen trades',p:["Een handelsdagboek is de snelste manier om beter te worden. Schrijf bij elke trade op waarom je instapte, wat je plan was en hoe je je voelde. Na afloop noteer je wat er gebeurde en of je je aan je plan hield."]},
+  {h:'Wat je noteert',li:['Reden en setup (bijvoorbeeld: uitbraak boven weerstand met hoog volume).','Instap, stop-loss en doel.','Je gevoel: rustig, haastig, angstig, hebberig.','Resultaat en wat je de volgende keer anders doet.']},
+  {h:'Evalueer elke maand',p:["Kijk één keer per maand terug. Welke setups werkten? Waar week je af van je plan? Vaak zie je patronen: misschien verlies je vooral op trades die je impulsief nam, of verkoop je winnaars te vroeg."]},
+  {h:'Kernpunten',li:['Noteer bij elke trade je reden, plan en gevoel.','Evalueer maandelijks en zoek patronen.','Pas je regels aan op basis van wat je ziet.']}],
+ q:[['Wat is het belangrijkste doel van een dagboek?',['Je trades kunnen laten zien','Leren van je eigen beslissingen','Belasting besparen'],1,'Een dagboek laat zien welke beslissingen werken en welke niet, zodat je je aanpak verbetert.'],
+  ['Waarom noteer je ook je gevoel?',['Omdat emoties je beslissingen beïnvloeden','Dat is niet nodig','Voor de grafiek'],0,'Veel slechte trades komen voort uit haast, angst of hebzucht. Door dat te noteren, herken je het patroon.'],
+  ['Hoe vaak evalueer je je dagboek?',['Nooit','Regelmatig, bijvoorbeeld maandelijks','Alleen na een grote winst'],1,'Regelmatig terugkijken maakt patronen zichtbaar die je per trade niet ziet.']]},
+
+/* ---------- Risico en psychologie ---------- */
+verlies:{t:'De wiskunde van verlies',min:4,w:'recovery',go:['#portefeuille','Naar je portefeuille'],s:[
+  {h:'Herstellen is zwaarder dan verliezen',p:["Daalt je inleg 50%, dan moet hij daarna 100% stijgen om weer op het beginpunt te komen. Van € 1.000 naar € 500 is −50%; van € 500 terug naar € 1.000 is +100%."]},
+  {h:'Hoe het oploopt',li:['−10% vraagt +11% om te herstellen.','−25% vraagt +33%.','−50% vraagt +100%.','−75% vraagt +300%.']},
+  {h:'Wat dit betekent',p:["Grote verliezen zijn veel moeilijker in te halen dan kleine. Daarom is het beperken van verliezen belangrijker dan het najagen van grote winsten. Een stop-loss en een verstandige positiegrootte zijn je belangrijkste gereedschap."],tip:'Schuif met de regelaar hieronder en zie hoeveel stijging je nodig hebt na een verlies.'},
+  {h:'Kernpunten',li:['Benodigde stijging = 1 ÷ (1 − verlies) − 1.','Hoe groter het verlies, hoe onevenredig zwaarder het herstel.','Verliezen beperken is de basis van overleven als trader.']}],
+ q:[['Je portefeuille daalt 50%. Hoeveel moet hij stijgen om terug te komen?',['50%','75%','100%'],2,'Van € 500 naar € 1.000 is een verdubbeling: +100%.'],
+  ['Hoeveel stijging heb je nodig na −20%?',['20%','25%','40%'],1,'1 ÷ 0,8 − 1 = 0,25, dus +25%.'],
+  ['Wat is de belangrijkste les?',['Grote winsten najagen','Verliezen klein houden','Nooit verkopen'],1,'Omdat herstel onevenredig zwaar is, loont het om verliezen vroeg te begrenzen.']]},
+
+fomo:{t:'FOMO, FUD en hebzucht',min:5,go:['#nieuws','Naar het nieuws'],s:[
+  {h:'FOMO',p:["Fear of missing out: de angst om iets mis te lopen. Een munt stijgt 40% op een dag, iedereen praat erover en je wilt erbij zijn. Precies dan is de kans groot dat je koopt nadat de beste stijging al voorbij is."]},
+  {h:'FUD',p:["Fear, uncertainty and doubt: angst, onzekerheid en twijfel, vaak aangewakkerd door negatief nieuws of geruchten. FUD kan leiden tot paniekverkopen op het laagste punt. Controleer of het nieuws klopt en hoe betrouwbaar de bron is."],tip:'Vantis laat bij elk nieuwsbericht de bron en het label zien: feit, verwachting, gerucht of speculatie.'},
+  {h:'Hebzucht en angst',p:["Hebzucht laat je winsten te lang vasthouden of je positie te groot maken. Angst laat je te vroeg verkopen. Een plan dat je vooraf maakt, met vaste stop en doel, haalt de emotie uit je beslissingen."]},
+  {h:'Kernpunten',li:['FOMO laat je te laat kopen, FUD laat je te vroeg verkopen.','Controleer nieuws en bronnen voordat je handelt.','Een vooraf gemaakt plan beschermt je tegen je emoties.']}],
+ q:[['Een munt stijgt 50% in een dag en iedereen praat erover. Wat is het risico?',['Geen, het stijgt toch','Je koopt laat, vaak dicht bij een top','De munt kan niet meer dalen'],1,'Na een grote stijging kopen veel late instappers, juist als vroege kopers winst nemen.'],
+  ['Wat betekent FUD?',['Angst, onzekerheid en twijfel','Een soort order','Een munt'],0,'FUD staat voor fear, uncertainty and doubt: negatieve stemming die tot paniek kan leiden.'],
+  ['Wat helpt het best tegen emotionele beslissingen?',['Vaker op de koers kijken','Een vooraf gemaakt plan met stop en doel','Grotere posities'],1,'Met een plan neem je beslissingen als je nog rustig bent, niet midden in de spanning.']]},
+
+biases:{t:'Denkfouten van beleggers',min:5,go:['#handel','Bekijk je logboek'],s:[
+  {h:'Je brein speelt spelletjes',p:["Mensen zijn niet gemaakt voor de beurs. Onderzoekers als Daniel Kahneman en Amos Tversky lieten zien dat we voorspelbare denkfouten maken. Wie ze kent, kan ze herkennen."]},
+  {h:'De bekendste',li:['Bevestigingsdrang: je zoekt vooral nieuws dat je eigen idee bevestigt.','Verliesaversie: een verlies voelt ongeveer twee keer zo zwaar als een even grote winst. Daardoor houden mensen verliezers te lang vast.','Overmoed: na een paar winsten denk je dat je het snapt en neem je te veel risico.','Ankeren: je blijft hangen aan een eerdere prijs, zoals je aankoopprijs.','Recentheid: wat net gebeurde, lijkt belangrijker dan het is.']},
+  {h:'Wat je eraan doet',p:["Zoek bewust naar argumenten tegen je idee. Bepaal je stop-loss vooraf en verplaats hem niet omlaag. Kijk in je dagboek of je patronen herkent."]},
+  {h:'Kernpunten',li:['Iedereen maakt denkfouten; het gaat erom ze te herkennen.','Verliesaversie maakt dat we verliezers te lang houden.','Zoek actief naar tegenargumenten.']}],
+ q:[['Je koopt op € 100, de koers staat op € 70 en je wacht tot hij “terug” is op € 100. Welke denkfout is dit?',['Ankeren aan je aankoopprijs','Recentheid','Diversificatie'],0,'De markt weet niet wat jij betaalde. Je aankoopprijs zegt niets over waar de koers heen gaat.'],
+  ['Wat is verliesaversie?',['Een verlies voelt zwaarder dan een even grote winst','Je verliest nooit','Je verkoopt winnaars te laat'],0,'Uit onderzoek blijkt dat verlies ongeveer twee keer zo zwaar voelt als winst. Daardoor nemen mensen te weinig snel verlies.'],
+  ['Hoe ga je bevestigingsdrang tegen?',['Alleen positieve analisten volgen','Bewust zoeken naar argumenten tegen je idee','Minder lezen'],1,'Door actief tegenargumenten te zoeken, zie je risico’s die je anders mist.']]},
+
+scams:{t:'Oplichting herkennen',min:5,go:['#nieuws','Naar het nieuws'],s:[
+  {h:'Te mooi om waar te zijn',p:["Gegarandeerd rendement bestaat niet bij beleggen. Wie dat belooft, is vrijwel zeker een oplichter. Hetzelfde geldt voor “vriend van een vriend” die een geheim systeem heeft of een bekende persoon die op social media gratis crypto weggeeft."]},
+  {h:'Bekende vormen',li:['Pump & dump: een groep jaagt de koers van een kleine munt op en verkoopt aan de late instappers.','Rug pull: makers van een nieuw project halen het geld eruit en verdwijnen.','Nep-airdrops en -sites: je moet je wallet koppelen of je herstelzin invullen om iets “gratis” te krijgen.','Beleggingsfraude via datingsites of WhatsApp-groepen.']},
+  {h:'Hoe je jezelf beschermt',p:["Controleer of een partij een vergunning heeft en kijk op de waarschuwingslijst van de AFM. Deel nooit je herstelzin, koppel je wallet niet aan onbekende sites en wees extra wantrouwig bij haast: “alleen vandaag”."],tip:'Twijfel je? Stop, wacht een dag en vraag iemand om mee te kijken.'},
+  {h:'Kernpunten',li:['Gegarandeerd rendement bestaat niet.','Pump & dumps en rug pulls treffen vooral kleine, nieuwe munten.','Controleer vergunningen en de AFM-waarschuwingslijst.']}],
+ q:[['Iemand belooft 5% rendement per week, gegarandeerd. Wat is het?',['Een goede kans','Vrijwel zeker oplichting','Een normale belegging'],1,'Geen enkele echte belegging garandeert rendement, laat staan zulke hoge percentages.'],
+  ['Wat is een rug pull?',['Een korte koersdaling','Makers halen het geld uit een project en verdwijnen','Een soort order'],1,'Bij een rug pull verdwijnen de makers met het geld van de investeerders.'],
+  ['Waar controleer je of een partij bekendstaat als ongeoorloofd?',['Op de waarschuwingslijst van de AFM','In de koersgrafiek','Op social media'],0,'De AFM publiceert waarschuwingen over partijen die zonder vergunning beleggingsdiensten aanbieden.']]},
+
+/* ---------- Nieuws, macro en sentiment ---------- */
+rente:{t:'Rente, inflatie en centrale banken',min:6,go:['#radar','Naar de Event Radar'],s:[
+  {h:'De prijs van geld',p:["Rente is de prijs van geld. Centrale banken, zoals de Federal Reserve (Fed) in de VS en de Europese Centrale Bank (ECB), stellen de beleidsrente vast. Daarmee sturen ze de economie en de inflatie, die ze rond 2% willen houden."]},
+  {h:'Waarom beleggers kijken',p:["Bij een hoge rente levert sparen en lenen aan de overheid meer op, en is geld lenen duurder. Risicovolle beleggingen zoals groeiaandelen en crypto worden dan relatief minder aantrekkelijk. Daalt de rente, dan werkt het vaak andersom."]},
+  {h:'Verwachtingen',p:["Markten prijzen verwachte renteveranderingen vaak al in. Een renteverlaging die iedereen verwacht, beweegt de koers weinig. Een verrassing, of een andere toon over de toekomst, beweegt meer."],tip:'In de Event Radar zie je de rentebesluiten met aftelklok en een Impact Score.'},
+  {h:'Kernpunten',li:['De Fed en de ECB bepalen de beleidsrente.','Hogere rente drukt vaak op risicovolle beleggingen.','Verrassingen bewegen de markt, niet het verwachte besluit.']}],
+ q:[['Welk inflatiedoel hanteren de Fed en de ECB?',['Rond 0%','Rond 2%','Rond 10%'],1,'Beide centrale banken streven naar een inflatie van ongeveer 2% op middellange termijn.'],
+  ['Wat gebeurt er vaak met crypto bij een onverwachte renteverhoging?',['Het stijgt','Het daalt','Er gebeurt niets'],1,'Een hogere rente maakt risicovolle beleggingen relatief minder aantrekkelijk. De reactie is vaak negatief.'],
+  ['Waarom beweegt een verwacht besluit de koers weinig?',['Het zat al in de prijs','De beurs is dan dicht','Omdat niemand kijkt'],0,'Markten anticiperen. Wat verwacht wordt, is al verwerkt in de koers.']]},
+
+cijfers:{t:'Economische cijfers lezen',min:5,go:['#radar','Bekijk de kalender'],s:[
+  {h:'Verwachting tegenover uitkomst',p:["Bij elk cijfer, zoals inflatie (CPI) of het Amerikaanse banenrapport, bestaat een verwachting van economen (de consensus). De markt reageert op het verschil tussen verwachting en uitkomst, niet op het cijfer zelf."]},
+  {h:'Buy the rumour, sell the news',p:["Soms stijgt een koers in aanloop naar goed nieuws en daalt hij juist als het nieuws uitkomt. Wie het verwachtte, was al ingestapt en neemt winst. Dit verklaart waarom goed nieuws soms tot een daling leidt."]},
+  {h:'Rond de publicatie',p:["Op het moment van publicatie is de beweeglijkheid groot en kan de spread oplopen. Veel traders openen vlak voor belangrijke cijfers geen nieuwe positie, of maken die kleiner."]},
+  {h:'Kernpunten',li:['De markt reageert op de verrassing, niet op het cijfer.','Goed nieuws kan tot een daling leiden als het al verwacht was.','Rond publicaties is de markt extra beweeglijk.']}],
+ q:[['Inflatie komt uit op 3,0%, verwacht was 3,2%. Hoe reageren aandelen meestal?',['Negatief, inflatie is hoog','Vaak positief, het is lager dan verwacht','Er gebeurt niets'],1,'Lager dan verwacht betekent meer ruimte voor renteverlagingen, wat vaak positief wordt ontvangen.'],
+  ['Wat betekent “buy the rumour, sell the news”?',['Kopen op geruchten, verkopen als het nieuws uitkomt','Altijd nieuws volgen','Nooit op nieuws handelen'],0,'Wie vooraf kocht, neemt winst zodra het verwachte nieuws bekend is.'],
+  ['Waarom zijn veel traders voorzichtig vlak voor een belangrijk cijfer?',['De markt is dan extra beweeglijk','De beurs is gesloten','Er is geen koers'],0,'Rond publicaties kunnen koersen fel bewegen en spreads oplopen.']]},
+
+impactscore:{t:'Werken met de Impact Score',min:4,go:['#impact','Naar Impact & alerts'],s:[
+  {h:'Wat de score meet',p:["Vantis geeft elke gebeurtenis een Impact Score van 0 tot 100. De score zegt hoe groot de invloed op de markt kan zijn, niet in welke richting. Hij is opgebouwd uit vaste factoren, zoals de grootte van de beweging, het handelsvolume, de snelheid en het belang van het bezit."]},
+  {h:'Waarom beweegt het?',p:["Bij een opvallende koersbeweging controleert Vantis acht mogelijke oorzaken: nieuws, macrocijfers, sentiment, volume, de hele markt, aandelenmarkten, liquidaties en technische niveaus. Elke oorzaak krijgt ja, nee of ‘geen data’. Kan Vantis de oorzaak niet aantonen, dan staat dat er ook."]},
+  {h:'Zo gebruik je het',li:['Stel bij Instellingen in vanaf welke score je een melding wilt.','Lees bij een melding de uitleg en de zekerheid.','Combineer de score met je eigen plan: een hoge score is een reden om te kijken, geen koop- of verkoopsignaal.']},
+  {h:'Kernpunten',li:['De Impact Score gaat over grootte, niet over richting.','“Waarom beweegt het?” toetst oorzaken aan data.','Gebruik het als startpunt voor je eigen beoordeling.']}],
+ q:[['Een gebeurtenis heeft een Impact Score van 85. Wat betekent dat?',['De koers gaat zeker omhoog','De invloed kan groot zijn, de richting staat er los van','Je moet direct kopen'],1,'De score zegt iets over de mogelijke grootte van de invloed, niet over de richting.'],
+  ['Wat doet Vantis als een oorzaak niet kan worden aangetoond?',['Het vult een gok in','Het zegt dat de oorzaak nog onbekend is','Het verbergt de beweging'],1,'Vantis meldt eerlijk dat de oorzaak nog onbekend is in plaats van te gokken.'],
+  ['Hoe gebruik je een hoge Impact Score het best?',['Als automatisch koopsignaal','Als reden om de situatie te bekijken','Je negeert hem'],1,'Een hoge score betekent dat er iets belangrijks gebeurt. Wat je ermee doet, bepaal je met je eigen plan.']]},
+
+sentiment2:{t:'Sentiment en contrair denken',min:4,go:['#overzicht','Bekijk het sentiment'],s:[
+  {h:'De stemming meten',p:["De Fear & Greed Index meet de stemming in de cryptomarkt op een schaal van 0 (extreme angst) tot 100 (extreme hebzucht). Vantis berekent daarnaast een eigen sentiment uit koersbeweging, trend, volume en de toon van het nieuws."]},
+  {h:'Contrair denken',p:["Warren Buffett zei het zo: wees hebzuchtig als anderen angstig zijn, en angstig als anderen hebzuchtig zijn. Bij extreme angst zijn veel verkopers al uitgestapt; bij extreme hebzucht zijn de meeste kopers al binnen."]},
+  {h:'Maar pas op',p:["Extreme angst kan lang duren en nog extremer worden. Sentiment is een aanwijzing, geen timingtool. Combineer het met trend, steun en weerstand en je eigen risicoplan."]},
+  {h:'Kernpunten',li:['Fear & Greed meet de stemming van 0 tot 100.','Extremen kunnen wijzen op een keerpunt.','Gebruik sentiment nooit als enige reden voor een trade.']}],
+ q:[['Wat betekent een Fear & Greed-waarde van 10?',['Extreme hebzucht','Extreme angst','Neutraal'],1,'Een waarde dicht bij 0 betekent extreme angst in de markt.'],
+  ['Wat is contrair denken?',['Doen wat iedereen doet','Juist voorzichtig zijn als iedereen enthousiast is','Nooit handelen'],1,'Contraire beleggers gaan tegen de heersende stemming in, omdat extremen vaak bij keerpunten horen.'],
+  ['Is extreme angst een betrouwbaar koopmoment?',['Ja, altijd','Nee, het kan nog lang duren','Alleen bij aandelen'],1,'Angst kan aanhouden en verergeren. Sentiment helpt, maar is geen exact timingmiddel.']]},
+
+/* ---------- Voor gevorderden ---------- */
+onchain:{t:'On-chain data',min:5,go:['#marktdata','Bekijk het Bitcoin-netwerk'],s:[
+  {h:'Alles staat op de blockchain',p:["Omdat de blockchain openbaar is, kun je zien wat er op het netwerk gebeurt. Die gegevens heten on-chain data. Ze geven een beeld van gebruik en gedrag dat bij aandelen niet bestaat."]},
+  {h:'Belangrijke signalen',li:['Hashrate: de rekenkracht die het Bitcoin-netwerk beveiligt. Een stijgende hashrate betekent dat miners investeren.','Mempool en transactiekosten: hoe druk het netwerk is.','Instroom naar exchanges: veel munten die naar exchanges gaan, kan wijzen op verkoopplannen.','Grote transacties (walvissen): bewegingen van grote bezitters.']},
+  {h:'Voorzichtig interpreteren',p:["On-chain data is waardevol, maar zelden eenduidig. Een grote transactie kan een verkoop zijn, maar ook een interne verplaatsing van een exchange. Combineer het altijd met andere informatie."]},
+  {h:'Kernpunten',li:['On-chain data toont wat er op het netwerk gebeurt.','Hashrate, drukte en exchange-stromen zijn veelgebruikte signalen.','Interpreteer voorzichtig: één signaal zegt weinig.']}],
+ q:[['Wat meet de hashrate?',['De koers van Bitcoin','De rekenkracht die het netwerk beveiligt','Het aantal gebruikers'],1,'De hashrate is de totale rekenkracht van de miners.'],
+  ['Wat kan een grote instroom van munten naar exchanges betekenen?',['Mogelijk verkoopdruk','Zeker een stijging','Niets'],0,'Munten op een exchange kunnen snel worden verkocht. Een grote instroom kan op verkoopplannen wijzen.'],
+  ['Waarom moet je voorzichtig zijn met één on-chain signaal?',['Het is vaak niet eenduidig','Het is altijd fout','Het is te duur'],0,'Een transactie kan meerdere verklaringen hebben. Pas in combinatie met andere data wordt het betekenisvol.']]},
+
+tokenomics:{t:'Tokenomics en unlocks',min:5,go:['#marktdata','Bekijk de unlock-kalender'],s:[
+  {h:'Vraag en aanbod van een munt',p:["Tokenomics beschrijft hoe een munt is opgebouwd: hoeveel er zijn, hoeveel erbij komen en wie ze bezit. Het aanbod is net zo belangrijk als de vraag."]},
+  {h:'Belangrijke begrippen',li:['Circulerend aanbod: munten die nu verhandeld kunnen worden.','Maximaal aanbod: het aantal dat er ooit komt (bij Bitcoin 21 miljoen).','Marktwaarde tegenover volledig verwaterde waarde (FDV): als alle munten in omloop zouden zijn.','Inflatie of uitgifte: hoeveel nieuwe munten er per jaar bijkomen.']},
+  {h:'Unlocks',p:["Bij veel nieuwe projecten zijn munten van het team en investeerders een tijd vastgezet. Op een unlock-datum komen ze vrij. Als die houders gaan verkopen, kan dat de koers drukken. Vantis toont komende unlocks in de Marktdata."],tip:'Een grote unlock ten opzichte van het circulerend aanbod is een reden om extra op te letten.'},
+  {h:'Kernpunten',li:['Kijk naar aanbod en uitgifte, niet alleen naar de koers.','Een grote kloof tussen marktwaarde en FDV betekent veel toekomstig aanbod.','Grote unlocks kunnen verkoopdruk geven.']}],
+ q:[['Wat is de FDV?',['De waarde als alle munten in omloop zouden zijn','De dagomzet','De koers van gisteren'],0,'Fully diluted value: de marktwaarde als het maximale aanbod al in omloop zou zijn.'],
+  ['Waarom kan een unlock de koers drukken?',['Er komen veel munten vrij die verkocht kunnen worden','De munt wordt verwijderd','De beurs sluit'],0,'Vrijgekomen munten kunnen op de markt komen, wat het aanbod verhoogt.'],
+  ['Hoeveel bitcoin komen er maximaal?',['21 miljoen','Onbeperkt','1 miljard'],0,'Het maximale aanbod van Bitcoin is vastgelegd op 21 miljoen.']]},
+
+correlatie:{t:'Correlatie en spreiding',min:5,go:['#marktdata','Bekijk de correlaties'],s:[
+  {h:'Bewegen ze samen?',p:["Correlatie meet hoe sterk twee koersen samen bewegen, van −1 (precies tegengesteld) via 0 (geen verband) tot +1 (precies gelijk). De meeste altcoins hebben een hoge correlatie met Bitcoin."]},
+  {h:'Schijnspreiding',p:["Tien verschillende munten kopen voelt als spreiden, maar als ze allemaal met Bitcoin meebewegen, loop je in feite één groot risico. Echte spreiding zoek je over beleggingscategorieën: aandelen, obligaties, crypto en contant geld."]},
+  {h:'In een crash',p:["In paniekmomenten stijgen correlaties vaak: bijna alles daalt tegelijk. Juist dan merk je hoeveel spreiding je echt had."]},
+  {h:'Kernpunten',li:['Correlatie loopt van −1 tot +1.','De meeste crypto beweegt met Bitcoin mee.','Spreid over categorieën, niet alleen over munten.']}],
+ q:[['Wat betekent een correlatie van +0,9 met Bitcoin?',['Beweegt bijna gelijk op met Bitcoin','Beweegt tegengesteld','Heeft geen verband'],0,'Een waarde dicht bij +1 betekent dat de koersen sterk samen bewegen.'],
+  ['Je hebt tien altcoins. Ben je goed gespreid?',['Ja, tien is genoeg','Waarschijnlijk niet: ze bewegen vaak met Bitcoin mee','Alleen als ze goedkoop zijn'],1,'Als alle munten sterk met Bitcoin correleren, loop je in feite hetzelfde risico.'],
+  ['Wat gebeurt er vaak met correlaties tijdens een crash?',['Ze dalen','Ze stijgen','Ze verdwijnen'],1,'In paniek verkopen beleggers bijna alles tegelijk, waardoor koersen meer samen bewegen.']]},
+
+backtest:{t:'Strategieën testen',min:5,go:['#trackrecord','Bekijk de track record'],s:[
+  {h:'Wat is een backtest?',p:["In een backtest pas je vaste regels toe op koersen uit het verleden, alsof je toen had gehandeld. Zo zie je hoe een strategie had gepresteerd voordat je er echt geld op zet."]},
+  {h:'Valkuilen',li:['Overfitting: je stemt de regels zo af op het verleden dat ze alleen daar werken.','Vooruitkijken: je gebruikt per ongeluk informatie die je op dat moment nog niet had.','Overlevingsbias: je test alleen munten die nu nog bestaan, niet de munten die verdwenen.','Kosten vergeten: zonder transactiekosten en spread ziet bijna elke strategie er beter uit.']},
+  {h:'Eerlijk testen',p:["Test op een periode die je niet gebruikte om de regels te maken (out-of-sample). Houd de regels eenvoudig. En onthoud: resultaten uit het verleden bieden geen garantie voor de toekomst. De track record van Vantis werkt volgens hetzelfde principe en laat zien wat een score wel en niet zegt."]},
+  {h:'Kernpunten',li:['Een backtest laat zien hoe regels in het verleden werkten.','Pas op voor overfitting, vooruitkijken en vergeten kosten.','Test altijd op data die je niet gebruikte om de regels te bedenken.']}],
+ q:[['Wat is overfitting?',['Regels die precies op het verleden passen en daarna niet werken','Te veel kosten','Een soort order'],0,'Hoe meer je regels afstemt op historische data, hoe groter de kans dat ze alleen daar werken.'],
+  ['Waarom test je out-of-sample?',['Om te zien of de regels ook werken op data die je niet gebruikte','Omdat het sneller is','Om kosten te besparen'],0,'Data die je niet gebruikte om de regels te maken, is een eerlijker test.'],
+  ['Wat gebeurt er als je kosten vergeet in een backtest?',['De resultaten lijken beter dan ze zijn','Niets','De resultaten lijken slechter'],0,'Kosten en spread drukken het rendement, vooral bij strategieën die vaak handelen.']]}
+};
+
+/* extra begrippen voor de begrippenlijst (naast GLOSS uit de app) */
+const AC_TERMS=[
+ ['Aandeel','Een deel van het eigendom van een bedrijf.'],['Altcoin','Elke cryptomunt behalve Bitcoin.'],['ATR','Average True Range: de gemiddelde afstand tussen het hoogste en laagste punt per periode.'],
+ ['Bear market','Een langere periode van dalende koersen.'],['Bull market','Een langere periode van stijgende koersen.'],['Blockchain','Een openbaar grootboek waarin transacties in blokken worden vastgelegd.'],
+ ['Bollinger Bands','Banden twee standaarddeviaties boven en onder het 20-daags gemiddelde.'],['Candle','Een kaars in de grafiek met opening, hoogste punt, laagste punt en slotkoers.'],
+ ['Circulerend aanbod','Het aantal munten dat nu verhandeld kan worden.'],['DCA','Dollar-cost averaging: op vaste momenten een vast bedrag kopen.'],['Dividend','Uitkering van winst aan aandeelhouders.'],
+ ['Doji','Een candle waarbij opening en slot bijna gelijk zijn.'],['ETF','Een fonds dat je als één aandeel koopt en dat vaak een index volgt.'],['Exchange','Een handelsplatform voor crypto of aandelen.'],
+ ['FDV','Fully diluted value: de marktwaarde als alle munten in omloop zouden zijn.'],['FOMO','Fear of missing out: de angst om een stijging mis te lopen.'],['FUD','Fear, uncertainty and doubt: angst, onzekerheid en twijfel.'],
+ ['Funding rate','De periodieke betaling tussen long- en shorthouders bij perpetual futures.'],['Halving','Het moment waarop de beloning voor Bitcoin-miners halveert, ongeveer elke vier jaar.'],['Hashrate','De rekenkracht die het Bitcoin-netwerk beveiligt.'],
+ ['Hefboom','Handelen met geleend geld, waardoor winst én verlies groter worden.'],['Index','Een mandje aandelen dat samen een markt weergeeft, zoals de AEX.'],['Limietorder','Een order die alleen wordt uitgevoerd tegen jouw prijs of beter.'],
+ ['Liquidatie','Het gedwongen sluiten van een positie met hefboom als het onderpand op is.'],['Liquiditeit','Hoe makkelijk je iets kunt kopen of verkopen zonder de prijs te bewegen.'],['Long','Een positie die winst maakt als de koers stijgt.'],
+ ['Marktorder','Een order die direct wordt uitgevoerd tegen de beste beschikbare prijs.'],['Open interest','De totale waarde van openstaande futures-posities.'],['Peildatum','De datum waarop de waarde voor box 3 wordt bepaald: 1 januari.'],
+ ['Positiegrootte','Hoeveel je van een asset koopt, bepaald vanuit je risico per trade.'],['R-multiple','Winst of verlies uitgedrukt in je oorspronkelijke risico (1R).'],['Rug pull','Oplichting waarbij makers het geld uit een project halen en verdwijnen.'],
+ ['Seed phrase','De herstelzin van 12 of 24 woorden waarmee je een wallet herstelt.'],['Short','Een positie die winst maakt als de koers daalt.'],['Slippage','Het verschil tussen de verwachte en de werkelijke uitvoeringsprijs.'],
+ ['Spread','Het verschil tussen de hoogste biedprijs en de laagste laatprijs.'],['Steun','Een prijsgebied waar een daling eerder stopte.'],['Stop-loss','Een order die verkoopt als de koers tot een bepaalde prijs daalt.'],
+ ['Take profit','Een order die winst neemt bij een vooraf bepaald koersdoel.'],['Tijdsframe','De periode die één candle in de grafiek beslaat, zoals een uur of een dag.'],['Trailing stop','Een stop-loss die meeloopt met de koers als die stijgt.'],
+ ['Trend','De overheersende richting van de koers.'],['Unlock','Het moment waarop vastgezette munten vrijkomen.'],['Volume','De hoeveelheid die in een periode is verhandeld.'],
+ ['Wallet','Software of een apparaat waarmee je de sleutels van je crypto beheert.'],['Weerstand','Een prijsgebied waar een stijging eerder stopte.']
+];
+
+/* =====================================================================
+   v10 — Vantis Academy
+   Leerpaden, lessen met interactieve onderdelen, opdrachten in de app,
+   grafiekuitdaging met echte koersen, rekenhulpen, begrippen, XP,
+   niveaus en certificaten. Vervangt de oude pagina "Leren & badges".
+   ===================================================================== */
+
+/* oude lessen opnemen (voortgang blijft behouden: zelfde id's) */
+const AC_OLDW={koers:'candle',indic:'rsi'};
+for(const L of LESSONS){if(!AC_LESSONS[L.id])AC_LESSONS[L.id]={t:L.t,min:L.min,go:L.go,w:AC_OLDW[L.id],s:[{p:L.p}],q:L.q.map(q=>[q[0],q[1],q[2],q[3]||''])}}
+for(const p of AC_PATHS)for(const id of p.L){const L=AC_LESSONS[id];if(L&&!LESSONS.find(x=>x.id===id))LESSONS.push({id,t:L.t,min:L.min,go:L.go,p:[],q:L.q})}
+const AC_ORDER=AC_PATHS.flatMap(p=>p.L).filter(id=>AC_LESSONS[id]);
+const aci=n=>ico(IC[n]?n:'star');
+
+const AC={
+  tab:'paden',ans:{},checked:null,hist:{},round:null,term:'',
+  LV:[[0,'Nieuwkomer'],[100,'Starter'],[250,'Leerling'],[450,'Trader in opleiding'],[750,'Trader'],[1100,'Gevorderd trader'],[1600,'Expert']],
+  st(){const a=S.settings.acad||{};a.v=a.v||{};a.chart=a.chart||{n:0,ok:0,streak:0,best:0};a.cert=a.cert||{};S.settings.acad=a;return a},
+  vis(p){return !!this.st().v[p]},
+  visit(p){const a=this.st();if(p&&!a.v[p]){a.v[p]=1;saveSettings()}},
+  done(){return learned()},
+  pathOf(id){return AC_PATHS.find(p=>p.L.includes(id))},
+  pathDone(p){const d=this.done();return p.L.filter(id=>d[id]).length},
+  xp(){const d=this.done();let x=0;for(const k in d)if(AC_LESSONS[k])x+=20+5*(d[k].score||0);
+    x+=AC_TASKS.filter(t=>this.task(t)).length*15;const c=this.st().chart;return x+(c.ok||0)*3+(c.n||0)},
+  level(){const x=this.xp();let i=0;for(let j=0;j<this.LV.length;j++)if(x>=this.LV[j][0])i=j;const cur=this.LV[i],nx=this.LV[i+1];
+    return {x,i:i+1,name:cur[1],next:nx?nx[1]:null,need:nx?nx[0]-x:0,pct:nx?(x-cur[0])/(nx[0]-cur[0])*100:100}},
+  next(){const d=this.done();return AC_ORDER.find(id=>!d[id])||null},
+  task(t){try{return !!t.test()}catch(e){return false}},
+  toastXP(n,title){UI.toast({kind:'success',title,body:`+${n} XP · ${this.level().name}`})}
+};
+
+const AC_TASKS=[
+  {id:'watch',t:'Zet vijf assets op je watchlist',d:'Volg wat je interesseert. Je krijgt er meldingen over en ziet ze op je overzicht.',go:'#markten',test:()=>S.watch.length>=5},
+  {id:'alert',t:'Stel je eerste koersalert in',d:'Laat Vantis je waarschuwen als een koers een grens passeert.',go:'#meldingen',test:()=>(PA.list||[]).length>0},
+  {id:'brief',t:'Lees de ochtendbriefing',d:'Elke ochtend om 08:00 de markt in een paar minuten.',go:'#briefing',test:()=>AC.vis('briefing')},
+  {id:'why',t:'Zoek uit waarom de markt beweegt',d:'Bekijk welke oorzaken Vantis heeft gecontroleerd.',go:'#waarom',test:()=>AC.vis('waarom')},
+  {id:'radar',t:'Zoek het volgende rentebesluit op',d:'De Event Radar toont macro-gebeurtenissen met aftelklok.',go:'#radar',test:()=>AC.vis('radar')},
+  {id:'compare',t:'Vergelijk twee assets',d:'Zet rendement, risico en correlatie naast elkaar.',go:'#vergelijk',test:()=>AC.vis('vergelijk')},
+  {id:'trade',t:'Plaats je eerste order',d:'Koop of verkoop in Handelen; tot de lancering met oefengeld.',go:'#handel',test:()=>((PT.P||{}).trades||[]).length>0},
+  {id:'stop',t:'Zet een stop-loss of winstdoel',d:'Bescherm je positie met een vooraf bepaalde uitstap.',go:'#handel',test:()=>Badges.test('stop_loss')},
+  {id:'note',t:'Schrijf een notitie bij een order',d:'Begin je handelsdagboek: waarom koop of verkoop je?',go:'#handel',test:()=>((PT.P||{}).trades||[]).some(t=>t.note)},
+  {id:'dca',t:'Start een plan voor periodiek kopen',d:'Koop automatisch elke dag, week of maand.',go:'#handel',test:()=>((PT.P||{}).dca||[]).length>0},
+  {id:'scan',t:'Bewaar een eigen scanner',d:'Maak je eigen filter in de Opportunity Scanner.',go:'#scanner',test:()=>(S.settings.screens||[]).length>0},
+  {id:'calc',t:'Bereken een positiegrootte',d:'Gebruik de rekenhulp bij Rekenhulpen.',go:'#leren-tools',test:()=>!!AC.st().calc},
+  {id:'chart',t:'Speel tien rondes van de grafiekuitdaging',d:'Lees echte grafieken en test je inschatting.',go:'#leren-grafiek',test:()=>(AC.st().chart.n||0)>=10}
+];
+
+/* paginabezoeken bijhouden voor de opdrachten */
+{const or=UI.route;UI.route=function(){const r=or.apply(this,arguments);try{AC.visit(this.cur)}catch(e){}return r}}
+
+/* ---------- rekenwerk ---------- */
+const acSMA=(c,n)=>c.map((_,i)=>i<n-1?null:c.slice(i-n+1,i+1).reduce((a,b)=>a+b,0)/n);
+const acRSI=(c,n=14)=>{const out=c.map(()=>null);if(c.length<=n)return out;let g=0,l=0;for(let i=1;i<=n;i++){const d=c[i]-c[i-1];if(d>0)g+=d;else l-=d}g/=n;l/=n;out[n]=l===0?100:100-100/(1+g/l);
+  for(let i=n+1;i<c.length;i++){const d=c[i]-c[i-1];g=(g*(n-1)+Math.max(d,0))/n;l=(l*(n-1)+Math.max(-d,0))/n;out[i]=l===0?100:100-100/(1+g/l)}return out};
+const acATR=(d,n=14)=>{const tr=d.map((x,i)=>i?Math.max(x.h-x.l,Math.abs(x.h-d[i-1].c),Math.abs(x.l-d[i-1].c)):x.h-x.l);return tr.slice(-n).reduce((a,b)=>a+b,0)/Math.min(n,tr.length)};
+async function acHist(sym,days=400){if(AC.hist[sym])return AC.hist[sym];let d=null;
+  try{const raw=await Promise.race([bv(`/${sym}-EUR/candles?interval=1d&limit=${days}`),new Promise((_,rj)=>setTimeout(()=>rj(new Error('timeout')),8000))]);d=parseC(raw).filter(c=>c.t+DAY<=Date.now())}catch(e){}
+  if(!d||d.length<30){const a=S.crypto.get(sym);d=a&&a.cd?a.cd:null}
+  if(d&&d.length)AC.hist[sym]=d;return d}
+
+/* lichte SVG-grafiek: prijslijn, gemiddelden, niveaus, vervolg en RSI-paneel */
+function acChart(o){const W=640,H=o.rsi?260:210,ph=o.rsi?176:H-16,c=o.c,all=c.concat(o.after||[]);const n=all.length;
+  const vals=all.concat(...(o.lines||[]).map(l=>l.d.filter(v=>v!=null)),o.levels||[]);let lo=Math.min(...vals),hi=Math.max(...vals);const pad=(hi-lo)*.08||1;lo-=pad;hi+=pad;
+  const X=i=>8+i/(n-1)*(W-70),Y=v=>8+(1-(v-lo)/(hi-lo))*(ph-16);
+  const path=(arr,off=0)=>arr.map((v,i)=>v==null?null:[X(i+off),Y(v)]).filter(Boolean).map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join('');
+  let s=`<svg class="acsvg" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(o.label||'Koersgrafiek')}">`;
+  for(let k=0;k<=3;k++){const v=lo+(hi-lo)*k/3;s+=`<line class="acgrid" x1="8" x2="${W-62}" y1="${Y(v)}" y2="${Y(v)}"/><text class="acax" x="${W-56}" y="${Y(v)+4}">${esc(o.fmt?o.fmt(v):nlN(v,0))}</text>`}
+  for(const lv of o.levels||[])s+=`<line class="aclev" x1="8" x2="${W-62}" y1="${Y(lv)}" y2="${Y(lv)}"/>`;
+  for(const l of o.lines||[])s+=`<path class="${l.cls}" d="${path(l.d)}"/>`;
+  s+=`<path class="acprice" d="${path(c)}"/>`;
+  if(o.after&&o.after.length){s+=`<line class="accut" x1="${X(c.length-1)}" x2="${X(c.length-1)}" y1="6" y2="${ph-6}"/><path class="acafter ${o.after[o.after.length-1]>=c[c.length-1]?'up':'down'}" d="${path([c[c.length-1]].concat(o.after),c.length-1)}"/>`}
+  if(o.rsi){const r=o.rsi,RY=v=>ph+8+(1-v/100)*(H-ph-14);s+=`<line class="acgrid" x1="8" x2="${W-62}" y1="${RY(70)}" y2="${RY(70)}"/><line class="acgrid" x1="8" x2="${W-62}" y1="${RY(30)}" y2="${RY(30)}"/><text class="acax" x="${W-56}" y="${RY(70)+4}">70</text><text class="acax" x="${W-56}" y="${RY(30)+4}">30</text>`;
+    s+=`<path class="acrsi" d="${r.map((v,i)=>v==null?null:[X(i),RY(v)]).filter(Boolean).map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join('')}"/>`}
+  return s+'</svg>'}
+const acLegend=L=>`<div class="aclegend">${L.map(([c,t])=>`<span><i class="${c}"></i>${esc(t)}</span>`).join('')}</div>`;
+
+/* ---------- interactieve onderdelen in lessen ---------- */
+const ACW={
+  candle:{html:()=>`<div class="acw"><div class="acwh"><b>Zo lees je een candle</b><div class="seg" id="acsd"><button data-cs="up" class="on">Stijgend</button><button data-cs="down">Dalend</button><button data-cs="doji">Doji</button><button data-cs="hammer">Hamer</button></div></div><div id="acsv"></div></div>`,
+    mount(el){const draw=k=>{const P={up:[60,40,92,25,'Slot boven opening: de koers steeg in deze periode.'],down:[40,62,90,24,'Slot onder opening: de koers daalde.'],doji:[50,51,85,20,'Opening en slot bijna gelijk: evenwicht tussen kopers en verkopers.'],hammer:[78,82,88,20,'Lange onderste lont na een daling: verkopers duwden de koers omlaag, kopers kregen hem terug.']}[k];
+        const [o,c,h,l,txt]=P;const Y=v=>200-v*1.8,up=c>=o,top=Y(Math.max(o,c)),bot=Y(Math.min(o,c));
+        $('#acsv',el).innerHTML=`<div class="acsvw"><svg viewBox="0 0 360 210" class="acsvg acc" role="img" aria-label="Candle">
+          <line x1="120" x2="120" y1="${Y(h)}" y2="${Y(l)}" class="acwick"/><rect x="95" y="${top}" width="50" height="${Math.max(2,bot-top)}" rx="3" class="acbody ${up?'up':'down'}"/>
+          ${[[h,'Hoogste punt'],[Math.max(o,c),up?'Slot':'Opening'],[Math.min(o,c),up?'Opening':'Slot'],[l,'Laagste punt']].map(([v,t],i)=>`<line x1="150" x2="200" y1="${Y(v)}" y2="${Y(v)}" class="acgrid"/><text x="206" y="${Y(v)+4+(i===2&&Math.abs(o-c)<4?12:0)+(i===1&&Math.abs(o-c)<4?-6:0)}" class="actxt">${t}</text>`).join('')}</svg><p>${esc(txt)}</p></div>`};
+      draw('up');$('#acsd',el).onclick=e=>{const b=e.target.closest('[data-cs]');if(!b)return;$$('#acsd button',el).forEach(x=>x.classList.toggle('on',x===b));draw(b.dataset.cs)}}},
+  trend:{html:()=>`<div class="acw"><div class="acwh"><b>Bitcoin, laatste 120 dagen</b><span class="note" id="acwt">laden…</span></div><div id="acwc">${skel(3)}</div></div>`,
+    async mount(el){const d=await acHist('BTC');const box=$('#acwc',el);if(!d){box.innerHTML=noData();return}const c=d.slice(-120).map(x=>x.c),full=d.map(x=>x.c);const s20=acSMA(full,20).slice(-120),s50=acSMA(full,50).slice(-120);
+      box.innerHTML=acChart({c,lines:[{d:s50,cls:'acs50'},{d:s20,cls:'acs20'}],label:'Bitcoin met 20- en 50-daags gemiddelde'})+acLegend([['acprice','Koers'],['acs20','20-daags gemiddelde'],['acs50','50-daags gemiddelde']]);
+      const p=c[c.length-1],a=s20[s20.length-1],b=s50[s50.length-1];$('#acwt',el).textContent=p>a&&a>b?'Nu: stijgende trend op korte termijn':p<a&&a<b?'Nu: dalende trend op korte termijn':'Nu: geen duidelijke trend'}},
+  sr:{html:()=>`<div class="acw"><div class="acwh"><b>Steun en weerstand bij Bitcoin, 90 dagen</b></div><div id="acwc">${skel(3)}</div></div>`,
+    async mount(el){const d=await acHist('BTC');const box=$('#acwc',el);if(!d){box.innerHTML=noData();return}const w=d.slice(-90),c=w.map(x=>x.c);const L=typeof srLevels==='function'?srLevels(w,c[c.length-1]):{sup:[],res:[]};
+      const lv=[...(L.sup||[]),...(L.res||[])].map(x=>typeof x==='object'?x.p:x).filter(v=>isFinite(v)).slice(0,4);
+      box.innerHTML=acChart({c,levels:lv,label:'Bitcoin met steun en weerstand'})+acLegend([['acprice','Koers'],['aclev','Niveaus waar de koers eerder keerde']])}},
+  rsi:{html:()=>`<div class="acw"><div class="acwh"><b>Bitcoin met RSI (14 dagen)</b><span class="note" id="acwt"></span></div><div id="acwc">${skel(3)}</div></div>`,
+    async mount(el){const d=await acHist('BTC');const box=$('#acwc',el);if(!d){box.innerHTML=noData();return}const full=d.map(x=>x.c),r=acRSI(full).slice(-120),c=full.slice(-120);
+      box.innerHTML=acChart({c,rsi:r,lines:[{d:acSMA(full,20).slice(-120),cls:'acs20'}],label:'Bitcoin met RSI'})+acLegend([['acprice','Koers'],['acs20','20-daags gemiddelde'],['acrsi','RSI']]);
+      const v=r[r.length-1];$('#acwt',el).textContent=v==null?'':`RSI nu ${nlN(v,0)}: ${v>70?'overkocht':v<30?'oververkocht':'neutraal'}`}},
+  atr:{html:()=>`<div class="acw"><div class="acwh"><b>Stop-afstand op basis van de ATR</b></div><div class="acform"><label>Munt<select class="inp" id="atrs">${['BTC','ETH','SOL','XRP','ADA','DOGE'].map(s=>`<option>${s}</option>`).join('')}</select></label><label>Factor<select class="inp" id="atrk"><option value="1.5">1,5 × ATR</option><option value="2" selected>2 × ATR</option><option value="3">3 × ATR</option></select></label></div><div id="atro" class="acout">${skel(1)}</div></div>`,
+    mount(el){const go=async()=>{const s=$('#atrs',el).value,k=+$('#atrk',el).value;const d=await acHist(s);const o=$('#atro',el);if(!d||d.length<15){o.innerHTML=noData();return}const atr=acATR(d),p=d[d.length-1].c;
+        o.innerHTML=`<div><small>ATR (14 dagen)</small><b>${money({kind:'crypto'},atr)}</b><span>${nlN(atr/p*100,1)}% van de koers</span></div><div><small>Stop bij koop op ${money({kind:'crypto'},p)}</small><b>${money({kind:'crypto'},p-k*atr)}</b><span>${nlN(k*atr/p*100,1)}% onder de koers</span></div>`};
+      $('#atrs',el).onchange=go;$('#atrk',el).onchange=go;go()}},
+  rr:{html:()=>`<div class="acw"><div class="acwh"><b>Rekenhulp: risico en rendement</b></div><div class="acform"><label>Instap (€)<input class="inp" id="rre" inputmode="decimal" value="100"></label><label>Stop-loss (€)<input class="inp" id="rrs" inputmode="decimal" value="95"></label><label>Koersdoel (€)<input class="inp" id="rrt" inputmode="decimal" value="110"></label><label>Jouw winkans (%)<input class="inp" id="rrw" inputmode="decimal" value="45"></label></div><div id="rro" class="acout"></div></div>`,
+    mount(el){const num=id=>parseFloat(String($(id,el).value).replace(',','.'));const go=()=>{const e=num('#rre'),s=num('#rrs'),t=num('#rrt'),w=num('#rrw')/100;const o=$('#rro',el);
+        if(![e,s,t].every(isFinite)||e===s){o.innerHTML='<div class="empty">Vul instap, stop en doel in.</div>';return}const risk=Math.abs(e-s),rew=Math.abs(t-e),R=rew/risk,be=1/(1+R),ev=isFinite(w)?w*R-(1-w):null;
+        o.innerHTML=`<div><small>Verhouding</small><b>1 op ${nlN(R,1)}</b><span>risico € ${nlN(risk,2)}, beloning € ${nlN(rew,2)}</span></div><div><small>Minimale winkans</small><b>${nlN(be*100,0)}%</b><span>om quitte te spelen (zonder kosten)</span></div>${ev!=null?`<div><small>Verwachte waarde</small><b class="${ev>=0?'up':'down'}">${ev>=0?'+':'−'}${nlN(Math.abs(ev),2)} R</b><span>per trade, bij ${nlN(w*100,0)}% winkans</span></div>`:''}`};
+      el.querySelectorAll('#rre,#rrs,#rrt,#rrw').forEach(i=>i.oninput=go);go()}},
+  pos:{html:()=>`<div class="acw"><div class="acwh"><b>Rekenhulp: positiegrootte</b></div><div class="acform"><label>Kapitaal (€)<input class="inp" id="psk" inputmode="decimal" value="10000"></label><label>Risico per trade (%)<input class="inp" id="psr" inputmode="decimal" value="1"></label><label>Instap (€)<input class="inp" id="pse" inputmode="decimal" value="50"></label><label>Stop-loss (€)<input class="inp" id="pss" inputmode="decimal" value="45"></label></div><div id="pso" class="acout"></div></div>`,
+    mount(el){const num=id=>parseFloat(String($(id,el).value).replace(',','.'));let used=false;const go=()=>{const k=num('#psk'),r=num('#psr')/100,e=num('#pse'),s=num('#pss');const o=$('#pso',el);
+        if(![k,r,e,s].every(isFinite)||e===s||k<=0){o.innerHTML='<div class="empty">Vul alle velden in; de stop moet anders zijn dan de instap.</div>';return}const amt=k*r,per=Math.abs(e-s),n=amt/per,val=n*e;
+        o.innerHTML=`<div><small>Maximaal verlies</small><b>€ ${nlN(amt,2)}</b><span>${nlN(r*100,1)}% van je kapitaal</span></div><div><small>Aantal</small><b>${nlN(n,n<10?4:2)}</b><span>stuks of munten</span></div><div><small>Positiewaarde</small><b>€ ${nlN(val,2)}</b><span>${nlN(val/k*100,1)}% van je kapitaal${val>k?' · meer dan je kapitaal: kies een ruimere stop of minder risico':''}</span></div>`;
+        if(!used){used=true;const a=AC.st();if(!a.calc){a.calc=1;saveSettings();Badges.check()}}};
+      el.querySelectorAll('#psk,#psr,#pse,#pss').forEach(i=>i.oninput=go);go()}},
+  recovery:{html:()=>`<div class="acw"><div class="acwh"><b>Hoeveel moet je terugwinnen?</b></div><label class="acrange">Verlies <b id="rcv">30%</b><input type="range" id="rcr" min="5" max="90" step="5" value="30"></label><div id="rco" class="acrec"></div></div>`,
+    mount(el){const go=()=>{const L=+$('#rcr',el).value/100,need=1/(1-L)-1;$('#rcv',el).textContent=nlN(L*100,0)+'%';
+        $('#rco',el).innerHTML=`<div><span>Verlies</span><i class="down" style="width:${Math.min(100,L*100)}%"></i><b>−${nlN(L*100,0)}%</b></div><div><span>Nodig om te herstellen</span><i class="up" style="width:${Math.min(100,need*100/9)}%"></i><b>+${nlN(need*100,0)}%</b></div>`};$('#rcr',el).oninput=go;go()}},
+  fees:{html:()=>`<div class="acw"><div class="acwh"><b>Wat kost vaak handelen?</b></div><div class="acform"><label>Transacties per week<input class="inp" id="fen" inputmode="numeric" value="10"></label><label>Bedrag per transactie (€)<input class="inp" id="fea" inputmode="decimal" value="500"></label><label>Kosten per transactie (%)<input class="inp" id="fep" inputmode="decimal" value="0,25"></label></div><div id="feo" class="acout"></div></div>`,
+    mount(el){const num=id=>parseFloat(String($(id,el).value).replace(',','.'));const go=()=>{const n=num('#fen'),a=num('#fea'),p=num('#fep')/100;const o=$('#feo',el);if(![n,a,p].every(isFinite)){o.innerHTML='';return}const y=n*52*a*p;
+        o.innerHTML=`<div><small>Per week</small><b>€ ${nlN(n*a*p,2)}</b></div><div><small>Per jaar</small><b>€ ${nlN(y,0)}</b><span>${n*52} transacties</span></div>`};el.querySelectorAll('#fen,#fea,#fep').forEach(i=>i.oninput=go);go()}}
+};
+
+/* ---------- certificaat ---------- */
+async function acCert(p){const W=1600,H=1100,cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');
+  const bg=g.createRadialGradient(W*.8,0,50,W*.8,0,W);bg.addColorStop(0,'#24262b');bg.addColorStop(.6,'#0b0b0d');bg.addColorStop(1,'#050505');g.fillStyle=bg;g.fillRect(0,0,W,H);
+  g.strokeStyle='rgba(255,255,255,.18)';g.lineWidth=2;g.strokeRect(48,48,W-96,H-96);g.strokeStyle='rgba(255,255,255,.07)';g.strokeRect(64,64,W-128,H-128);
+  const metal=(y0,y1)=>{const m=g.createLinearGradient(0,y0,W,y1);m.addColorStop(0,'#ffffff');m.addColorStop(.35,'#c9cdd3');m.addColorStop(.5,'#7f858e');m.addColorStop(.7,'#f1f2f4');m.addColorStop(1,'#9aa0a9');return m};
+  try{const img=new Image();img.src='brand/vantis-full.svg';await img.decode();const w=520,h=w*img.height/img.width;g.drawImage(img,(W-w)/2,130,w,h)}catch(e){}
+  const name=(Api.user&&Api.user.name)||'Vantis-gebruiker';const d=AC.done();const sc=p.L.map(id=>d[id]).filter(Boolean);const avg=sc.length?sc.reduce((a,x)=>a+(x.score/x.of),0)/sc.length*100:0;
+  g.textAlign='center';g.fillStyle='#9aa0a9';g.font='500 30px Inter, sans-serif';g.fillText('CERTIFICAAT VANTIS ACADEMY',W/2,370);
+  g.fillStyle=metal(400,520);g.font='700 84px "Inter Tight", Inter, sans-serif';g.fillText(p.t,W/2,480);
+  g.fillStyle='#c9cdd3';g.font='400 34px Inter, sans-serif';g.fillText('behaald door',W/2,580);g.fillStyle='#ffffff';g.font='600 64px "Inter Tight", Inter, sans-serif';g.fillText(name,W/2,660);
+  g.fillStyle='#9aa0a9';g.font='400 30px Inter, sans-serif';g.fillText(`${p.L.length} lessen afgerond · gemiddeld ${Math.round(avg)}% goed · niveau ${p.lvl.toLowerCase()}`,W/2,760);
+  g.fillText(new Date().toLocaleDateString('nl-NL',{day:'numeric',month:'long',year:'numeric'}),W/2,810);
+  g.strokeStyle='rgba(255,255,255,.2)';g.beginPath();g.moveTo(W/2-160,900);g.lineTo(W/2+160,900);g.stroke();g.fillStyle='#737985';g.font='400 24px Inter, sans-serif';g.fillText('Vantis · Crypto Intelligence',W/2,940);
+  const a=AC.st();if(!a.cert[p.id]){a.cert[p.id]=Date.now();saveSettings();Badges.check()}
+  cv.toBlob(b=>{const u=URL.createObjectURL(b);const l=document.createElement('a');l.href=u;l.download=`Vantis-certificaat-${p.id}.png`;document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(u),4000)},'image/png')}
+
+/* ---------- badges uitbreiden ---------- */
+Badges.L.push(['cert1','Gecertificeerd','Je eerste leerpad afgerond','learn'],['chart10','Grafieklezer','Tien rondes van de grafiekuitdaging gespeeld','record'],['tasks5','Doener','Vijf opdrachten in de Academy afgerond','trophy']);
+{const ot=Badges.test.bind(Badges);Badges.test=function(id){if(id==='cert1')return AC_PATHS.some(p=>AC.pathDone(p)===p.L.length);if(id==='chart10')return (AC.st().chart.n||0)>=10;if(id==='tasks5')return AC_TASKS.filter(t=>AC.task(t)).length>=5;return ot(id)}}
+{const i=NAV.findIndex(n=>n[0]==='leren');if(i>=0)NAV[i]=['leren','Academy','learn']}
+
+/* ---------- de pagina ---------- */
+const AC_TABS=[['paden','Leerpaden'],['opdrachten','Opdrachten'],['grafiek','Grafiekuitdaging'],['tools','Rekenhulpen'],['begrippen','Begrippen'],['badges','Badges']];
+Pages.leren={
+  title:()=>'Academy',
+  html(arg){const L=arg&&AC_LESSONS[arg];if(L)return this.lessonHTML(arg);
+    if(arg&&arg.startsWith('pad_')){AC.tab='paden'}else if(arg&&AC_TABS.some(t=>t[0]===arg))AC.tab=arg;
+    const lv=AC.level(),nx=AC.next(),nl=nx&&AC_LESSONS[nx],np=nx&&AC.pathOf(nx),d=AC.done(),nDone=AC_ORDER.filter(id=>d[id]).length,st=S.settings.streak||{};
+    return `<div class="phead"><div><h1>Vantis Academy</h1><p>Leer stap voor stap traden: van je eerste aankoop tot risicobeheer, grafieken lezen en macro. Met lessen, opdrachten in de app en oefeningen met echte koersen.</p></div></div>
+      <section class="achero card"><div class="aclv"><span class="aclvn">${lv.i}</span><div><small>Niveau ${lv.i}</small><b>${esc(lv.name)}</b><div class="acxp"><i style="width:${lv.pct}%"></i></div><span>${nlN(lv.x,0)} XP${lv.next?` · nog ${nlN(lv.need,0)} XP tot ${esc(lv.next)}`:' · hoogste niveau'}</span></div></div>
+        <div class="acst"><div><small>Lessen</small><b>${nDone} van ${AC_ORDER.length}</b></div><div><small>Opdrachten</small><b>${AC_TASKS.filter(t=>AC.task(t)).length} van ${AC_TASKS.length}</b></div><div><small>Reeks</small><b>${st.n||1} ${st.n===1?'dag':'dagen'}</b></div></div>
+        ${nl?`<a class="acnext" href="#leren-${nx}"><small>Ga verder · ${esc(np.t)}</small><b>${esc(nl.t)}</b><span>${nl.min} min · ${nl.q.length} vragen</span></a>`:`<div class="acnext"><small>Alle lessen afgerond</small><b>Je hebt de hele Academy doorlopen</b><span>Download je certificaten bij de leerpaden.</span></div>`}</section>
+      <div class="seg mdtabs actabs" id="actabs" role="tablist">${AC_TABS.map(([k,t])=>`<button role="tab" data-t="${k}" class="${AC.tab===k?'on':''}" aria-selected="${AC.tab===k}">${t}</button>`).join('')}</div><div id="acbody" style="margin-top:16px"></div>`},
+  mount(el,arg){if(typeof PT!=='undefined'&&PT.load)PT.load().then(()=>{if(UI.el===el&&!AC_LESSONS[arg])this.live(el,arg,'calc')}).catch(()=>{});
+    if(AC_LESSONS[arg]){this.mountLesson(el,arg);return}
+    $('#actabs',el).onclick=e=>{const b=e.target.closest('[data-t]');if(!b)return;AC.tab=b.dataset.t;$$('#actabs button',el).forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-selected',x===b)});this.live(el,null,'calc')};
+    el.addEventListener('click',e=>{const t=e.target.closest('[data-cert],[data-chal],[data-acpath]');if(!t)return;
+      if(t.dataset.cert){const p=AC_PATHS.find(x=>x.id===t.dataset.cert);acCert(p)}
+      if(t.dataset.acpath){const p=t.dataset.acpath;AC.open=AC.open===p?null:p;this.live(el,null,'calc')}
+      if(t.dataset.chal)this.chal(el,t.dataset.chal)});
+    if(arg&&arg.startsWith('pad_'))AC.open=arg.slice(4);
+    this.live(el,arg,'calc')},
+  live(el,arg,kind){if(kind!=='calc'||AC_LESSONS[arg])return;const b=$('#acbody',el);if(!b)return;const T=AC.tab;
+    if(T==='paden')b.innerHTML=this.paths();
+    else if(T==='opdrachten')b.innerHTML=this.tasks();
+    else if(T==='grafiek'){b.innerHTML=`<div id="acchal"></div>`;this.chal(el,AC.round&&!AC.round.done?'keep':'new')}
+    else if(T==='tools'){b.innerHTML=`<div class="actools">${['pos','rr','atr','recovery','fees'].map(k=>`<div data-wk="${k}">${ACW[k].html()}</div>`).join('')}</div>`;$$('[data-wk]',b).forEach(x=>ACW[x.dataset.wk].mount(x))}
+    else if(T==='begrippen'){b.innerHTML=`<div class="card"><input class="inp" id="acq" placeholder="Zoek een begrip, bijvoorbeeld spread of RSI" aria-label="Zoek een begrip" value="${esc(AC.term)}"><div id="acterms" class="acterms"></div></div>`;
+      const draw=()=>{const q=AC.term.trim().toLowerCase();const all=[...Object.values(GLOSS).map(g=>[g[0],g[1]]),...AC_TERMS].sort((a,b)=>a[0].localeCompare(b[0],'nl'));const L=all.filter(([t,d])=>!q||t.toLowerCase().includes(q)||d.toLowerCase().includes(q));
+        $('#acterms',b).innerHTML=L.length?L.map(([t,d])=>`<div><dt>${esc(t)}</dt><dd>${esc(d)}</dd></div>`).join(''):'<div class="empty">Geen begrip gevonden.</div>'};
+      $('#acq',b).oninput=e=>{AC.term=e.target.value;draw()};draw()}
+    else if(T==='badges')b.innerHTML=Badges.html()},
+  paths(){const d=AC.done();return `<div class="acpaths">${AC_PATHS.map((p,pi)=>{const n=AC.pathDone(p),tot=p.L.length,open=AC.open===p.id,full=n===tot;
+      return `<div class="card acpath ${open?'open':''} ${full?'full':''}"><button class="acph" data-acpath="${p.id}" aria-expanded="${open}"><span class="acring" style="--p:${n/tot*100}"><b>${n}/${tot}</b></span><span><small>Leerpad ${pi+1} · ${esc(p.lvl)}</small><b>${esc(p.t)}</b><span class="acpd">${esc(p.d)}</span></span>${ico(open?'up':'down','class="chev"')}</button>
+        ${open?`<ol class="acll">${p.L.map((id,i)=>{const L=AC_LESSONS[id],r=d[id];return `<li><a href="#leren-${id}" class="${r?'done':''}"><span class="acln">${r?ico('check'):i+1}</span><span><b>${esc(L.t)}</b><small>${L.min} min · ${L.q.length} vragen${L.w?' · interactief':''}${r?` · ${r.score}/${r.of} goed`:''}</small></span></a></li>`}).join('')}</ol>
+          ${full?`<div class="accert"><span>${aci('trophy')}<span><b>Leerpad afgerond</b><small>Download je certificaat als afbeelding.</small></span></span><button class="btn sm" data-cert="${p.id}">Certificaat downloaden</button></div>`:''}`:''}</div>`}).join('')}</div>`},
+  tasks(){const T=AC_TASKS.map(t=>[t,AC.task(t)]);return `<p class="note" style="margin:0 0 12px">Opdrachten zijn kleine stappen in de app zelf. Elke afgeronde opdracht levert 15 XP op en wordt automatisch afgevinkt.</p><div class="card actasks">${T.map(([t,ok])=>`<a class="actask ${ok?'done':''}" href="${t.go}"><span class="acln">${ok?ico('check'):''}</span><span><b>${esc(t.t)}</b><small>${esc(t.d)}</small></span><span class="tag ${ok?'up':''}">${ok?'Afgerond':'+15 XP'}</span></a>`).join('')}</div>`},
+  /* grafiekuitdaging */
+  async chal(el,what){const box=$('#acchal',el);if(!box)return;const C=AC.st().chart;
+    const head=`<div class="acchead"><div><b>Grafiekuitdaging</b><p>Je ziet 60 dagen van een echte munt uit het afgelopen jaar. Gaat de koers in de 7 dagen daarna omhoog of omlaag? Naam en datum zie je pas achteraf.</p></div><div class="acstats"><div><small>Gespeeld</small><b>${C.n||0}</b></div><div><small>Goed</small><b>${C.n?nlN((C.ok||0)/C.n*100,0)+'%':'—'}</b></div><div><small>Beste reeks</small><b>${C.best||0}</b></div></div></div>`;
+    if(what==='new'||!AC.round){box.innerHTML=`<div class="card">${head}<div class="acchart">${skel(3)}</div></div>`;
+      const pool=['BTC','ETH','SOL','XRP','ADA','DOGE','LINK','AVAX','DOT','LTC'];let d=null,sym=null;for(let k=0;k<4&&!d;k++){sym=pool[Math.floor(Math.random()*pool.length)];const h=await acHist(sym);if(h&&h.length>=90)d=h}
+      if(!d){box.innerHTML=`<div class="card">${head}${noData()}</div>`;return}
+      const i=70+Math.floor(Math.random()*(d.length-80));AC.round={sym,d,i,done:false}}
+    const R=AC.round,d=R.d,full=d.map(x=>x.c),cut=R.i,win=full.slice(cut-60,cut+1),after=full.slice(cut+1,cut+8),s20=acSMA(full,20).slice(cut-60,cut+1),rsi=acRSI(full);
+    const chart=acChart({c:win,after:R.done?after:null,lines:[{d:s20,cls:'acs20'}],fmt:v=>R.done?nlN(v,v<1?3:v<100?2:0):'',label:'Grafiekuitdaging'});
+    let body;if(!R.done)body=`<div class="acchart">${chart}${acLegend([['acprice','Koers'],['acs20','20-daags gemiddelde']])}</div><div class="acchbtn"><button class="btn gobuy" data-chal="up">${ico('up')} Hoger over 7 dagen</button><button class="btn gosell" data-chal="down">${ico('down')} Lager over 7 dagen</button></div>`;
+    else{const ch=(after[after.length-1]/win[win.length-1]-1)*100,good=(ch>=0)===(R.pick==='up'),r=rsi[cut],trend=win[win.length-1]>s20[s20.length-1],m7=(win[win.length-1]/win[win.length-8]-1)*100,nm=(S.crypto.get(R.sym)||{}).name||R.sym;
+      body=`<div class="acchart">${chart}${acLegend([['acprice','Koers tot je keuze'],['acafter '+(ch>=0?'up':'down'),'De 7 dagen daarna'],['acs20','20-daags gemiddelde']])}</div>
+        <div class="acres ${good?'good':'bad'}"><b>${good?'Goed ingeschat':'Net niet'}: ${pct(ch)} in 7 dagen</b><span>${esc(nm)}, ${new Date(d[cut].t).toLocaleDateString('nl-NL',{day:'numeric',month:'long',year:'numeric'})}</span></div>
+        <div class="acwhy"><div><small>RSI op dat moment</small><b>${r==null?'—':nlN(r,0)}</b><span>${r==null?'':r>70?'overkocht':r<30?'oververkocht':'neutraal'}</span></div><div><small>Koers t.o.v. 20-daags gemiddelde</small><b>${trend?'Erboven':'Eronder'}</b><span>${trend?'korte trend omhoog':'korte trend omlaag'}</span></div><div><small>Laatste 7 dagen ervoor</small><b class="${cls(m7)}">${pct(m7)}</b><span>momentum</span></div></div>
+        <p class="note">Ook ervaren traders zitten hier vaak naast. Het gaat erom dat je leert waar je op let en dat je altijd met een plan en een stop-loss werkt.</p><div class="acchbtn"><button class="btn" data-chal="new">Volgende grafiek</button></div>`}
+    if(what==='up'||what==='down'){if(R.done)return;R.done=true;R.pick=what;const ch=full[cut+7]/full[cut]-1,good=(ch>=0)===(what==='up');C.n=(C.n||0)+1;if(good){C.ok=(C.ok||0)+1;C.streak=(C.streak||0)+1;C.best=Math.max(C.best||0,C.streak)}else C.streak=0;saveSettings();Badges.check();return this.chal(el,'keep')}
+    if(what==='new'&&R.done){AC.round=null;return this.chal(el,'new')}
+    box.innerHTML=`<div class="card">${head}${body}</div>`},
+  /* lespagina */
+  lessonHTML(id){const L=AC_LESSONS[id],p=AC.pathOf(id),i=p.L.indexOf(id),d=AC.done(),r=d[id];AC.ans={};AC.checked=null;
+    const wAt=L.w?Math.min(L.s.length-1,Math.max(1,L.s.findIndex(s=>s.tip)>=0?L.s.findIndex(s=>s.tip):2)):-1;
+    const sec=L.s.map((s,k)=>{const last=k===L.s.length-1&&s.h==='Kernpunten';return `<section class="${last?'ackey':''}">${s.h?`<h2>${esc(s.h)}</h2>`:''}${(s.p||[]).map(x=>`<p>${esc(x)}</p>`).join('')}${s.li?`<ul>${s.li.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:''}${s.tip?`<div class="actip">${aci('learn')}<span>${esc(s.tip)}</span></div>`:''}</section>${k===wAt?`<div id="acwid">${ACW[L.w].html()}</div>`:''}`}).join('');
+    const prev=p.L[i-1],nxt=p.L[i+1]||AC_ORDER[AC_ORDER.indexOf(id)+1];
+    return `<a class="acback" href="#leren-pad_${p.id}">${ico('back')} ${esc(p.t)}</a>
+      <div class="acles"><article class="card aclbody"><div class="acmeta"><span class="tag">Les ${i+1} van ${p.L.length}</span><span>${L.min} min lezen</span>${r?`<span class="tag up">${ico('check')} Afgerond · ${r.score}/${r.of}</span>`:''}</div><h1>${esc(L.t)}</h1>${sec}
+        <section class="acquiz" id="acquiz"></section>
+        <div class="acnav">${prev?`<a class="btn ghost" href="#leren-${prev}">Vorige les</a>`:'<span></span>'}${L.go?`<a class="btn ghost" href="${L.go[0]}">Pas toe: ${esc(L.go[1])}</a>`:''}${nxt?`<a class="btn" href="#leren-${nxt}">Volgende les</a>`:''}</div></article>
+        <aside class="card acside"><small>Leerpad · ${esc(p.lvl)}</small><b>${esc(p.t)}</b><ol>${p.L.map((x,k)=>`<li class="${x===id?'cur':''} ${d[x]?'done':''}"><a href="#leren-${x}"><span class="acln">${d[x]?ico('check'):k+1}</span>${esc(AC_LESSONS[x].t)}</a></li>`).join('')}</ol></aside></div>`},
+  quizHTML(id){const L=AC_LESSONS[id],ch=AC.checked===id;
+    return `<h2>Test je kennis</h2>${L.q.map((q,qi)=>{const a=AC.ans[qi];return `<div class="lrqq"><b>${qi+1}. ${esc(q[0])}</b><div class="lrqa">${q[1].map((t,ai)=>{const sel=a===ai;const c=ch?(ai===q[2]?'good':sel?'bad':''):sel?'sel':'';return `<button class="${c}" data-qa="${qi}|${ai}" ${ch?'disabled':''} aria-pressed="${sel}">${esc(t)}</button>`}).join('')}</div>${ch&&q[3]?`<p class="acexp ${a===q[2]?'up':'down'}">${a===q[2]?'Goed. ':'Niet goed. '}${esc(q[3])}</p>`:''}</div>`}).join('')}
+      <div class="acqbtn">${ch?`<button class="btn ghost" data-qreset="1">Opnieuw proberen</button>`:`<button class="btn" data-qcheck="1">Controleer antwoorden</button>`}</div>`},
+  mountLesson(el,id){const L=AC_LESSONS[id];const q=$('#acquiz',el);const draw=()=>{q.innerHTML=this.quizHTML(id)};draw();
+    if(L.w&&ACW[L.w])ACW[L.w].mount($('#acwid',el));
+    q.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+      if(b.dataset.qa&&AC.checked!==id){const [qi,ai]=b.dataset.qa.split('|').map(Number);AC.ans[qi]=ai;draw()}
+      if(b.dataset.qreset){AC.ans={};AC.checked=null;draw()}
+      if(b.dataset.qcheck){if(Object.keys(AC.ans).length<L.q.length){UI.toast({kind:'info',title:'Beantwoord eerst alle vragen'});return}
+        const ok=L.q.filter((x,i)=>AC.ans[i]===x[2]).length;const prev=AC.done()[id];const before=AC.xp();
+        if(!prev||ok>(prev.score||0))S.settings.learn={...AC.done(),[id]:{score:ok,of:L.q.length,t:Date.now()}};saveSettings();AC.checked=id;draw();
+        const gain=AC.xp()-before;Badges.check();if(gain>0)AC.toastXP(gain,ok===L.q.length?'Alles goed! Les afgerond':`${ok} van ${L.q.length} goed`);else UI.toast({kind:'info',title:`${ok} van ${L.q.length} goed`,body:'Lees de uitleg bij elke vraag.'});
+        const p=AC.pathOf(id);if(p&&AC.pathDone(p)===p.L.length&&!AC.st().cert[p.id])UI.toast({kind:'success',title:'Leerpad afgerond: '+p.t,body:'Download je certificaat in de Academy.',href:'#leren-pad_'+p.id})}})}
+};
+
+/* overzicht: volgende les in "Vandaag" als er ruimte is */
+{const ol=OV.B.glance.live;OV.B.glance.live=function(el,kind){ol.call(this,el,kind);const t=$('#gltoday',el);if(!t||$$('.gtr',t).length>=3)return;const nx=AC.next();if(!nx)return;const L=AC_LESSONS[nx];
+  t.querySelector('.empty')?.remove();t.insertAdjacentHTML('beforeend',`<a class="gtr" href="#leren-${nx}">${aci('learn')}<span><b>${esc(L.t)}</b><small>Volgende les · ${L.min} min</small></span></a>`)}}
 
 }
 </script>

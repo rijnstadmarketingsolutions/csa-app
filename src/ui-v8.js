@@ -3,7 +3,7 @@
    ===================================================================== */
 const SKINS=[['classic','Huidig','Het vertrouwde navy en wit, met licht en donker.'],['luxdark','Dark Luxury','Pikzwart met chroom en zilver, glas en glans.'],['luxlight','Light Luxury','Parelwit met gepolijst zilver en matglas.']];
 const Skin={
-  get(){return S.settings.skin||LS.get('skin','classic')},
+  get(){return S.settings.skin||LS.get('skin','luxdark')},
   apply(k){const R=document.documentElement;R.dataset.skin=k;if(k==='luxdark')R.dataset.theme='dark';else if(k==='luxlight')R.dataset.theme='light';else R.dataset.theme=S.settings.theme==='dark'?'dark':'light';
     document.querySelector('meta[name=theme-color]')?.setAttribute('content',k==='luxdark'?'#050505':k==='luxlight'?'#F3F4F6':'#17243A');const b=$('#themebtn');if(b)b.setAttribute('aria-label',k==='classic'?'Licht of donker':'Dark of Light Luxury')},
   set(k){S.settings.skin=k;LS.set('skin',k);saveSettings();this.apply(k);if(UI.el)UI.route();UI.toast({kind:'success',title:'Stijl: '+SKINS.find(x=>x[0]===k)[1]})},

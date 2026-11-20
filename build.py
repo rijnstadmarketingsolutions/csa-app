@@ -7,7 +7,7 @@ import urllib.parse as _u
 def _svguri(f): return 'url("data:image/svg+xml,'+_u.quote(open('assets/'+f).read().replace('"',"'"),safe=" =:/'<>.-,()")+'")'
 css=open(P+'styles.css').read().replace('__VMARK__',_svguri('vantis-mark.svg')).replace('__VWORD__',_svguri('vantis-word.svg')).replace('__VFULL__',_svguri('vantis-full.svg'))
 body=open(P+'body.html').read()
-js='\n'.join(open(P+f).read() for f in ['engine.js','api.js','ui-core.js','ui-viz.js','ui-pages.js','ui-pages2.js','ui-v3.js','ui-v4.js','ui-v5.js','ui-v6.js','ui-v7.js','ui-v8.js','ui-v9.js']).replace('__LOGO__',inner.replace('`','\\`'))
+js='\n'.join(open(P+f).read() for f in ['engine.js','api.js','ui-core.js','ui-viz.js','ui-pages.js','ui-pages2.js','ui-v3.js','ui-v4.js','ui-v5.js','ui-v6.js','ui-v7.js','ui-v8.js','ui-v9.js','academy-data.js','ui-v10.js']).replace('__LOGO__',inner.replace('`','\\`'))
 icon=base64.b64encode(open('assets/icon180.png','rb').read()).decode()
 fav=base64.b64encode(open('assets/logo_icon.svg','rb').read()).decode()
 html=f'''<!DOCTYPE html>
@@ -16,8 +16,9 @@ html=f'''<!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Vantis</title>
+<script>try{{var v=localStorage.getItem("vantis.skin"),k=(v&&JSON.parse(v))||"luxdark",R=document.documentElement;R.dataset.skin=k;if(k==="luxdark")R.dataset.theme="dark";else if(k==="luxlight")R.dataset.theme="light"}}catch(e){{document.documentElement.dataset.skin="luxdark";document.documentElement.dataset.theme="dark"}}</script>
 <meta name="description" content="Vantis: Crypto Intelligence voor crypto en aandelen.">
-<meta name="theme-color" content="#17243A">
+<meta name="theme-color" content="#050505">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Vantis">
