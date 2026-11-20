@@ -39,7 +39,10 @@ export const FEEDS = [
   ['The Block', 'https://www.theblock.co/rss.xml'],
   ['CNBC Markets', 'https://www.cnbc.com/id/100003114/device/rss/rss.html'],
   ['MarketWatch', 'https://feeds.content.dowjones.io/public/rss/mw_topstories'],
-  ['CryptoSlate', 'https://cryptoslate.com/feed/']
+  ['CryptoSlate', 'https://cryptoslate.com/feed/'],
+  ['Financial Times', 'https://www.ft.com/markets?format=rss'],
+  ['Benzinga', 'https://www.benzinga.com/feed'],
+  ['Investing.com', 'https://www.investing.com/rss/news_25.rss']
 ];
 /* kandidaten die alleen via ?diag=1&probefeeds=1 getest worden (vaste lijst, geen vrije adressen) */
 export const FEED_CANDIDATES = [
@@ -164,7 +167,7 @@ export async function refreshMarket(env, state, b, status = {}) {
   });
   // 4. nieuws: per tik 2 RSS-bronnen (roterend), plus optioneel CryptoCompare/Finnhub elk kwartier
   await step('news', async () => {
-    const N = state.news || { items: [], sources: {} }; const idx = (N.idx || 0) % FEEDS.length; const pick = [FEEDS[idx], FEEDS[(idx + 1) % FEEDS.length]];
+    const N = state.news || { items: [], sources: {} }; const idx = (N.idx || 0) % FEEDS.length; const pick = [0, 1, 2].map(i => FEEDS[(idx + i) % FEEDS.length]);
     const fresh = []; N.sources = N.sources || {};
     await Promise.all(pick.map(async ([name, url]) => { try { const got = parseRSS(await getText(url, b), name); fresh.push(...got); N.sources[name] = got.length; } catch (e) { N.sources[name] = 'fout: ' + e.message; } }));
     if (now - (N.extraT || 0) > 15 * MIN) { N.extraT = now;
@@ -172,7 +175,7 @@ export async function refreshMarket(env, state, b, status = {}) {
       if (env.FINNHUB_KEY) { for (const cat of ['general', 'crypto']) { try { const l = await getJSON(`https://finnhub.io/api/v1/news?category=${cat}&token=${env.FINNHUB_KEY}`, b); fresh.push(...l.slice(0, 40).map(x => ({ id: 'fh' + x.id, title: x.headline, body: (x.summary || '').slice(0, 300), url: x.url, src: x.source, t: x.datetime * 1000, feed: 'Finnhub' }))); N.sources['Finnhub ' + cat] = l.length; } catch (e) { N.sources['Finnhub ' + cat] = 'fout: ' + e.message; } } } }
     const cut = now - 3 * DAY; const seen = new Set();
     N.items = [...fresh, ...(N.items || [])].filter(x => x && x.title && x.url && x.t > cut && !seen.has(x.id) && seen.add(x.id)).sort((p, q) => q.t - p.t).slice(0, 200);
-    N.idx = (idx + 2) % FEEDS.length; N.t = now; state.news = N; await save('news', N);
+    N.idx = (idx + 3) % FEEDS.length; N.t = now; state.news = N; await save('news', N);
     for (const k of Object.keys(N.sources || {})) if (!FEEDS.some(f => f[0] === k) && !/^Finnhub/.test(k)) delete N.sources[k];
     return { items: N.items.length, fetched: pick.map(p => p[0]).join(', '), sources: N.sources };
   });

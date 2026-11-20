@@ -42,7 +42,7 @@ async function loadServer(){
     S.extra=d.extra||null;S.srvEvents=d.events||[];
     const X=d.extra;if(X&&(X.global||X.fng)){S.src.cg.st=X.globalErr||X.fngErr?'warn':'ok';S.src.cg.ts=X.global?.t||Date.now();S.src.cg.msg=[X.global?(X.global.src||'CoinGecko')+' marktcijfers':null,X.trending?'trending':null,X.fng?'Fear & Greed':null].filter(Boolean).join(' + ')+([X.globalErr,X.trendErr,X.fngErr].filter(Boolean).length?' · deels: '+[X.globalErr,X.trendErr,X.fngErr].filter(Boolean).join('; '):'')}
       else if(X){S.src.cg.st='err';S.src.cg.msg='Server krijgt geen data: '+([X.globalErr,X.trendErr,X.fngErr].filter(Boolean).join('; ')||'onbekende fout')}else{S.src.cg.st='wait';S.src.cg.msg='Wacht op de eerste serverscan (elke 5 min)'}
-    S.src.cc.name='Nieuws (meerdere bronnen)';S.src.cc.kind='CoinDesk, Cointelegraph, Decrypt, The Block, CNBC, MarketWatch e.a. · elke 15 min';
+    S.src.cc.name='Nieuws (meerdere bronnen)';S.src.cc.kind='CoinDesk, Cointelegraph, Decrypt, The Block, CNBC, MarketWatch, Financial Times, Benzinga e.a. · elke 15 min';
     if(d.news){const src=d.news.sources||{};const okS=Object.entries(src).filter(([,v])=>typeof v==='number'&&v>0),bad=Object.entries(src).filter(([,v])=>typeof v!=='number');
       if(d.news.items&&d.news.items.length){ingest(d.news.items);S.src.cc.st=bad.length?'warn':'ok';S.src.cc.ts=d.news.t;S.src.cc.msg=`${d.news.items.length} artikelen · ${okS.map(([k,v])=>k+' '+v).join(', ')}`+(bad.length?` · niet bereikbaar: ${bad.map(([k])=>k).join(', ')}`:'')}
       else{S.src.cc.st='err';S.src.cc.msg='Geen artikelen: '+(bad.map(([k,v])=>k+' '+v).join('; ')||'wacht op serverscan')}}
