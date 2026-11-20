@@ -2,10 +2,11 @@
 import { json, err, readJSON, hashPassword, verifyPassword, b32enc, rand, totpCheck, newSession, sessionFrom, sessionByToken, sha256, seal, open,
   limited, bump, clearAttempts, kvGet, kvPutStmt, randToken, DAY, HOUR, MIN } from './lib.js';
 import { vapidKeys, sendPush } from './push.js';
-import { refreshMarket, lookupPrice, analyse, detect, backtest, budget, RADAR, STOCK_SYMS, ALERT_KINDS, quote, alertHit, alertText, buildBriefing } from './market.js';
+import { refreshMarket, lookupPrice, lookupStock, usdPerEur, analyse, detect, backtest, budget, RADAR, STOCK_SYMS, ALERT_KINDS, quote, alertHit, alertText, buildBriefing } from './market.js';
 import { checkout, portal, webhook, stripeReady } from './billing.js';
+import { handlePaper, paperCron, paperNeed } from './paper.js';
 
-const VERSION = '1.2.2';
+const VERSION = '1.3.0';
 const NATIVE_ORIGINS = ['capacitor://localhost', 'http://localhost', 'https://localhost', 'ionic://localhost'];
 const DEFAULT_SETTINGS = { notify: true, briefing: true, minScore: 60, scope: 'all', quiet: false, quietFrom: '23:00', quietTo: '07:00', cats: {} };
 const EMAIL_RX = /^[^@\s]{1,64}@[^@\s]{1,190}\.[^@\s]{2,}$/;
@@ -43,6 +44,7 @@ async function api(req, env, ctx, url) {
   const p = url.pathname, m = req.method;
   if (p === '/api/health') { const st = await loadState(env, ['market', 'extra', 'news', 'scanstatus', 'scanstart', 'tickers']);
     if (url.searchParams.has('diag')) { const probe = {}; for (const sy of (url.searchParams.get('probe') || '').toUpperCase().split(',').filter(Boolean).slice(0, 4)) { const r = await lookupPrice(env, sy, budget(10), st.tickers?.usdt); probe[sy] = r.p ? { p: r.p, src: r.src, tried: r.tried } : { p: null, tried: r.tried }; }
+      if (url.searchParams.get('probestock')) { const ps = await loadState(env, ['fx', 'tickers']); const b2 = budget(12); const fx = await usdPerEur(env, b2, ps); for (const sy of url.searchParams.get('probestock').toUpperCase().split(',').slice(0, 3)) { const r = await lookupStock(env, sy, b2, fx); probe['S:' + sy] = r.p ? { p: r.p, native: r.native, cur: r.cur, src: r.src, tried: r.tried } : { p: null, tried: r.tried }; } probe.fx = fx; }
       const xq = await loadState(env, ['xquotes']); return json({ probe, xquotes: Object.fromEntries(Object.entries(xq.xquotes || {}).map(([k, v]) => [k, v.p ? { p: v.p, src: v.src, age: Date.now() - v.u } : { miss: v.tried }])), version: VERSION, now: Date.now(), scanstart: st.scanstart || null, scan: st.scanstatus || null, prices: st.tickers ? { src: st.tickers.src || 'Bitvavo', n: (st.tickers.list || []).length, age: Date.now() - st.tickers.t, sample: Object.fromEntries(['BTC', 'ETH', 'SOL', 'XRP'].map(s => [s, (st.tickers.list || []).find(x => x.s === s)?.p ?? null])) } : null }); }
     return json({ ok: true, version: VERSION, lastScan: st.marketTs || null, prices: st.tickers ? { src: st.tickers.src || 'Bitvavo', n: (st.tickers.list || []).length, t: st.tickers.t } : null, scanOk: st.scanstatus ? Object.fromEntries(Object.entries(st.scanstatus).filter(([, v]) => v && typeof v === 'object' && 'ok' in v).map(([k, v]) => [k, v.ok])) : null, data: { extra: st.extra ? { global: !!st.extra.global, fng: !!(st.extra.fng && st.extra.fng.length), trending: !!(st.extra.trending && st.extra.trending.length), errors: [st.extra.globalErr, st.extra.trendErr, st.extra.fngErr].filter(Boolean) } : null, news: st.news ? { items: (st.news.items || []).length, sources: st.news.sources || {} } : null }, features: { accounts: true, push: true, stripe: stripeReady(env), finnhub: !!env.FINNHUB_KEY, ai: false, premiumEnforced: env.PREMIUM_ENFORCED === 'true' } }); }
 
@@ -90,7 +92,7 @@ async function api(req, env, ctx, url) {
   if (p === '/api/auth/logout' && m === 'POST') { if (s) await env.DB.prepare('DELETE FROM sessions WHERE token=?').bind(await sha256(s.token)).run(); return json({ ok: true }); }
   if (p === '/api/me' && m === 'GET') { if (!s) return needAuth(); return json({ user: userOut(s) }); }
   if (p === '/api/me' && m === 'DELETE') { if (!s) return needAuth(); const id = s.user_id;
-    await env.DB.batch(['sessions', 'prefs', 'push_subs', 'positions', 'paper', 'paper_trades', 'sent', 'price_alerts', 'notif'].map(t => env.DB.prepare(`DELETE FROM ${t} WHERE user_id=?`).bind(id)).concat([env.DB.prepare('DELETE FROM users WHERE id=?').bind(id)]));
+    await env.DB.batch(['sessions', 'prefs', 'push_subs', 'positions', 'paper', 'paper_trades', 'paper_orders', 'paper_hist', 'sent', 'price_alerts', 'notif'].map(t => env.DB.prepare(`DELETE FROM ${t} WHERE user_id=?`).bind(id)).concat([env.DB.prepare('DELETE FROM users WHERE id=?').bind(id)]));
     return json({ ok: true, deleted: true }); }
 
   /* ---------- voorkeuren ---------- */
@@ -134,26 +136,8 @@ async function api(req, env, ctx, url) {
   if (pm && m === 'DELETE') { if (!s) return needAuth(); await env.DB.prepare('DELETE FROM positions WHERE id=? AND user_id=?').bind(+pm[1], s.user_id).run(); return json({ ok: true }); }
 
   /* ---------- oefenportefeuille (virtueel geld, koersen van de server) ---------- */
-  if (p.startsWith('/api/paper')) { if (!s) return needAuth();
-    const START = 10000, FEE = 0.0025;
-    let acc = await env.DB.prepare('SELECT cash,holdings FROM paper WHERE user_id=?').bind(s.user_id).first();
-    if (!acc || p === '/api/paper/reset') { acc = { cash: START, holdings: '{}' };
-      await env.DB.batch([env.DB.prepare('INSERT INTO paper(user_id,cash,holdings,updated) VALUES(?,?,?,?) ON CONFLICT(user_id) DO UPDATE SET cash=excluded.cash,holdings=excluded.holdings,updated=excluded.updated').bind(s.user_id, START, '{}', Date.now()), ...(p === '/api/paper/reset' ? [env.DB.prepare('DELETE FROM paper_trades WHERE user_id=?').bind(s.user_id)] : [])]); }
-    const H = JSON.parse(acc.holdings);
-    if (p === '/api/paper/order' && m === 'POST') {
-      const b = await readJSON(req); const sym = String(b.sym || '').toUpperCase(); const eur = Math.round(Number(b.eur) * 100) / 100; const side = b.side === 'sell' ? 'sell' : 'buy';
-      if (!(eur >= 1)) return err(400, 'Minimaal € 1.');
-      const { q } = await quoteNow(env, sym); if (!q) return err(409, `Geen actuele koers voor ${sym} gevonden bij Bitvavo, Kraken, Gate, MEXC of OKX. Probeer het over een paar minuten opnieuw.`);
-      const price = q.p; const fee = eur * FEE; let cash = acc.cash; const h = H[sym] || { qty: 0, cost: 0 };
-      if (side === 'buy') { if (eur + fee > cash + 1e-9) return err(400, 'Onvoldoende virtueel saldo (inclusief 0,25% kosten).'); const qty = eur / price; h.qty += qty; h.cost += eur + fee; cash -= eur + fee; H[sym] = h;
-        await env.DB.batch([env.DB.prepare('UPDATE paper SET cash=?,holdings=?,updated=? WHERE user_id=?').bind(cash, JSON.stringify(H), Date.now(), s.user_id), env.DB.prepare('INSERT INTO paper_trades(user_id,sym,side,eur,qty,price,t) VALUES(?,?,?,?,?,?,?)').bind(s.user_id, sym, side, eur, qty, price, Date.now())]); }
-      else { const qty = eur / price; if (qty > h.qty * (1 + 1e-9)) return err(400, 'Je hebt niet genoeg ' + sym + ' in je oefenportefeuille.'); const part = Math.min(1, qty / h.qty); h.cost -= h.cost * part; h.qty -= qty; cash += eur - fee; if (h.qty < 1e-12) delete H[sym]; else H[sym] = h;
-        await env.DB.batch([env.DB.prepare('UPDATE paper SET cash=?,holdings=?,updated=? WHERE user_id=?').bind(cash, JSON.stringify(H), Date.now(), s.user_id), env.DB.prepare('INSERT INTO paper_trades(user_id,sym,side,eur,qty,price,t) VALUES(?,?,?,?,?,?,?)').bind(s.user_id, sym, side, eur, qty, price, Date.now())]); }
-      acc = { cash, holdings: JSON.stringify(H), last: { sym, side, eur, price, src: q.src } };
-    }
-    const trades = (await env.DB.prepare('SELECT sym,side,eur,qty,price,t FROM paper_trades WHERE user_id=? ORDER BY t DESC LIMIT 50').bind(s.user_id).all()).results;
-    return json({ start: START, fee: FEE, cash: acc.cash, holdings: JSON.parse(acc.holdings), trades, last: acc.last || null });
-  }
+  if (p.startsWith('/api/paper') || p === '/api/quote') { if (!s && p !== '/api/quote') return needAuth();
+    const r = await handlePaper(req, env, s || {}, p, m, url); if (r) return r; }
 
   /* ---------- koersalerts ---------- */
   if (p === '/api/alerts') { if (!s) return needAuth();
@@ -206,9 +190,8 @@ async function quoteNow(env, sym) {
 async function tick(env) {
   const b = budget(45); const status = { t: Date.now() };
   await kvPutStmt(env, 'scanstart', { t: status.t }).run();
-  const state = await loadState(env, ['tickers', 'ticks', 'names', 'candles', 'news', 'extra', 'stocks', 'xquotes']);
-  try { const [al, pa] = await env.DB.batch([env.DB.prepare('SELECT DISTINCT sym FROM price_alerts WHERE active=1'), env.DB.prepare('SELECT holdings FROM paper')]);
-    state.need = new Set(al.results.map(r => r.sym)); for (const r of pa.results) for (const k of Object.keys(JSON.parse(r.holdings || '{}'))) state.need.add(k); } catch (e) { status.need = { ok: false, err: e.message }; }
+  const state = await loadState(env, ['tickers', 'ticks', 'names', 'candles', 'news', 'extra', 'stocks', 'xquotes', 'fx', 'phT']);
+  try { state.need = await paperNeed(env); } catch (e) { status.need = { ok: false, err: e.message }; }
   await refreshMarket(env, state, b, status);
   try {
     const an = analyse(state); const found = detect(an); status.analyse = { ok: true, assets: an.A.length, withHistory: an.A.filter(a => a.vol).length, events: found.length };
@@ -217,19 +200,21 @@ async function tick(env) {
     for (const e of found) { e.t = now; writes.push(env.DB.prepare('INSERT INTO events(id,data,score,first,updated) VALUES(?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET data=excluded.data,score=excluded.score,updated=excluded.updated').bind(e.id, JSON.stringify(e), e.score, now, now)); }
     writes.push(kvPutStmt(env, 'market', { t: now, mk: an.mk, src: state.tickers?.src || null }));
     await env.DB.batch(writes);
-    try { await dispatch(env, found.filter(e => !prev.has(e.id)), b, state); status.push = { ok: true }; } catch (e) { status.push = { ok: false, err: e.message }; }
+    let extra = {}; try { extra = await paperCron(env, state, status); } catch (e) { status.orders = { ok: false, err: e.message }; }
+    try { await dispatch(env, found.filter(e => !prev.has(e.id)), b, state, extra); status.push = { ok: true }; } catch (e) { status.push = { ok: false, err: e.message }; }
   } catch (e) { status.analyse = { ok: false, err: e.message }; }
   status.done = Date.now(); status.subrequestsLeft = b.left;
   await kvPutStmt(env, 'scanstatus', status).run();
 }
 function localHM(tz = 'Europe/Amsterdam') { const p = new Intl.DateTimeFormat('nl-NL', { timeZone: tz, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date()); return +p.find(x => x.type === 'hour').value * 60 + +p.find(x => x.type === 'minute').value; }
 function inQuiet(st) { if (!st.quiet) return false; const m = localHM(); const [fh, fm] = (st.quietFrom || '23:00').split(':').map(Number), [th, tm] = (st.quietTo || '07:00').split(':').map(Number); const f = fh * 60 + fm, t = th * 60 + tm; return f < t ? (m >= f && m < t) : (m >= f || m < t); }
-async function dispatch(env, fresh, b, state) {
+async function dispatch(env, fresh, b, state, extra = {}) {
   const now = Date.now(); const ops = []; const gone = new Set();
   const subsRows = (await env.DB.prepare('SELECT s.endpoint,s.user_id,s.p256dh,s.auth,p.settings,p.watch,p.rem,u.plan FROM push_subs s JOIN users u ON u.id=s.user_id LEFT JOIN prefs p ON p.user_id=s.user_id').all()).results;
   const subsBy = {}; for (const r of subsRows) (subsBy[r.user_id] = subsBy[r.user_id] || []).push(r);
   const out = {}; // user_id -> [{key,title,body,url,tag,cat,score,force}]
   const add = (uid, msg) => (out[uid] = out[uid] || []).push(msg);
+  for (const [uid, L] of Object.entries(extra)) for (const msg of L) add(uid, msg);
   // 1. koersalerts (voor iedereen met een account; push als er een apparaat is)
   const alerts = (await env.DB.prepare('SELECT * FROM price_alerts WHERE active=1').all()).results;
   for (const a of alerts) {
@@ -256,9 +241,9 @@ async function dispatch(env, fresh, b, state) {
   for (const [uid, msgs] of Object.entries(out)) {
     for (const msg of msgs.slice(0, 4)) {
       ops.push(env.DB.prepare('INSERT OR IGNORE INTO notif(id,user_id,title,body,url,cat,score,t) VALUES(?,?,?,?,?,?,?,?)').bind(msg.tag + ':' + now, uid, msg.title, msg.body || '', msg.url || '/', msg.cat || '', msg.score ?? null, now));
-      if (msg.cat !== 'alert' && msg.cat !== 'reminder') ops.push(env.DB.prepare('INSERT INTO sent(user_id,key,t) VALUES(?,?,?) ON CONFLICT(user_id,key) DO UPDATE SET t=excluded.t').bind(uid, msg.key, now));
+      if (msg.cat !== 'alert' && msg.cat !== 'reminder' && msg.cat !== 'order') ops.push(env.DB.prepare('INSERT INTO sent(user_id,key,t) VALUES(?,?,?) ON CONFLICT(user_id,key) DO UPDATE SET t=excluded.t').bind(uid, msg.key, now));
       for (const sub of subsBy[uid] || []) { if (gone.has(sub.endpoint) || !b.take()) continue;
-        const res = await sendPush(env, sub, { title: msg.title, body: msg.body, url: msg.url, tag: msg.tag, urgency: msg.cat === 'alert' ? 'high' : 'normal' }).catch(e => 'fail:' + e.message);
+        const res = await sendPush(env, sub, { title: msg.title, body: msg.body, url: msg.url, tag: msg.tag, urgency: msg.cat === 'alert' || msg.cat === 'order' ? 'high' : 'normal', cat: msg.cat, score: msg.score ?? null, important: msg.cat === 'alert' || msg.cat === 'order' || (msg.score || 0) >= 80 }).catch(e => 'fail:' + e.message);
         if (res === 'gone') { gone.add(sub.endpoint); ops.push(env.DB.prepare('DELETE FROM push_subs WHERE endpoint=?').bind(sub.endpoint)); } }
     }
   }
@@ -278,7 +263,7 @@ async function morning(env) {
 }
 async function daily(env) {
   const now = Date.now();
-  await env.DB.batch([env.DB.prepare('DELETE FROM sessions WHERE expires<?').bind(now), env.DB.prepare('DELETE FROM events WHERE first<?').bind(now - 7 * DAY), env.DB.prepare('DELETE FROM sent WHERE t<?').bind(now - 2 * DAY), env.DB.prepare('DELETE FROM attempts WHERE until<?').bind(now), env.DB.prepare('DELETE FROM notif WHERE t<?').bind(now - 30 * DAY)]);
+  await env.DB.batch([env.DB.prepare('DELETE FROM sessions WHERE expires<?').bind(now), env.DB.prepare('DELETE FROM events WHERE first<?').bind(now - 7 * DAY), env.DB.prepare('DELETE FROM sent WHERE t<?').bind(now - 2 * DAY), env.DB.prepare('DELETE FROM attempts WHERE until<?').bind(now), env.DB.prepare('DELETE FROM paper_hist WHERE t<?').bind(now - 365 * DAY), env.DB.prepare("DELETE FROM paper_orders WHERE status<>'open' AND done<?").bind(now - 90 * DAY), env.DB.prepare('DELETE FROM notif WHERE t<?').bind(now - 30 * DAY)]);
   const t = await kvGet(env, 'tickers'); const top = (t?.val?.list || []).slice(0, 20).map(x => x.s);
   if (!top.length) return;
   try { const bt = await backtest(env, budget(45), top); await kvPutStmt(env, 'backtest', bt).run(); } catch (e) { console.error('backtest', e.message); }

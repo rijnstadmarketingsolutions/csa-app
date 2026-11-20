@@ -28,8 +28,8 @@ const relOf = vq => clamp(Math.log10(Math.max(vq || 1, 1) / 1e5) / 3, 0, 1);
 /* ---------- budget voor subrequests (gratis plan: 50 per uitvoering) ---------- */
 export function budget(n = 45) { let left = n; return { take(k = 1) { if (left < k) return false; left -= k; return true; }, get left() { return left; } }; }
 const UA = 'CSA-CryptoSignalAI/1.1 (+https://csa.rijnstadmarketing.workers.dev; info@rijnstadmarketing.nl)';
-async function getJSON(url, b, init = {}) { if (b && !b.take()) throw new Error('budget op'); const r = await fetch(url, { ...init, headers: { 'user-agent': UA, accept: 'application/json', ...(init.headers || {}) } }); if (!r.ok) throw new Error(new URL(url).hostname + ' HTTP ' + r.status); return r.json(); }
-async function getText(url, b) { if (b && !b.take()) throw new Error('budget op'); const r = await fetch(url, { headers: { 'user-agent': UA, accept: 'application/rss+xml, application/xml, text/xml, */*' } }); if (!r.ok) throw new Error(new URL(url).hostname + ' HTTP ' + r.status); return r.text(); }
+export async function getJSON(url, b, init = {}) { if (b && !b.take()) throw new Error('budget op'); const r = await fetch(url, { ...init, headers: { 'user-agent': UA, accept: 'application/json', ...(init.headers || {}) } }); if (!r.ok) throw new Error(new URL(url).hostname + ' HTTP ' + r.status); return r.json(); }
+export async function getText(url, b) { if (b && !b.take()) throw new Error('budget op'); const r = await fetch(url, { headers: { 'user-agent': UA, accept: 'application/rss+xml, application/xml, text/xml, */*' } }); if (!r.ok) throw new Error(new URL(url).hostname + ' HTTP ' + r.status); return r.text(); }
 /* ---------- gratis nieuws via RSS (geen sleutel nodig), meerdere onafhankelijke bronnen ---------- */
 export const FEEDS = [
   ['CoinDesk', 'https://www.coindesk.com/arc/outboundfeeds/rss/'],
@@ -87,6 +87,31 @@ export async function lookupPrice(env, sym, b, usdt) {
   ];
   for (const [name, fn] of srcs) { if (b.left < 1) { tried[name] = 'budget op'; break; } try { const r = await fn(); if (r.p > 0) return { ...r, src: name, u: Date.now(), tried }; tried[name] = 'ongeldige koers'; } catch (e) { tried[name] = String(e.message).slice(0, 120); } }
   return { p: null, tried };
+}
+
+/* ---------- aandelenkoersen (in euro) en de dollarkoers ---------- */
+export const STOCK_ALL = ['AAPL', 'MSFT', 'NVDA', 'GOOGL', 'AMZN', 'META', 'TSLA', 'AMD', 'AVGO', 'PLTR', 'JPM', 'GS', 'V', 'XOM', 'CVX', 'LLY', 'COIN', 'MSTR', 'ASML', 'ADYEN', 'SAP', 'MC', 'SHELL', 'SIE', 'INGA', 'SPY', 'QQQ', 'DIA', 'IWM', 'XLK', 'SMH', 'XLE', 'XLF', 'XLV', 'XLY', 'XLI'];
+const YSYM = { ASML: 'ASML.AS', ADYEN: 'ADYEN.AS', INGA: 'INGA.AS', SHELL: 'SHELL.AS', MC: 'MC.PA', SAP: 'SAP.DE', SIE: 'SIE.DE' };
+export async function usdPerEur(env, b, st) {
+  if (st.fx && Date.now() - st.fx.t < 6 * HOUR) return st.fx.v;
+  try { const j = await getJSON('https://api.kraken.com/0/public/Ticker?pair=EURUSD', b); const v = +Object.values(j.result || {})[0]?.c?.[0]; if (v > 0) { st.fx = { v, t: Date.now() }; await kvPutStmt(env, 'fx', st.fx).run(); return v; } } catch { }
+  if (st.fx?.v) return st.fx.v; if (st.tickers?.usdt) return 1 / st.tickers.usdt; return null;
+}
+export async function lookupStock(env, sym, b, fx) {
+  const tried = {}; const y = YSYM[sym] || sym; const toEur = (v, cur) => v == null || !isFinite(v) ? null : cur === 'EUR' ? v : cur === 'USD' && fx ? v / fx : null;
+  if (env.FINNHUB_KEY && !YSYM[sym]) { try { const q = await getJSON(`https://finnhub.io/api/v1/quote?symbol=${sym}&token=${env.FINNHUB_KEY}`, b); if (q.c && fx) return { p: toEur(q.c, 'USD'), o: toEur(q.pc, 'USD'), h: toEur(q.h, 'USD'), l: toEur(q.l, 'USD'), native: q.c, cur: 'USD', src: 'Finnhub', ts: q.t * 1000, u: Date.now(), tried }; tried.Finnhub = 'geen koers'; } catch (e) { tried.Finnhub = e.message; } }
+  try { const j = await getJSON(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(y)}?range=1d&interval=1d`, b); const m = j.chart?.result?.[0]?.meta; if (!m || !(m.regularMarketPrice > 0)) throw new Error('geen koers'); const cur = m.currency || 'USD'; const p = toEur(m.regularMarketPrice, cur); if (p == null) throw new Error('valuta ' + cur);
+    return { p, o: toEur(m.chartPreviousClose ?? m.previousClose, cur), h: toEur(m.regularMarketDayHigh, cur), l: toEur(m.regularMarketDayLow, cur), native: m.regularMarketPrice, cur, src: 'Yahoo Finance', ts: (m.regularMarketTime || 0) * 1000, u: Date.now(), tried }; } catch (e) { tried.Yahoo = String(e.message).slice(0, 100); }
+  if (!YSYM[sym]) try { const t = await getText(`https://stooq.com/q/l/?s=${sym.toLowerCase()}.us&f=sd2t2ohlc&h&e=csv`, b); const r = (t.trim().split('\n')[1] || '').split(','); const c = +r[6]; if (!(c > 0) || !fx) throw new Error('geen koers');
+    return { p: c / fx, o: +r[3] / fx, h: +r[4] / fx, l: +r[5] / fx, native: c, cur: 'USD', src: 'Stooq', ts: Date.parse(r[1] + 'T' + r[2] + 'Z') || Date.now(), u: Date.now(), tried }; } catch (e) { tried.Stooq = String(e.message).slice(0, 100); }
+  return { p: null, tried };
+}
+/* koers in euro uit wat de server al heeft (geen netwerk): voor de cron */
+export function cachedPx(st, sym, kind, maxAge = 30 * MIN) {
+  const now = Date.now();
+  if (kind === 'stock') { const x = st.xquotes?.['S:' + sym]; if (x && x.p && now - x.u < maxAge) return x; const f = st.stocks?.[sym]; const fx = st.fx?.v; if (f && f.p && fx && now - f.u < maxAge && !YSYM[sym]) return { p: f.p / fx, o: f.pc ? f.pc / fx : null, native: f.p, cur: 'USD', src: 'Finnhub', u: f.u }; return null; }
+  const t = st.tickers && now - st.tickers.t < Math.min(maxAge, 15 * MIN) && (st.tickers.list || []).find(x => x.s === sym); if (t) return { p: t.p, o: t.o, h: t.h, l: t.l, src: st.tickers.src || 'Bitvavo', u: st.tickers.t };
+  const x = st.xquotes?.[sym]; if (x && x.p && now - x.u < maxAge) return x; return null;
 }
 
 /* ---------- verversen: één cron-tik, elke stap los en direct opgeslagen ---------- */
@@ -159,10 +184,12 @@ export async function refreshMarket(env, state, b, status = {}) {
   // 7. losse koersen voor coins met een alert of oefenpositie die de hoofdbron niet heeft
   if (status.tickers?.ok && state.need) await step('extraQuotes', async () => {
     const have = new Set((state.tickers.list || []).map(x => x.s)); const X = state.xquotes || {};
-    const want = [...state.need].filter(s => !have.has(s) && !STOCK_SYMS.includes(s));
-    for (const k of Object.keys(X)) if (!want.includes(k)) delete X[k];
-    const todo = want.sort((a, b2) => (X[a]?.u || 0) - (X[b2]?.u || 0)).filter(s => !X[s] || now - X[s].u > 4 * MIN).slice(0, Math.max(0, Math.min(8, Math.floor((b.left - 2) / 2))));
-    const res = {}; for (const s of todo) { const r = await lookupPrice(env, s, b, state.tickers.usdt); if (r.p) { X[s] = r; res[s] = r.src; } else { X[s] = { ...(X[s] || {}), miss: now, tried: r.tried }; res[s] = 'geen koers'; } }
+    const want = [...state.need].filter(s => s.startsWith('S:') ? !(env.FINNHUB_KEY && STOCK_SYMS.includes(s.slice(2)) && state.stocks?.[s.slice(2)]) : !have.has(s));
+    for (const k of Object.keys(X)) if (!want.includes(k) && now - (X[k].u || 0) > HOUR) delete X[k];
+    const age = k => k.startsWith('S:') ? 12 * MIN : 4 * MIN;
+    const todo = want.sort((a, b2) => (X[a]?.u || 0) - (X[b2]?.u || 0)).filter(s => !X[s] || !X[s].u || now - X[s].u > age(s)).slice(0, Math.max(0, Math.min(8, Math.floor((b.left - 2) / 2))));
+    const res = {}; let fx = null; if (todo.some(k => k.startsWith('S:'))) fx = await usdPerEur(env, b, state);
+    for (const s of todo) { const r = s.startsWith('S:') ? await lookupStock(env, s.slice(2), b, fx) : await lookupPrice(env, s, b, state.tickers.usdt); if (r.p) { X[s] = r; res[s] = r.src; } else { X[s] = { ...(X[s] || {}), miss: now, tried: r.tried }; res[s] = 'geen koers'; } }
     state.xquotes = X; await save('xquotes', X); return { need: want.length, checked: res };
   });
   return status;

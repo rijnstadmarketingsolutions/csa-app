@@ -131,7 +131,7 @@ Pages.instellingen={
     <div class="card"><div class="chead"><h2>CSA op je telefoon</h2></div><p class="note" style="margin:0"><b>iPhone:</b> open CSA in Safari → Deel → <i>Zet op beginscherm</i>.<br><b>Android:</b> open CSA in Chrome → ⋮ → <i>Toevoegen aan startscherm</i>.<br>De versies voor de App Store en Google Play zijn voorbereid en volgen zodra de store-accounts er zijn.</p></div>
     <div class="card"><div class="chead"><h2>Koppelingen</h2><span class="lockbadge">Vergunning nodig</span></div>
       ${[['Bankrekening koppelen','Saldo en stortingen via een gelicenseerde partner.'],['Beleggen in CSA','Kopen en verkopen in de app. Vereist een MiCA-vergunning (AFM) of een gelicenseerde partner.'],['AI Autopilot','AI belegt binnen jouw risicoprofiel. Vereist een vergunning voor vermogensbeheer.']].map(([t,d])=>`<div class="set lock"><div><b>${t}</b><p>${d}</p></div><span class="tag warn">Later</span></div>`).join('')}</div>
-    <div class="card"><div class="chead"><h2>Over CSA</h2></div><p class="note" style="margin:0">Crypto Signal AI · versie 1.2. Koersen: Bitvavo (realtime). Marktcijfers: CoinGecko, Fear & Greed van alternative.me. Nieuws: CryptoCompare, Finnhub, TradingView. Grafieken en kalender: TradingView. CSA geeft geen financieel advies.</p></div>
+    <div class="card"><div class="chead"><h2>Over CSA</h2></div><p class="note" style="margin:0">Crypto Signal AI · versie 1.3. Koersen: Bitvavo (realtime). Marktcijfers: CoinGecko, Fear & Greed van alternative.me. Nieuws: CryptoCompare, Finnhub, TradingView. Grafieken en kalender: TradingView. CSA geeft geen financieel advies.</p></div>
     </div></div>`},
   async mount(el){
     const s=S.settings;
