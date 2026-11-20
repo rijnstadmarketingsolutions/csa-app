@@ -2,10 +2,10 @@
 import { json, err, readJSON, hashPassword, verifyPassword, b32enc, rand, totpCheck, newSession, sessionFrom, sessionByToken, sha256, seal, open,
   limited, bump, clearAttempts, kvGet, kvPutStmt, randToken, DAY, HOUR, MIN } from './lib.js';
 import { vapidKeys, sendPush } from './push.js';
-import { refreshMarket, analyse, detect, backtest, budget, RADAR, STOCK_SYMS, ALERT_KINDS, quote, alertHit, alertText, buildBriefing } from './market.js';
+import { refreshMarket, lookupPrice, analyse, detect, backtest, budget, RADAR, STOCK_SYMS, ALERT_KINDS, quote, alertHit, alertText, buildBriefing } from './market.js';
 import { checkout, portal, webhook, stripeReady } from './billing.js';
 
-const VERSION = '1.2.1';
+const VERSION = '1.2.2';
 const NATIVE_ORIGINS = ['capacitor://localhost', 'http://localhost', 'https://localhost', 'ionic://localhost'];
 const DEFAULT_SETTINGS = { notify: true, briefing: true, minScore: 60, scope: 'all', quiet: false, quietFrom: '23:00', quietTo: '07:00', cats: {} };
 const EMAIL_RX = /^[^@\s]{1,64}@[^@\s]{1,190}\.[^@\s]{2,}$/;
@@ -42,7 +42,8 @@ export default {
 async function api(req, env, ctx, url) {
   const p = url.pathname, m = req.method;
   if (p === '/api/health') { const st = await loadState(env, ['market', 'extra', 'news', 'scanstatus', 'scanstart', 'tickers']);
-    if (url.searchParams.has('diag')) return json({ version: VERSION, now: Date.now(), scanstart: st.scanstart || null, scan: st.scanstatus || null, prices: st.tickers ? { src: st.tickers.src || 'Bitvavo', n: (st.tickers.list || []).length, age: Date.now() - st.tickers.t, sample: Object.fromEntries(['BTC', 'ETH', 'SOL', 'XRP'].map(s => [s, (st.tickers.list || []).find(x => x.s === s)?.p ?? null])) } : null });
+    if (url.searchParams.has('diag')) { const probe = {}; for (const sy of (url.searchParams.get('probe') || '').toUpperCase().split(',').filter(Boolean).slice(0, 4)) { const r = await lookupPrice(env, sy, budget(10), st.tickers?.usdt); probe[sy] = r.p ? { p: r.p, src: r.src, tried: r.tried } : { p: null, tried: r.tried }; }
+      const xq = await loadState(env, ['xquotes']); return json({ probe, xquotes: Object.fromEntries(Object.entries(xq.xquotes || {}).map(([k, v]) => [k, v.p ? { p: v.p, src: v.src, age: Date.now() - v.u } : { miss: v.tried }])), version: VERSION, now: Date.now(), scanstart: st.scanstart || null, scan: st.scanstatus || null, prices: st.tickers ? { src: st.tickers.src || 'Bitvavo', n: (st.tickers.list || []).length, age: Date.now() - st.tickers.t, sample: Object.fromEntries(['BTC', 'ETH', 'SOL', 'XRP'].map(s => [s, (st.tickers.list || []).find(x => x.s === s)?.p ?? null])) } : null }); }
     return json({ ok: true, version: VERSION, lastScan: st.marketTs || null, prices: st.tickers ? { src: st.tickers.src || 'Bitvavo', n: (st.tickers.list || []).length, t: st.tickers.t } : null, scanOk: st.scanstatus ? Object.fromEntries(Object.entries(st.scanstatus).filter(([, v]) => v && typeof v === 'object' && 'ok' in v).map(([k, v]) => [k, v.ok])) : null, data: { extra: st.extra ? { global: !!st.extra.global, fng: !!(st.extra.fng && st.extra.fng.length), trending: !!(st.extra.trending && st.extra.trending.length), errors: [st.extra.globalErr, st.extra.trendErr, st.extra.fngErr].filter(Boolean) } : null, news: st.news ? { items: (st.news.items || []).length, sources: st.news.sources || {} } : null }, features: { accounts: true, push: true, stripe: stripeReady(env), finnhub: !!env.FINNHUB_KEY, ai: false, premiumEnforced: env.PREMIUM_ENFORCED === 'true' } }); }
 
   /* ---------- account ---------- */
@@ -142,16 +143,16 @@ async function api(req, env, ctx, url) {
     if (p === '/api/paper/order' && m === 'POST') {
       const b = await readJSON(req); const sym = String(b.sym || '').toUpperCase(); const eur = Math.round(Number(b.eur) * 100) / 100; const side = b.side === 'sell' ? 'sell' : 'buy';
       if (!(eur >= 1)) return err(400, 'Minimaal € 1.');
-      const t = await kvGet(env, 'tickers'); const q = t?.val?.list?.find(x => x.s === sym); if (!q || Date.now() - t.ts > 15 * MIN) return err(409, 'Geen actuele koers voor ' + sym + ' beschikbaar.');
+      const { q } = await quoteNow(env, sym); if (!q) return err(409, `Geen actuele koers voor ${sym} gevonden bij Bitvavo, Kraken, Gate, MEXC of OKX. Probeer het over een paar minuten opnieuw.`);
       const price = q.p; const fee = eur * FEE; let cash = acc.cash; const h = H[sym] || { qty: 0, cost: 0 };
       if (side === 'buy') { if (eur + fee > cash + 1e-9) return err(400, 'Onvoldoende virtueel saldo (inclusief 0,25% kosten).'); const qty = eur / price; h.qty += qty; h.cost += eur + fee; cash -= eur + fee; H[sym] = h;
         await env.DB.batch([env.DB.prepare('UPDATE paper SET cash=?,holdings=?,updated=? WHERE user_id=?').bind(cash, JSON.stringify(H), Date.now(), s.user_id), env.DB.prepare('INSERT INTO paper_trades(user_id,sym,side,eur,qty,price,t) VALUES(?,?,?,?,?,?,?)').bind(s.user_id, sym, side, eur, qty, price, Date.now())]); }
       else { const qty = eur / price; if (qty > h.qty * (1 + 1e-9)) return err(400, 'Je hebt niet genoeg ' + sym + ' in je oefenportefeuille.'); const part = Math.min(1, qty / h.qty); h.cost -= h.cost * part; h.qty -= qty; cash += eur - fee; if (h.qty < 1e-12) delete H[sym]; else H[sym] = h;
         await env.DB.batch([env.DB.prepare('UPDATE paper SET cash=?,holdings=?,updated=? WHERE user_id=?').bind(cash, JSON.stringify(H), Date.now(), s.user_id), env.DB.prepare('INSERT INTO paper_trades(user_id,sym,side,eur,qty,price,t) VALUES(?,?,?,?,?,?,?)').bind(s.user_id, sym, side, eur, qty, price, Date.now())]); }
-      acc = { cash, holdings: JSON.stringify(H) };
+      acc = { cash, holdings: JSON.stringify(H), last: { sym, side, eur, price, src: q.src } };
     }
     const trades = (await env.DB.prepare('SELECT sym,side,eur,qty,price,t FROM paper_trades WHERE user_id=? ORDER BY t DESC LIMIT 50').bind(s.user_id).all()).results;
-    return json({ start: START, fee: FEE, cash: acc.cash, holdings: JSON.parse(acc.holdings), trades });
+    return json({ start: START, fee: FEE, cash: acc.cash, holdings: JSON.parse(acc.holdings), trades, last: acc.last || null });
   }
 
   /* ---------- koersalerts ---------- */
@@ -161,7 +162,8 @@ async function api(req, env, ctx, url) {
       if (!sym || !ALERT_KINDS[b.kind] || !(value > 0)) return err(400, 'Kies een asset, een soort alert en een geldige waarde.');
       if (/1h|24h/.test(b.kind) && value > 90) return err(400, 'Kies een percentage tot 90%.');
       const n = await env.DB.prepare('SELECT COUNT(*) n FROM price_alerts WHERE user_id=? AND active=1').bind(s.user_id).first(); if (n.n >= 50) return err(400, 'Maximaal 50 actieve koersalerts.');
-      const st = await loadState(env, ['tickers', 'stocks', 'names']); const q = quote(st, sym);
+      const st = await loadState(env, ['tickers', 'stocks', 'names', 'xquotes']); let q = quote(st, sym);
+      if (!q && !STOCK_SYMS.includes(sym)) { const r = await quoteNow(env, sym); if (r.q) q = { p: r.q.p, src: r.q.src }; }
       if (q && b.kind === 'above' && q.p >= value) return err(400, `De koers staat al boven deze waarde (nu ${q.p.toLocaleString('nl-NL')}).`);
       if (q && b.kind === 'below' && q.p <= value) return err(400, `De koers staat al onder deze waarde (nu ${q.p.toLocaleString('nl-NL')}).`);
       if (!q && !/^[A-Z0-9]{2,10}$/.test(sym)) return err(400, 'Onbekend symbool.');
@@ -192,10 +194,21 @@ async function api(req, env, ctx, url) {
 }
 
 /* =================================================================== CRON */
+async function quoteNow(env, sym) {
+  const st = await loadState(env, ['tickers', 'stocks', 'names', 'xquotes']); const fresh = st.tickers && Date.now() - st.tickers.t < 15 * MIN;
+  const t = fresh && (st.tickers.list || []).find(x => x.s === sym); if (t) return { q: { p: t.p, src: st.tickers.src || 'Bitvavo' }, st };
+  const x = st.xquotes?.[sym]; if (x && x.p && Date.now() - x.u < 10 * MIN) return { q: { p: x.p, src: x.src }, st };
+  if (STOCK_SYMS.includes(sym)) return { q: null, st };
+  const r = await lookupPrice(env, sym, budget(12), st.tickers?.usdt);
+  if (r.p) { const X = st.xquotes || {}; X[sym] = r; await kvPutStmt(env, 'xquotes', X).run(); return { q: { p: r.p, src: r.src }, st }; }
+  return { q: null, st, tried: r.tried };
+}
 async function tick(env) {
   const b = budget(45); const status = { t: Date.now() };
   await kvPutStmt(env, 'scanstart', { t: status.t }).run();
-  const state = await loadState(env, ['tickers', 'ticks', 'names', 'candles', 'news', 'extra', 'stocks']);
+  const state = await loadState(env, ['tickers', 'ticks', 'names', 'candles', 'news', 'extra', 'stocks', 'xquotes']);
+  try { const [al, pa] = await env.DB.batch([env.DB.prepare('SELECT DISTINCT sym FROM price_alerts WHERE active=1'), env.DB.prepare('SELECT holdings FROM paper')]);
+    state.need = new Set(al.results.map(r => r.sym)); for (const r of pa.results) for (const k of Object.keys(JSON.parse(r.holdings || '{}'))) state.need.add(k); } catch (e) { status.need = { ok: false, err: e.message }; }
   await refreshMarket(env, state, b, status);
   try {
     const an = analyse(state); const found = detect(an); status.analyse = { ok: true, assets: an.A.length, withHistory: an.A.filter(a => a.vol).length, events: found.length };

@@ -71,7 +71,21 @@ async function fromKraken(b) {
   const MAP = { XBT: 'BTC', XDG: 'DOGE' }; const out = []; const seen = new Set();
   for (const [k, v] of Object.entries(j.result || {})) { if (!/Z?EUR$/.test(k) || /\.d$/.test(k)) continue; let base = k.replace(/Z?EUR$/, ''); if (base.length === 4 && base[0] === 'X') base = base.slice(1); base = MAP[base] || base;
     if (seen.has(base)) continue; seen.add(base); const p = +v.c[0]; out.push({ s: base, k, p, o: +v.o || null, h: +v.h[1] || null, l: +v.l[1] || null, vq: (+v.v[1] || 0) * (+v.p[1] || p) }); }
-  if (!out.length) throw new Error('Kraken gaf geen EUR-koersen'); return out;
+  if (!out.length) throw new Error('Kraken gaf geen EUR-koersen'); const u = out.find(x => x.s === 'USDT'); if (u) out.usdt = u.p; return out;
+}
+
+/* ---------- losse koers voor één coin die de hoofdbron niet heeft ---------- */
+export async function lookupPrice(env, sym, b, usdt) {
+  const BV = env.BV_BASE || BV_DEFAULT; const tried = {};
+  const viaUsdt = r => { if (!usdt) throw new Error('geen USDT→EUR-koers'); return { p: r.p * usdt, o: r.o ? r.o * usdt : null, h: r.h ? r.h * usdt : null, l: r.l ? r.l * usdt : null, vq: (r.vq || 0) * usdt }; };
+  const srcs = [
+    ['Bitvavo', async () => { const d = await getJSON(`${BV}/ticker/24h?market=${sym}-EUR`, b); if (d.last == null) throw new Error('geen koers'); return { p: +d.last, o: +d.open || null, h: +d.high || null, l: +d.low || null, vq: +d.volumeQuote || 0 }; }],
+    ['Gate', async () => { const [d] = await getJSON(`https://api.gateio.ws/api/v4/spot/tickers?currency_pair=${sym}_USDT`, b); if (!d || !(+d.last)) throw new Error('niet genoteerd'); const p = +d.last, ch = +d.change_percentage; return viaUsdt({ p, o: isFinite(ch) ? p / (1 + ch / 100) : null, h: +d.high_24h, l: +d.low_24h, vq: +d.quote_volume }); }],
+    ['MEXC', async () => { const d = await getJSON(`https://api.mexc.com/api/v3/ticker/24hr?symbol=${sym}USDT`, b); if (!(+d.lastPrice)) throw new Error('niet genoteerd'); return viaUsdt({ p: +d.lastPrice, o: +d.openPrice || null, h: +d.highPrice, l: +d.lowPrice, vq: +d.quoteVolume }); }],
+    ['OKX', async () => { const j = await getJSON(`https://www.okx.com/api/v5/market/ticker?instId=${sym}-USDT`, b); const d = j.data && j.data[0]; if (!d || !(+d.last)) throw new Error(j.msg || 'niet genoteerd'); return viaUsdt({ p: +d.last, o: +d.open24h || null, h: +d.high24h, l: +d.low24h, vq: (+d.volCcy24h || 0) }); }],
+  ];
+  for (const [name, fn] of srcs) { if (b.left < 1) { tried[name] = 'budget op'; break; } try { const r = await fn(); if (r.p > 0) return { ...r, src: name, u: Date.now(), tried }; tried[name] = 'ongeldige koers'; } catch (e) { tried[name] = String(e.message).slice(0, 120); } }
+  return { p: null, tried };
 }
 
 /* ---------- verversen: één cron-tik, elke stap los en direct opgeslagen ---------- */
@@ -86,9 +100,10 @@ export async function refreshMarket(env, state, b, status = {}) {
     if (!list) { try { list = await fromCoinGecko(env, b); src = 'CoinGecko (reserve)'; } catch (e) { tried.CoinGecko = e.message; } }
     if (!list) { try { list = await fromKraken(b); src = 'Kraken (reserve)'; } catch (e) { tried.Kraken = e.message; } }
     if (!list) throw new Error('Geen enkele koersbron bereikbaar: ' + JSON.stringify(tried));
+    const usdt = list.usdt || list.find(x => x.s === 'USDT')?.p || state.tickers?.usdt || null;
     list = list.filter(x => !STABLE.has(x.s) && x.p > 0).sort((a, b2) => b2.vq - a.vq);
     if (list.some(x => x.name)) { state.names = { ...(state.names || {}), ...Object.fromEntries(list.filter(x => x.name).map(x => [x.s, x.name])) }; }
-    state.tickers = { t: now, src, list: list.map(({ name, ...x }) => x) }; await save('tickers', state.tickers);
+    state.tickers = { t: now, src, usdt, list: list.map(({ name, ...x }) => x) }; await save('tickers', state.tickers);
     const hist = state.ticks || { t: [], p: {} }; hist.t.push(now);
     for (const x of list.slice(0, 40)) (hist.p[x.s] = hist.p[x.s] || []).push(x.p);
     while (hist.t.length > 13) { hist.t.shift(); for (const k in hist.p) hist.p[k].shift(); }
@@ -139,6 +154,15 @@ export async function refreshMarket(env, state, b, status = {}) {
     const Q = state.stocks || {}; const order = STOCK_SYMS.slice().sort((a, b2) => (Q[a]?.u || 0) - (Q[b2]?.u || 0)).slice(0, Math.max(0, Math.min(8, b.left - 6))); let ok = 0;
     await Promise.all(order.map(async s => { try { const q = await getJSON(`https://finnhub.io/api/v1/quote?symbol=${s}&token=${env.FINNHUB_KEY}`, b); if (q && q.c) { Q[s] = { p: q.c, dp: q.dp, o: q.o, h: q.h, l: q.l, pc: q.pc, ts: q.t * 1000, u: now }; ok++; } } catch { } }));
     state.stocks = Q; await save('stocks', Q); return { refreshed: ok };
+  });
+  // 7. losse koersen voor coins met een alert of oefenpositie die de hoofdbron niet heeft
+  if (status.tickers?.ok && state.need) await step('extraQuotes', async () => {
+    const have = new Set((state.tickers.list || []).map(x => x.s)); const X = state.xquotes || {};
+    const want = [...state.need].filter(s => !have.has(s) && !STOCK_SYMS.includes(s));
+    for (const k of Object.keys(X)) if (!want.includes(k)) delete X[k];
+    const todo = want.sort((a, b2) => (X[a]?.u || 0) - (X[b2]?.u || 0)).filter(s => !X[s] || now - X[s].u > 4 * MIN).slice(0, Math.max(0, Math.min(8, Math.floor((b.left - 2) / 2))));
+    const res = {}; for (const s of todo) { const r = await lookupPrice(env, s, b, state.tickers.usdt); if (r.p) { X[s] = r; res[s] = r.src; } else { X[s] = { ...(X[s] || {}), miss: now, tried: r.tried }; res[s] = 'geen koers'; } }
+    state.xquotes = X; await save('xquotes', X); return { need: want.length, checked: res };
   });
   return status;
 }
@@ -224,6 +248,7 @@ export const ALERT_KINDS = { above: 'koers boven', below: 'koers onder', up1h: '
 export function quote(state, sym) {
   const t = (state.tickers?.list || []).find(x => x.s === sym);
   if (t) { const arr = state.ticks?.p?.[sym]; return { p: t.p, cur: 'EUR', ch24: t.o ? (t.p / t.o - 1) * 100 : null, ch1h: arr && arr.length >= 13 ? (t.p / arr[arr.length - 13] - 1) * 100 : null, name: state.names?.[sym] || sym }; }
+  const x = state.xquotes?.[sym]; if (x && x.p && Date.now() - x.u < 30 * MIN) return { p: x.p, cur: 'EUR', ch24: x.o ? (x.p / x.o - 1) * 100 : null, ch1h: null, name: state.names?.[sym] || sym, src: x.src };
   const q = state.stocks?.[sym]; if (q) return { p: q.p, cur: 'USD', ch24: q.dp, ch1h: null, name: sym };
   return null;
 }
