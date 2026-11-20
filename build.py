@@ -44,6 +44,8 @@ html=f'''<!DOCTYPE html>
 </body>
 </html>
 '''
-open('site/index.html','w').write(html)
+open('site/app.html','w').write(html)
 print(len(html))
+# landingspagina op /, de app op /app
+open('site/index.html','w').write(open('src/landing.html').read())
 open('site/config.js','w').write('// gegenereerd door build.py\nwindow.VANTIS_API_ORIGIN='+_json.dumps(API_ORIGIN if NATIVE or API_ORIGIN else '')+';\n')

@@ -22,7 +22,7 @@ export async function newsKw(env, state, status) {
     if (st.kwWatch) for (const s of JSON.parse(r.watch || '[]').slice(0, 30)) { words.push(s); const nm = state.names && state.names[s]; if (nm && nm.length > 3) words.push(nm); }
     if (!words.length) continue; const res = words.map(w => [w, new RegExp('(^|[^\\p{L}\\p{N}])' + w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '($|[^\\p{L}\\p{N}])', w.length <= 4 && w === w.toUpperCase() ? 'u' : 'iu')]);
     let n = 0; for (const it of fresh) { if (n >= 3) break; const txt = it.title + ' ' + (it.body || ''); const m = res.find(([, re]) => re.test(txt)); if (!m) continue; n++; hits++;
-      (out[r.user_id] = out[r.user_id] || []).push({ key: 'news:' + it.id, tag: 'news-' + String(it.id).slice(-24), cat: 'news', url: '/#nieuws', link: it.url, title: `Nieuws over "${m[0]}"`, body: `${it.title} · ${it.src || it.feed || ''}` }); } }
+      (out[r.user_id] = out[r.user_id] || []).push({ key: 'news:' + it.id, tag: 'news-' + String(it.id).slice(-24), cat: 'news', url: '/app#nieuws', link: it.url, title: `Nieuws over "${m[0]}"`, body: `${it.title} · ${it.src || it.feed || ''}` }); } }
   status.newsKw = { ok: true, fresh: fresh.length, users: rows.length, hits }; return out;
 }
 

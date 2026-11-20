@@ -165,10 +165,10 @@ export async function paperCron(env, st, status) {
       if (o.oco) { ops.push(env.DB.prepare("UPDATE paper_orders SET status='cancelled',done=?,note=COALESCE(note,'')||' · vervallen (andere order uitgevoerd)' WHERE oco=? AND id<>? AND status='open'").bind(now, o.oco, o.id)); rows.filter(x => x.oco === o.oco).forEach(x => skip.add(x.id)); }
       await env.DB.batch(ops);
       const what = o.type === 'trail' ? 'Trailing stop geraakt' : o.note === 'Stop-loss' ? 'Stop-loss geraakt' : o.note === 'Winst nemen' ? 'Winst genomen' : (o.type === 'limit' ? 'Limietorder' : 'Stoporder') + ' uitgevoerd';
-      add(o.user_id, { key: 'order:' + o.id, tag: 'order-' + o.id, cat: 'order', force: true, url: '/#handel', title: `${what}: ${o.side === 'buy' ? 'koop' : 'verkoop'} ${o.sym}`,
+      add(o.user_id, { key: 'order:' + o.id, tag: 'order-' + o.id, cat: 'order', force: true, url: '/app#handel', title: `${what}: ${o.side === 'buy' ? 'koop' : 'verkoop'} ${o.sym}`,
         body: `${nl(t.qty)} ${o.sym} tegen ${nl(t.price)} euro (${nl(t.eur)} euro)${t.pnl != null ? ` · resultaat ${t.pnl >= 0 ? '+' : '−'}${nl(Math.abs(t.pnl))} euro` : ''} · oefengeld` });
     } catch (e) { await env.DB.prepare("UPDATE paper_orders SET status='failed',done=?,note=? WHERE id=?").bind(now, String(e.message).slice(0, 160), o.id).run();
-      add(o.user_id, { key: 'orderfail:' + o.id, tag: 'order-' + o.id, cat: 'order', force: true, url: '/#handel', title: `Order ${o.sym} niet uitgevoerd`, body: e.message }); }
+      add(o.user_id, { key: 'orderfail:' + o.id, tag: 'order-' + o.id, cat: 'order', force: true, url: '/app#handel', title: `Order ${o.sym} niet uitgevoerd`, body: e.message }); }
   }
   if (trailOps.length) await env.DB.batch(trailOps.slice(0, 40));
   // periodiek kopen
@@ -177,9 +177,9 @@ export async function paperCron(env, st, status) {
   for (const d of due) { const q = cachedPx(st, d.sym, d.kind); if (!q) continue; let next = d.next; while (next <= now) next += d.every === 'month' ? (new Date(next).setUTCMonth(new Date(next).getUTCMonth() + 1) - next) : STEP[d.every];
     try { const t = await execTrade(env, d.user_id, { sym: d.sym, kind: d.kind, side: 'buy', eur: d.eur }, q, 'periodiek', st); dcaRuns++;
       await env.DB.prepare('UPDATE paper_dca SET next=?,last=?,runs=runs+1 WHERE id=?').bind(next, now, d.id).run();
-      add(d.user_id, { key: 'dca:' + d.id + ':' + now, tag: 'dca-' + d.id, cat: 'order', url: '/#handel', title: `Periodieke aankoop: ${d.sym} voor ${nl(d.eur)} euro`, body: `${nl(t.qty)} ${d.sym} tegen ${nl(t.price)} euro · aankoop ${d.runs + 1} · oefengeld` }); }
+      add(d.user_id, { key: 'dca:' + d.id + ':' + now, tag: 'dca-' + d.id, cat: 'order', url: '/app#handel', title: `Periodieke aankoop: ${d.sym} voor ${nl(d.eur)} euro`, body: `${nl(t.qty)} ${d.sym} tegen ${nl(t.price)} euro · aankoop ${d.runs + 1} · oefengeld` }); }
     catch (e) { await env.DB.prepare('UPDATE paper_dca SET active=0,note=? WHERE id=?').bind(String(e.message).slice(0, 120), d.id).run();
-      add(d.user_id, { key: 'dcafail:' + d.id, tag: 'dca-' + d.id, cat: 'order', force: true, url: '/#handel', title: `Periodiek kopen ${d.sym} gepauzeerd`, body: e.message }); } }
+      add(d.user_id, { key: 'dcafail:' + d.id, tag: 'dca-' + d.id, cat: 'order', force: true, url: '/app#handel', title: `Periodiek kopen ${d.sym} gepauzeerd`, body: e.message }); } }
   // elk uur een waardepunt per oefenportefeuille
   let hist = 0;
   if (!st.phT || now - st.phT > HOUR - 2 * MIN) {

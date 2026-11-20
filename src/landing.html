@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<script>
+/* Wie al ingelogd is, of via een link naar een app-pagina komt (#handel, #nieuws …), gaat direct de app in. */
+(function(){try{var h=location.hash,t=localStorage.getItem('vantis.token'),pwa=window.matchMedia&&matchMedia('(display-mode: standalone)').matches;
+if((t&&t!=='null')||pwa||(h&&h.length>1&&h.indexOf('#l-')!==0)){location.replace('/app'+location.search+h)}}catch(e){}})();
+</script>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Vantis: zie wat de crypto- en aandelenmarkt beweegt</title>
+<meta name="description" content="Vantis volgt koersen, nieuws en de economische kalender voor crypto en aandelen, en legt in gewone taal uit wat er gebeurt en waarom. Gratis te gebruiken, met oefenhandel zonder echt geld.">
+<meta name="theme-color" content="#050505">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Vantis: zie wat de markt beweegt">
+<meta property="og:description" content="Koersen, nieuws en de economische kalender voor crypto en aandelen, in gewone taal uitgelegd.">
+<meta property="og:image" content="https://vantis.rijnstadmarketing.workers.dev/landing/og.png"><meta property="og:url" content="https://vantis.rijnstadmarketing.workers.dev/">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preload" href="landing/fonts/archivo-wdth.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+@font-face{font-family:"Archivo";font-style:normal;font-display:swap;font-weight:100 900;font-stretch:62% 125%;src:url(landing/fonts/archivo-wdth.woff2) format("woff2-variations"),url(landing/fonts/archivo-wdth.woff2) format("woff2")}
+@font-face{font-family:"Inter";font-style:normal;font-display:swap;font-weight:100 900;src:url(landing/fonts/inter.woff2) format("woff2-variations"),url(landing/fonts/inter.woff2) format("woff2")}
+:root{
+  --night:#050505;--graphite:#111215;--panel:#0C0D10;--chrome:#D7DADF;--steel:#8B919A;--pearl:#EEF0F3;--ink:#0B0D12;
+  --text:#E9EBEE;--muted:#9AA0A9;--hair:rgba(255,255,255,.12);--hair2:rgba(255,255,255,.2);
+  --up:#3DDC97;--down:#FF6B76;
+  --metal:linear-gradient(100deg,#ffffff 0%,#cfd3d9 22%,#848a93 42%,#f3f4f6 58%,#9ea4ad 78%,#e9ebee 100%);
+  --wide:"Archivo",Inter,system-ui,sans-serif;--body:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --max:1200px;--pad:clamp(20px,4vw,40px)
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--night);color:var(--text);font:400 17px/1.6 var(--body);-webkit-font-smoothing:antialiased;font-feature-settings:"tnum" 0}
+img{max-width:100%;height:auto;display:block}
+a{color:inherit}
+.wrap{max-width:var(--max);margin:0 auto;padding:0 var(--pad)}
+.skip{position:absolute;left:-9999px}.skip:focus{left:16px;top:16px;z-index:10;background:#fff;color:#000;padding:8px 12px;border-radius:8px}
+:focus-visible{outline:2px solid var(--chrome);outline-offset:3px;border-radius:6px}
+
+/* kop */
+.top{position:sticky;top:0;z-index:5;background:rgba(5,5,5,.72);-webkit-backdrop-filter:blur(16px) saturate(140%);backdrop-filter:blur(16px) saturate(140%);border-bottom:1px solid transparent;transition:border-color .3s}
+.top.scrolled{border-bottom-color:var(--hair)}
+.topin{display:flex;align-items:center;gap:28px;height:68px}
+.logo{display:flex;align-items:center;gap:12px;text-decoration:none}
+.logo .mk{width:40px;height:27px;background:var(--metal);-webkit-mask:url(brand/vantis-mark.svg) center/contain no-repeat;mask:url(brand/vantis-mark.svg) center/contain no-repeat}
+.logo .wd{width:92px;height:19px;background:var(--metal);-webkit-mask:url(brand/vantis-word.svg) left center/contain no-repeat;mask:url(brand/vantis-word.svg) left center/contain no-repeat}
+.menu{display:flex;gap:26px;margin-left:auto;font-size:15px}
+.menu a{text-decoration:none;color:var(--muted)}.menu a:hover{color:var(--text)}
+.acts{display:flex;gap:10px;align-items:center}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:46px;padding:0 22px;border-radius:999px;font:600 15px/1 var(--body);text-decoration:none;white-space:nowrap;cursor:pointer;border:0}
+.btn.pri{background:var(--metal);background-size:200% 100%;color:#0A0A0C;box-shadow:inset 0 1px 0 rgba(255,255,255,.7),inset 0 -1px 0 rgba(0,0,0,.25),0 8px 24px rgba(0,0,0,.4);transition:background-position .6s ease,transform .2s}
+.btn.pri:hover{background-position:100% 0;transform:translateY(-1px)}
+.btn.sec{color:var(--text);border:1px solid var(--hair2);background:transparent}.btn.sec:hover{border-color:var(--chrome)}
+.btn.sm{height:40px;padding:0 18px;font-size:14px}
+.txtlink{font-size:15px;color:var(--muted);text-decoration:none;padding:8px}.txtlink:hover{color:var(--text)}
+
+/* hero */
+.hero{position:relative;padding:clamp(48px,8vw,96px) 0 clamp(56px,7vw,88px);overflow:hidden}
+.hero::before{content:"";position:absolute;inset:-20% -10% auto auto;width:900px;height:700px;background:radial-gradient(closest-side,rgba(205,210,220,.13),transparent);pointer-events:none}
+.herog{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:clamp(32px,5vw,72px);align-items:end;position:relative}
+h1{font-family:var(--wide);font-stretch:125%;font-variation-settings:"wdth" 125;font-weight:750;font-size:clamp(42px,6.1vw,92px);line-height:.98;letter-spacing:-.015em;margin:0 0 28px;
+  background:var(--metal);background-size:220% 100%;background-position:100% 0;-webkit-background-clip:text;background-clip:text;color:transparent;animation:polish 2.6s cubic-bezier(.2,.7,.2,1) .2s both}
+@keyframes polish{from{background-position:100% 0}to{background-position:0 0}}
+.lead{font-size:clamp(17px,1.5vw,20px);line-height:1.55;color:#C9CDD3;max-width:34em;margin:0 0 32px}
+.cta{display:flex;gap:12px;flex-wrap:wrap}
+.assure{margin:22px 0 0;font-size:14px;color:var(--muted);max-width:40em}
+
+/* live paneel */
+.live{background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.015));border:1px solid var(--hair);border-radius:18px;padding:22px 22px 18px;box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 30px 80px rgba(0,0,0,.55);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px)}
+.livehd{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:12px}
+.livehd h2{font:650 16px/1.2 var(--body);margin:0;color:var(--text)}
+.livehd span{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:7px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--up);box-shadow:0 0 0 0 rgba(61,220,151,.6);animation:pulse 2.4s ease-out infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(61,220,151,.5)}80%,100%{box-shadow:0 0 0 9px rgba(61,220,151,0)}}
+.prices{display:grid;grid-template-columns:1fr 1fr;gap:0 22px}
+.pr{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:9px 0;border-top:1px solid var(--hair);font-variant-numeric:tabular-nums}
+.pr b{font:600 14px/1 var(--body);color:var(--text);min-width:40px}.pr .p{font-size:14px;color:#D4D7DC;margin-left:auto;white-space:nowrap}.pr .c{white-space:nowrap}.pr .c{font-size:13px;min-width:58px;text-align:right}
+.up{color:var(--up)}.down{color:var(--down)}
+.ev{margin-top:14px;padding-top:16px;border-top:1px solid var(--hair);display:grid;grid-template-columns:52px 1fr;gap:14px;align-items:start}
+.ring{width:52px;height:52px;position:relative}.ring svg{width:52px;height:52px;transform:rotate(-90deg)}.ring b{position:absolute;inset:0;display:grid;place-items:center;font:700 16px/1 var(--body);font-variant-numeric:tabular-nums}
+.ev small{display:block;font-size:12.5px;color:var(--muted);margin-bottom:3px}
+.ev strong{display:block;font-size:15px;line-height:1.35;font-weight:600}
+.ev p{margin:4px 0 0;font-size:13.5px;line-height:1.45;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px;padding-top:14px;border-top:1px solid var(--hair)}
+.stats div{font-size:12.5px;color:var(--muted)}.stats b{display:block;font:650 18px/1.2 var(--body);color:var(--text);font-variant-numeric:tabular-nums;margin-top:2px}
+.livenote{margin:14px 0 0;font-size:12px;color:var(--steel)}
+.skel{height:14px;border-radius:6px;background:linear-gradient(90deg,rgba(255,255,255,.05),rgba(255,255,255,.1),rgba(255,255,255,.05));background-size:200% 100%;animation:sk 1.4s linear infinite}
+@keyframes sk{to{background-position:-200% 0}}
+
+/* productbeeld */
+.show{padding:0 0 clamp(64px,9vw,120px)}.show .wrap{position:relative}
+.frame{position:relative;border-radius:16px;border:1px solid var(--hair2);overflow:hidden;box-shadow:0 50px 120px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.04)}
+.frame img{width:100%;height:auto}
+.phone{position:absolute;right:clamp(0px,3vw,64px);bottom:-36px;width:clamp(150px,20%,250px);border-radius:30px;border:6px solid #1A1B1F;box-shadow:0 30px 80px rgba(0,0,0,.75),0 0 0 1px rgba(255,255,255,.12);overflow:hidden;background:#000}
+
+/* secties */
+section{scroll-margin-top:80px}
+.sect{padding:clamp(64px,9vw,128px) 0;border-top:1px solid var(--hair)}
+h2.big{font-family:var(--wide);font-stretch:115%;font-variation-settings:"wdth" 115;font-weight:700;font-size:clamp(32px,4.4vw,58px);line-height:1.02;letter-spacing:-.01em;margin:0 0 18px;color:#F2F3F5;max-width:16em}
+.intro{font-size:clamp(17px,1.4vw,19px);color:#BFC4CB;max-width:36em;margin:0}
+.rows{margin-top:clamp(48px,6vw,80px);display:grid;gap:clamp(56px,8vw,104px)}
+.row{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:clamp(28px,5vw,72px);align-items:center}
+.row.flip{grid-template-columns:minmax(0,7fr) minmax(0,5fr)}.row.flip .rt{order:2}
+.rt h3{font:650 clamp(22px,2.1vw,28px)/1.2 var(--body);margin:0 0 14px;color:#F2F3F5;letter-spacing:-.01em}
+.rt p{margin:0;color:#BFC4CB;max-width:30em}
+.shot{border-radius:14px;border:1px solid var(--hair);overflow:hidden;box-shadow:0 30px 70px rgba(0,0,0,.55);background:#0b0b0d}
+.stack{display:grid;gap:14px}
+.stack.narrow{max-width:560px;justify-self:center;width:100%}
+.row.wide{grid-template-columns:1fr;gap:28px}.row.wide .rt{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:clamp(28px,5vw,72px);align-items:start}.row.wide .rt h3{margin:0}
+
+/* oefenen */
+.prac{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:clamp(32px,6vw,96px);align-items:center}
+.facts{margin:36px 0 0;display:grid;gap:0;max-width:30em}
+.facts div{display:grid;grid-template-columns:11em 1fr;gap:16px;padding:14px 0;border-top:1px solid var(--hair)}
+.facts dt{color:var(--muted);font-size:15px}.facts dd{margin:0;font-size:15px;color:var(--text)}
+.ticketwrap{position:relative;max-width:400px;justify-self:center;width:100%}
+.ticketwrap .shot{max-height:640px}
+.ticketwrap .shot img{object-fit:cover;object-position:top}
+
+/* functielijst */
+.feat{margin-top:clamp(40px,5vw,64px);display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:clamp(32px,5vw,72px)}
+.feat div{padding:22px 0;border-top:1px solid var(--hair);display:grid;grid-template-columns:12em 1fr;gap:20px}
+.feat h3{margin:0;font:600 16px/1.4 var(--body);color:#F2F3F5}
+.feat p{margin:0;font-size:15.5px;color:var(--muted);line-height:1.5}
+
+/* licht deel: prijzen en vragen */
+.light{background:var(--pearl);color:var(--ink)}
+.light .sect{border-top:1px solid rgba(11,13,18,.09)}
+.light h2.big{color:var(--ink)}
+.light .intro{color:#4B525C}
+.plans{margin-top:48px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;border:1px solid rgba(11,13,18,.12);border-radius:18px;overflow:hidden;background:#fff}
+.plan{padding:30px 28px 32px;display:flex;flex-direction:column;gap:18px}
+.plan+.plan{border-left:1px solid rgba(11,13,18,.1)}
+.plan.hl{background:#0B0D12;color:#E9EBEE}
+.plan h3{margin:0;font-family:var(--wide);font-stretch:115%;font-variation-settings:"wdth" 115;font-weight:700;font-size:26px}
+.plan .price{font-size:15px;color:#5B626C;min-height:44px}.plan.hl .price{color:#AEB3BB}
+.plan .price b{display:block;font:650 28px/1.15 var(--body);color:inherit;letter-spacing:-.01em}
+.plan.hl .price b{color:#fff}
+.plan ul{list-style:none;margin:0;padding:0;display:grid;gap:10px;font-size:15px}
+.plan li{display:grid;grid-template-columns:18px 1fr;gap:10px;line-height:1.45}
+.plan li svg{width:16px;height:16px;margin-top:3px;stroke:#0B0D12;fill:none;stroke-width:2.2}
+.plan.hl li svg{stroke:#D7DADF}
+.plan .btn{margin-top:auto;align-self:flex-start}
+.light .btn.sec{color:var(--ink);border-color:rgba(11,13,18,.25)}.light .btn.sec:hover{border-color:var(--ink)}
+.plannote{margin:18px 0 0;font-size:14px;color:#5B626C}
+.faq{margin-top:40px;max-width:820px}
+.faq details{border-top:1px solid rgba(11,13,18,.12)}
+.faq details:last-child{border-bottom:1px solid rgba(11,13,18,.12)}
+.faq summary{list-style:none;cursor:pointer;padding:22px 44px 22px 0;font:600 18px/1.35 var(--body);position:relative}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"";position:absolute;right:6px;top:50%;width:12px;height:12px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:translateY(-70%) rotate(45deg);transition:transform .25s}
+.faq details[open] summary::after{transform:translateY(-30%) rotate(225deg)}
+.faq details p{margin:0 0 24px;color:#4B525C;max-width:42em}
+
+/* slot */
+.end{padding:clamp(72px,10vw,140px) 0;text-align:left}
+.end h2.big{max-width:12em}
+.foot{border-top:1px solid var(--hair);padding:36px 0 48px;font-size:14px;color:var(--muted)}
+.footg{display:grid;grid-template-columns:1fr auto;gap:24px;align-items:start}
+.foot p{margin:0 0 10px;max-width:58em}
+.foot nav{display:flex;gap:20px}.foot nav a{text-decoration:none}.foot nav a:hover{color:var(--text)}
+
+@media (max-width:980px){
+  .herog,.row,.row.flip,.prac{grid-template-columns:1fr}.row.flip .rt{order:0}
+  .row.wide .rt{grid-template-columns:1fr;gap:12px}
+  .feat{grid-template-columns:1fr}
+  .plans{grid-template-columns:1fr}.plan+.plan{border-left:0;border-top:1px solid rgba(11,13,18,.1)}
+  .menu{display:none}
+  .phone{width:30%}
+}
+@media (max-width:640px){
+  body{font-size:16px}
+  .topin{gap:12px;height:60px}.logo .wd{display:none}.acts .txtlink{padding:6px}
+  .btn{height:48px}.cta .btn{flex:1 1 100%}
+  .prices{grid-template-columns:1fr}
+  .feat div,.facts div{grid-template-columns:1fr;gap:4px}
+  .footg{grid-template-columns:1fr}
+  .row.wide .rt{grid-template-columns:1fr;gap:12px}
+  .phone{display:none}
+  .frame{max-width:320px;margin:0 auto;border-radius:30px;border:6px solid #1A1B1F}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}h1{background-position:0 0}}
+</style>
+</head>
+<body>
+<a class="skip" href="#l-functies">Naar de inhoud</a>
+<header class="top" id="top">
+  <div class="wrap topin">
+    <a class="logo" href="/" aria-label="Vantis, naar het begin"><span class="mk"></span><span class="wd"></span></a>
+    <nav class="menu" aria-label="Pagina">
+      <a href="#l-functies">Functies</a><a href="#l-oefenen">Oefenhandel</a><a href="#l-prijzen">Prijzen</a><a href="#l-vragen">Vragen</a>
+    </nav>
+    <div class="acts"><a class="txtlink" href="/app">Inloggen</a><a class="btn pri sm" href="/app?start=register">Gratis account</a></div>
+  </div>
+</header>
+
+<main>
+<section class="hero">
+  <div class="wrap herog">
+    <div>
+      <h1>Zie wat de markt beweegt.</h1>
+      <p class="lead">Vantis volgt koersen, nieuws en de economische kalender voor crypto en aandelen. Je leest in gewone taal wat er gebeurt, waarom, en hoe zeker dat is.</p>
+      <div class="cta"><a class="btn pri" href="/app?start=register">Gratis account maken</a><a class="btn sec" href="/app">Inloggen</a></div>
+      <p class="assure">Gratis te gebruiken. Je handelt alleen met oefengeld en krijgt geen beleggingsadvies.</p>
+    </div>
+    <aside class="live" aria-labelledby="livet" aria-live="polite">
+      <div class="livehd"><h2 id="livet">Nu in de markt</h2><span><i class="dot" aria-hidden="true"></i><span id="livets">live</span></span></div>
+      <div class="prices" id="lprices">
+        <div class="pr"><div class="skel" style="width:100%"></div></div><div class="pr"><div class="skel" style="width:100%"></div></div>
+        <div class="pr"><div class="skel" style="width:100%"></div></div><div class="pr"><div class="skel" style="width:100%"></div></div>
+        <div class="pr"><div class="skel" style="width:100%"></div></div><div class="pr"><div class="skel" style="width:100%"></div></div>
+      </div>
+      <div class="ev" id="lev" hidden></div>
+      <div class="stats" id="lstats" hidden></div>
+      <p class="livenote">Rechtstreeks uit Vantis. Koersen in euro, verandering over 24 uur.</p>
+    </aside>
+  </div>
+</section>
+
+<div class="show">
+  <div class="wrap">
+    <div class="frame"><picture><source media="(max-width:640px)" srcset="landing/telefoon-overzicht.webp" width="600" height="1298"><img src="landing/app-overzicht.webp" width="1800" height="1191" alt="Het Vantis-overzicht: marktstatus met sentiment, kerncijfers en wat er vandaag speelt, koerstegels en een koersgrafiek van Bitcoin" fetchpriority="high"></picture></div>
+    <div class="phone"><img src="landing/telefoon-overzicht.webp" width="600" height="1298" alt="Vantis op een telefoon" loading="lazy"></div>
+  </div>
+</div>
+
+<section class="sect" id="l-functies">
+  <div class="wrap">
+    <h2 class="big">Elke beweging, uitgelegd</h2>
+    <p class="intro">Een koersgrafiek laat zien dat er iets beweegt. Vantis zoekt uit waarom, en zegt het eerlijk als dat nog niet te zeggen is.</p>
+    <div class="rows">
+      <div class="row">
+        <div class="rt"><h3>Wat gebeurt er nu?</h3><p>Vantis leest nieuws uit elf bronnen, de economische kalender en de koersen van honderden munten en aandelen. Elke gebeurtenis krijgt een Impact Score van 0 tot 100: hoe groot de invloed op de markt kan zijn, berekend met een vaste methode die je kunt nalezen.</p></div>
+        <div class="stack"><div class="shot"><img src="landing/impact.webp" width="1122" height="250" alt="Een gebeurtenis in de impact-feed: ongebruikelijk handelsvolume in Solana, Impact Score 55, mogelijk negatief" loading="lazy"></div></div>
+      </div>
+      <div class="row flip">
+        <div class="rt"><h3>Waarom beweegt het?</h3><p>Bij een opvallende koersbeweging controleert Vantis acht mogelijke oorzaken tegen data en bronnen: nieuws, macrocijfers, handelsvolume, de hele markt en technische niveaus. Kan een oorzaak niet worden aangetoond, dan staat er dat die nog onbekend is.</p></div>
+        <div class="stack narrow"><div class="shot"><img src="landing/waarom-oorzaken.webp" width="892" height="538" alt="Waarom beweegt Bitcoin: de meest waarschijnlijke oorzaken met hun aandeel in de verklaring" loading="lazy"></div></div>
+      </div>
+      <div class="row wide">
+        <div class="rt"><h3>Wat betekent het voor mij?</h3><p>Je overzicht laat in één blik zien hoe de markt ervoor staat en wat er vandaag speelt. Volg je eigen munten en aandelen, stel koersalerts in en krijg elke ochtend om 08:00 een korte briefing.</p></div>
+        <div class="stack"><div class="shot"><img src="landing/marktstatus.webp" width="1600" height="311" alt="Marktstatus: sentiment, marktbreedte, volume en de belangrijkste gebeurtenissen van vandaag" loading="lazy"></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sect" id="l-oefenen">
+  <div class="wrap prac">
+    <div>
+      <h2 class="big">Oefen met €&nbsp;10.000 die niet van jou zijn</h2>
+      <p class="intro">Koop en verkoop crypto en aandelen tegen echte koersen, met oefengeld. Zo leer je hoe het voelt voordat er echt geld meespeelt.</p>
+      <dl class="facts">
+        <div><dt>Ordertypes</dt><dd>Markt, limiet, stop en trailing stop, met winstdoel en stop-loss</dd></div>
+        <div><dt>Periodiek kopen</dt><dd>Elke dag, week of maand automatisch bijkopen</dd></div>
+        <div><dt>Logboek</dt><dd>Schrijf op waarom je koopt of verkoopt, en kijk later terug</dd></div>
+        <div><dt>Ranglijst</dt><dd>Vergelijk je rendement met anderen, alleen met een schermnaam</dd></div>
+      </dl>
+    </div>
+    <div class="ticketwrap"><div class="shot"><img src="landing/orderticket.webp" width="676" height="1598" alt="Het orderticket: koop Bitcoin voor een bedrag in euro, met ordertype en overzicht van kosten" loading="lazy"></div></div>
+  </div>
+</section>
+
+<section class="sect">
+  <div class="wrap">
+    <h2 class="big">En verder</h2>
+    <div class="feat">
+      <div><h3>Event Radar</h3><p>Rentebesluiten van de Fed en ECB, inflatie- en banencijfers, met aftelklok en herinneringen.</p></div>
+      <div><h3>Ochtendbriefing</h3><p>Elke ochtend om 08:00 een kort marktoverzicht, ook als pushmelding.</p></div>
+      <div><h3>Meldingen</h3><p>Koersalerts, indicatoren als RSI en nieuws op trefwoord, via pushmelding of Telegram.</p></div>
+      <div><h3>Opportunity Scanner</h3><p>Munten die nu opvallen door volume, momentum of een uitbraak, met eigen filters.</p></div>
+      <div><h3>Marktdata</h3><p>Sectoren, futures en funding, het Bitcoin-netwerk en komende token-unlocks.</p></div>
+      <div><h3>Vergelijken</h3><p>Twee munten of aandelen naast elkaar: rendement, risico en correlatie.</p></div>
+      <div><h3>Leren</h3><p>Korte lessen met een quiz, badges en een reeks om vol te houden.</p></div>
+      <div><h3>Op elk scherm</h3><p>Telefoon, tablet en computer, in drie stijlen en in het Nederlands of Engels.</p></div>
+    </div>
+  </div>
+</section>
+
+<div class="light">
+<section class="sect" id="l-prijzen">
+  <div class="wrap">
+    <h2 class="big">Begin gratis</h2>
+    <p class="intro">De basis is gratis. Premium en Pro voegen meldingen toe die ook werken als de app dicht is, en meer gereedschap voor wie actief volgt.</p>
+    <div class="plans" id="lplans">
+      <div class="plan"><h3>Gratis</h3><div class="price"><b>€ 0</b>Altijd gratis</div><ul data-tier="free"></ul><a class="btn sec" href="/app?start=register">Gratis account maken</a></div>
+      <div class="plan hl"><h3>Premium</h3><div class="price" data-price="premium"><b>Proefweek</b>De eerste 7 dagen gratis</div><ul data-tier="premium"></ul><a class="btn pri" href="/app?start=register">Probeer Premium</a></div>
+      <div class="plan"><h3>Pro</h3><div class="price" data-price="pro"><b>Proefweek</b>De eerste 7 dagen gratis</div><ul data-tier="pro"></ul><a class="btn sec" href="/app?start=register">Probeer Pro</a></div>
+    </div>
+    <p class="plannote">Abonnementen lopen via Stripe en zijn op elk moment op te zeggen.</p>
+  </div>
+</section>
+
+<section class="sect" id="l-vragen">
+  <div class="wrap">
+    <h2 class="big">Vragen</h2>
+    <div class="faq">
+      <details><summary>Kan ik in Vantis echte crypto of aandelen kopen?</summary><p>Nee. Vantis is geen broker of beurs. De handelsfunctie werkt alleen met oefengeld, zodat je zonder risico kunt leren hoe orders werken.</p></details>
+      <details><summary>Geeft Vantis beleggingsadvies?</summary><p>Nee. Vantis geeft marktinformatie en analyse, berekend uit openbare data met een vaste methode. Wat je ermee doet, beslis je zelf. Beleggen brengt risico's met zich mee; je kunt je inleg (gedeeltelijk) verliezen.</p></details>
+      <details><summary>Waar komen de gegevens vandaan?</summary><p>Koersen komen onder meer van Bitvavo en Kraken, marktcijfers van CoinGecko en CoinPaprika, en het nieuws van bronnen als CoinDesk, Cointelegraph, CNBC en de Financial Times. Bij elk inzicht staan de bron en het tijdstip.</p></details>
+      <details><summary>Hoe is mijn account beveiligd?</summary><p>Inloggen gaat altijd met je wachtwoord en een code uit een authenticator-app, zoals Google of Microsoft Authenticator. Je gegevens worden versleuteld opgeslagen in de EU.</p></details>
+      <details><summary>Werkt Vantis op mijn telefoon?</summary><p>Ja. Open Vantis in je browser en zet het op je beginscherm; dan krijg je ook pushmeldingen. Apps in de App Store en Play Store volgen later.</p></details>
+      <details><summary>Wat kost het?</summary><p>De basis is gratis. Premium en Pro kun je eerst een week gratis proberen en daarna op elk moment opzeggen.</p></details>
+    </div>
+  </div>
+</section>
+</div>
+
+<section class="end">
+  <div class="wrap">
+    <h2 class="big">Volg de markt, met uitleg erbij</h2>
+    <div class="cta" style="margin-top:28px"><a class="btn pri" href="/app?start=register">Gratis account maken</a><a class="btn sec" href="/app">Inloggen</a></div>
+  </div>
+</section>
+</main>
+
+<footer class="foot">
+  <div class="wrap footg">
+    <div>
+      <p>Vantis geeft marktinformatie en analyse, geen financieel advies. Scores en scenario's zijn berekend uit openbare data en bieden geen garantie voor de koersontwikkeling. Beleggen brengt risico's met zich mee.</p>
+      <p>Vantis is een product van Rijnstad Marketing Solutions.</p>
+    </div>
+    <nav aria-label="Onderaan"><a href="/app">Inloggen</a><a href="/app?start=register">Account maken</a></nav>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var $=function(s){return document.querySelector(s)};
+  var nf=function(v,min,max){return Number(v).toLocaleString('nl-NL',{minimumFractionDigits:min,maximumFractionDigits:max})};
+  var eur=function(p){return '€ '+(p>=100?nf(p,2,2):p>=1?nf(p,2,3):nf(p,4,5))};
+  var pct=function(c){if(c==null)return '';var s=c>0?'+':c<0?'−':'';return s+nf(Math.abs(c),2,2)+'%'};
+  var esc=function(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})};
+  var big=function(v){return v>=1e12?'€ '+nf(v/1e12,2,2)+' bln':v>=1e9?'€ '+nf(v/1e9,0,0)+' mld':'€ '+nf(v,0,0)};
+  var CHK='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg>';
+  var PLANF={free:['Live koersen, grafieken en analyses','Oefenhandel met € 10.000','Koersalerts in de app','Leren en badges'],
+    premium:['Alles van Gratis','Pushmeldingen, ook als de app dicht is','Telegram en weekoverzicht per e-mail','Indicator-alerts en nieuws op trefwoord','Volledige track record en marktdata'],
+    pro:['Alles van Premium','Onbeperkt eigen scanners met meldingen','Onbeperkt periodiek kopen en trailing stops','Persoonlijke widgetsleutel','Als eerste nieuwe functies']};
+  document.querySelectorAll('[data-tier]').forEach(function(u){u.innerHTML=PLANF[u.dataset.tier].map(function(f){return '<li>'+CHK+'<span>'+esc(f)+'</span></li>'}).join('')});
+  /* prijzen uit de app, zodra ze in Stripe staan */
+  fetch('/api/billing/plans').then(function(r){return r.ok?r.json():null}).then(function(P){if(!P||!P.plans)return;
+    P.plans.forEach(function(p){if(!p.label)return;var el=document.querySelector('[data-price="'+p.tier+'"]');if(el&&(p.period==='month'))el.innerHTML='<b>'+esc(p.label)+'</b>'+(P.trialDays?'De eerste '+P.trialDays+' dagen gratis':'')})}).catch(function(){});
+  function ring(score){var r=22,c=2*Math.PI*r,f=Math.max(0,Math.min(100,score))/100;
+    return '<svg viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="'+r+'" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="4"/><circle cx="26" cy="26" r="'+r+'" fill="none" stroke="url(#lgm)" stroke-width="4" stroke-linecap="round" stroke-dasharray="'+(c*f)+' '+c+'"/><defs><linearGradient id="lgm" x1="0" x2="1"><stop offset="0" stop-color="#fff"/><stop offset=".5" stop-color="#8b919a"/><stop offset="1" stop-color="#e9ebee"/></linearGradient></defs></svg><b>'+score+'</b>'}
+  var NAMES={BTC:'Bitcoin',ETH:'Ethereum',SOL:'Solana',XRP:'XRP',ADA:'Cardano',DOGE:'Dogecoin'};
+  function load(){fetch('/api/pulse').then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(d){
+      if(!d.prices||!d.prices.length)throw 0;
+      $('#lprices').innerHTML=d.prices.map(function(x){var cl=x.ch>0?'up':x.ch<0?'down':'';return '<div class="pr"><b title="'+esc(NAMES[x.s]||x.s)+'">'+esc(x.s)+'</b><span class="p">'+eur(x.p)+'</span><span class="c '+cl+'">'+pct(x.ch)+'</span></div>'}).join('');
+      var e=d.events&&d.events[0];var ev=$('#lev');
+      if(e){ev.hidden=false;ev.innerHTML='<div class="ring">'+ring(e.score)+'</div><div><small>Belangrijkste gebeurtenis, Impact Score '+e.score+' van 100</small><strong>'+esc(e.title)+'</strong>'+(e.what?'<p>'+esc(e.what)+'</p>':'')+'</div>'}else ev.hidden=true;
+      var st=[];if(d.breadth!=null)st.push(['Stijgers in de top '+d.n,Math.round(d.breadth*100)+'%']);
+      if(d.fng)st.push(['Fear & Greed',d.fng.v+' van 100']);
+      if(d.global&&d.global.btcDom)st.push(['Bitcoin-dominantie',nf(d.global.btcDom,1,1)+'%']);
+      var s=$('#lstats');if(st.length){s.hidden=false;s.innerHTML=st.slice(0,3).map(function(x){return '<div>'+esc(x[0])+'<b>'+esc(x[1])+'</b></div>'}).join('')}
+      $('#livets').textContent='bijgewerkt '+new Date(d.t).toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'});
+    }).catch(function(){var l=$('.live');if(l&&!l.dataset.ok){$('#lprices').innerHTML='<p style="margin:6px 0;color:var(--muted);font-size:14px">De live koersen laden even niet. In de app zie je ze wel.</p>'}})}
+  load();setInterval(function(){if(!document.hidden)load()},60000);
+  var top=$('#top');var on=function(){top.classList.toggle('scrolled',scrollY>8)};addEventListener('scroll',on,{passive:true});on();
+})();
+</script>
+</body>
+</html>

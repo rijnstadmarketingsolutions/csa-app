@@ -22,7 +22,7 @@ export async function checkout(env, user, origin, body = {}) {
   const u = await env.DB.prepare('SELECT trial_used FROM users WHERE id=?').bind(user.user_id).first(); const days = +(env.TRIAL_DAYS || 7); const trial = !u?.trial_used && days > 0;
   const s = await stripe(env, '/checkout/sessions', {
     mode: 'subscription', 'line_items[0][price]': price, 'line_items[0][quantity]': 1,
-    success_url: origin + '/#premium-ok', cancel_url: origin + '/#premium',
+    success_url: origin + '/app#premium-ok', cancel_url: origin + '/app#premium',
     client_reference_id: user.user_id, ...(user.stripe_customer ? { customer: user.stripe_customer } : { customer_email: user.email }),
     'subscription_data[metadata][user_id]': user.user_id, 'subscription_data[metadata][tier]': tier, 'metadata[tier]': tier,
     ...(trial ? { 'subscription_data[trial_period_days]': days } : {}), allow_promotion_codes: true, locale: 'nl'
@@ -33,7 +33,7 @@ export async function checkout(env, user, origin, body = {}) {
 export async function portal(env, user, origin) {
   if (!stripeReady(env)) return err(503, 'Betalen is nog niet gekoppeld.');
   if (!user.stripe_customer) return err(400, 'Nog geen abonnement.');
-  const s = await stripe(env, '/billing_portal/sessions', { customer: user.stripe_customer, return_url: origin + '/#premium' });
+  const s = await stripe(env, '/billing_portal/sessions', { customer: user.stripe_customer, return_url: origin + '/app#premium' });
   return json({ url: s.url });
 }
 /** Controleert de Stripe-handtekening (t=…,v1=…) en verwerkt abonnementsgebeurtenissen. */

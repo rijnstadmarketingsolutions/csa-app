@@ -53,3 +53,5 @@ OV.B.prices.live=function(el){const c=OV.cfg();const L=c.prices.map(ovA).filter(
 {const oh=Pages.overzicht.html;Pages.overzicht.html=function(){return oh.call(this).replace('<div class="phead">','<div class="phead ovhead">')}}
 /* impact-feed op het overzicht: de drie belangrijkste */
 {const ol=OV.B.impact.live;OV.B.impact.live=function(el,kind){const b=$('#dimp',el);if(!b||(kind!=='calc'&&b.dataset.f))return;b.dataset.f=1;const ev=[...S.events.values()].sort((a,b)=>b.score-a.score||b.first-a.first).slice(0,3);b.innerHTML=ev.length?ev.map(e=>impRow(e)).join(''):`<div class="empty">Nog geen gebeurtenissen boven de drempel. Vantis meldt pas iets als data daar aanleiding toe geeft.</div>`}}
+/* vanaf de landingspagina: "Gratis account maken" opent direct het registratieformulier */
+if(/[?&]start=register\b/.test(location.search)&&!(Api&&Api.authed)){const go=()=>{const b=$('#toreg');if(b&&!b.closest('.hidden'))b.click()};setTimeout(go,60);try{history.replaceState(null,'',location.pathname+location.hash)}catch(e){}}

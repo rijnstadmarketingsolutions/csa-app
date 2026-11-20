@@ -121,7 +121,7 @@ async function api(req, env, ctx, url) {
     if (m === 'DELETE') { await env.DB.prepare('DELETE FROM push_subs WHERE endpoint=? AND user_id=?').bind(b.endpoint || '', s.user_id).run(); return json({ ok: true }); } }
   if (p === '/api/push/test' && m === 'POST') { if (!s) return needAuth();
     const subs = (await env.DB.prepare('SELECT * FROM push_subs WHERE user_id=?').bind(s.user_id).all()).results; if (!subs.length) return err(400, 'Dit account heeft nog geen apparaat voor pushmeldingen.');
-    const res = []; for (const sub of subs) { const r = await sendPush(env, sub, { title: 'Vantis testmelding', body: 'Pushmeldingen werken. Zo krijg je straks belangrijke marktgebeurtenissen binnen.', url: '/#impact', tag: 'test' }); res.push(r); if (r === 'gone') await env.DB.prepare('DELETE FROM push_subs WHERE endpoint=?').bind(sub.endpoint).run(); }
+    const res = []; for (const sub of subs) { const r = await sendPush(env, sub, { title: 'Vantis testmelding', body: 'Pushmeldingen werken. Zo krijg je straks belangrijke marktgebeurtenissen binnen.', url: '/app#impact', tag: 'test' }); res.push(r); if (r === 'gone') await env.DB.prepare('DELETE FROM push_subs WHERE endpoint=?').bind(sub.endpoint).run(); }
     return json({ results: res }); }
 
   /* ---------- marktdata (openbaar) ---------- */
@@ -129,6 +129,15 @@ async function api(req, env, ctx, url) {
     const st = await loadState(env, ['tickers', 'extra', 'stocks', 'news']);
     const ev = (await env.DB.prepare('SELECT data FROM events WHERE first>? ORDER BY score DESC LIMIT 60').bind(Date.now() - 2 * DAY).all()).results.map(r => JSON.parse(r.data));
     return json({ t: Date.now(), tickers: st.tickers || null, tickersTs: st.tickersTs || null, extra: st.extra || null, stocks: st.stocks || null, news: st.news || null, events: ev, radar: RADAR }, 200, { 'cache-control': 'public, max-age=20' });
+  }
+  /* compacte openbare marktpols voor de landingspagina */
+  if (p === '/api/pulse' && m === 'GET') {
+    const st = await loadState(env, ['tickers', 'extra']); const L = (st.tickers && st.tickers.list) || [];
+    const prices = ['BTC', 'ETH', 'SOL', 'XRP', 'ADA', 'DOGE'].map(sy => { const x = L.find(y => y.s === sy); return x ? { s: sy, p: x.p, ch: x.o ? (x.p / x.o - 1) * 100 : null } : null; }).filter(Boolean);
+    const top = L.slice(0, 40).filter(x => x.o); const X = st.extra || {};
+    const ev = (await env.DB.prepare('SELECT data FROM events WHERE first>? ORDER BY score DESC LIMIT 3').bind(Date.now() - DAY).all()).results.map(r => { const e = JSON.parse(r.data); return { title: e.title, what: e.what || e.body || null, score: e.score, dir: e.dir, s: e.s || null, first: e.first }; });
+    return json({ t: Date.now(), prices, breadth: top.length ? top.filter(x => x.p > x.o).length / top.length : null, n: top.length,
+      global: X.global ? { cap: X.global.cap, capCh: X.global.capCh, btcDom: X.global.btcDom, src: X.global.src } : null, fng: X.fng && X.fng[0] ? X.fng[0] : null, events: ev }, 200, { 'cache-control': 'public, max-age=60' });
   }
   if (p === '/api/backtest' && m === 'GET') { const r = await kvGet(env, 'backtest'); if (!r) return json({ pending: true });
     const out = r.val; if (s && premiumOnly(env, s) || (!s && env.PREMIUM_ENFORCED === 'true')) return json({ ...out, recent: [], locked: true }); return json(out); }
@@ -243,7 +252,7 @@ async function dispatch(env, fresh, b, state, extra = {}) {
   for (const a of alerts) {
     if (/1h|24h/.test(a.kind) && a.fired && now - a.fired < 6 * HOUR) continue;
     const q = quote(state, a.sym); const ind = IND_KINDS.has(a.kind) && q ? indFor(state, a.sym, q.p) : null; if (!alertHit(a, q, ind)) continue;
-    const t = alertText(a, q, ind); add(a.user_id, { key: 'alert:' + a.id + ':' + now, title: t.title, body: t.body, url: '/#asset-' + a.sym.toLowerCase(), tag: 'alert-' + a.id, cat: 'alert', score: null, force: true });
+    const t = alertText(a, q, ind); add(a.user_id, { key: 'alert:' + a.id + ':' + now, title: t.title, body: t.body, url: '/app#asset-' + a.sym.toLowerCase(), tag: 'alert-' + a.id, cat: 'alert', score: null, force: true });
     ops.push(/1h|24h/.test(a.kind) ? env.DB.prepare('UPDATE price_alerts SET fired=? WHERE id=?').bind(now, a.id) : env.DB.prepare('UPDATE price_alerts SET active=0, fired=? WHERE id=?').bind(now, a.id));
   }
   // 2. gebeurtenissen en herinneringen (gebruikers met pushmeldingen)
@@ -252,12 +261,12 @@ async function dispatch(env, fresh, b, state, extra = {}) {
   for (const [uid, subs] of Object.entries(subsBy)) {
     const r = subs[0]; if (env.PREMIUM_ENFORCED === 'true' && r.plan !== 'premium') continue;
     const st = { ...DEFAULT_SETTINGS, ...JSON.parse(r.settings || '{}') }; const watch = JSON.parse(r.watch || '[]'); const rem = JSON.parse(r.rem || '{}'); const cats = st.cats || {};
-    for (const { e, off } of radarDue) if ((rem[e.id] || []).includes(off)) add(uid, { key: `rem:${e.id}:${off}`, title: `Over ${off >= 60 ? off / 60 + ' uur' : off + ' minuten'}: ${e.title}`, body: new Date(e.t).toLocaleString('nl-NL', { timeZone: 'Europe/Amsterdam', weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }), url: '/#radar', tag: 'rem-' + e.id, cat: 'reminder', force: true });
+    for (const { e, off } of radarDue) if ((rem[e.id] || []).includes(off)) add(uid, { key: `rem:${e.id}:${off}`, title: `Over ${off >= 60 ? off / 60 + ' uur' : off + ' minuten'}: ${e.title}`, body: new Date(e.t).toLocaleString('nl-NL', { timeZone: 'Europe/Amsterdam', weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }), url: '/app#radar', tag: 'rem-' + e.id, cat: 'reminder', force: true });
     if (st.notify !== false && !inQuiet(st)) for (const e of fresh.slice().sort((x, y) => y.score - x.score)) {
       if (e.score < (st.minScore ?? 60) || cats[e.cat] === false) continue;
       if (st.scope === 'watch' && e.s && !watch.includes(e.s)) continue;
       if (sent.has(uid + '|' + e.type + ':' + (e.s || 'market'))) continue;
-      add(uid, { key: e.type + ':' + (e.s || 'market'), title: e.title, body: `Impact ${e.score}/100 · ${e.body}`, url: e.s ? '/#asset-' + e.s.toLowerCase() : '/#impact', tag: e.id, cat: 'impact', score: e.score });
+      add(uid, { key: e.type + ':' + (e.s || 'market'), title: e.title, body: `Impact ${e.score}/100 · ${e.body}`, url: e.s ? '/app#asset-' + e.s.toLowerCase() : '/app#impact', tag: e.id, cat: 'impact', score: e.score });
     }
   }
   // 3. versturen + loggen in het meldingencentrum (push, en Telegram als gekoppeld)
@@ -281,8 +290,8 @@ async function morning(env) {
   const rows = (await env.DB.prepare('SELECT s.endpoint,s.user_id,s.p256dh,s.auth,p.settings,u.plan FROM push_subs s JOIN users u ON u.id=s.user_id LEFT JOIN prefs p ON p.user_id=s.user_id').all()).results;
   const b = budget(45); const ops = []; const logged = new Set(); const now = Date.now();
   for (const r of rows) { const st2 = { ...DEFAULT_SETTINGS, ...JSON.parse(r.settings || '{}') }; if (st2.briefing === false) continue; if (env.PREMIUM_ENFORCED === 'true' && r.plan !== 'premium') continue;
-    if (!logged.has(r.user_id)) { logged.add(r.user_id); ops.push(env.DB.prepare('INSERT OR IGNORE INTO notif(id,user_id,title,body,url,cat,score,t) VALUES(?,?,?,?,?,?,?,?)').bind('brief:' + br.day, r.user_id, 'Ochtendbriefing · ' + br.day, br.headline, '/#briefing', 'briefing', null, now)); }
-    if (!b.take()) continue; const res = await sendPush(env, r, { title: 'Vantis ochtendbriefing', body: br.headline, url: '/#briefing', tag: 'briefing' }).catch(() => 'fail');
+    if (!logged.has(r.user_id)) { logged.add(r.user_id); ops.push(env.DB.prepare('INSERT OR IGNORE INTO notif(id,user_id,title,body,url,cat,score,t) VALUES(?,?,?,?,?,?,?,?)').bind('brief:' + br.day, r.user_id, 'Ochtendbriefing · ' + br.day, br.headline, '/app#briefing', 'briefing', null, now)); }
+    if (!b.take()) continue; const res = await sendPush(env, r, { title: 'Vantis ochtendbriefing', body: br.headline, url: '/app#briefing', tag: 'briefing' }).catch(() => 'fail');
     if (res === 'gone') ops.push(env.DB.prepare('DELETE FROM push_subs WHERE endpoint=?').bind(r.endpoint)); }
   if (tgReady(env)) { const T = (await env.DB.prepare('SELECT t.user_id,t.chat_id,p.settings FROM tg_links t LEFT JOIN prefs p ON p.user_id=t.user_id').all()).results;
     for (const r of T) { const st2 = JSON.parse(r.settings || '{}'); if (st2.briefing === false || (st2.tgOff || []).includes('briefing') || !b.take()) continue;
