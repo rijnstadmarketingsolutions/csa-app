@@ -77,12 +77,13 @@ async function fromKraken(b) {
 /* ---------- losse koers voor één coin die de hoofdbron niet heeft ---------- */
 export async function lookupPrice(env, sym, b, usdt) {
   const BV = env.BV_BASE || BV_DEFAULT; const tried = {};
-  const viaUsdt = r => { if (!usdt) throw new Error('geen USDT→EUR-koers'); return { p: r.p * usdt, o: r.o ? r.o * usdt : null, h: r.h ? r.h * usdt : null, l: r.l ? r.l * usdt : null, vq: (r.vq || 0) * usdt }; };
+  const rate = async () => { if (usdt) return usdt; const j = await getJSON('https://api.kraken.com/0/public/Ticker?pair=USDTEUR', b); const v = Object.values(j.result || {})[0]; usdt = v ? +v.c[0] : null; return usdt; };
+  const viaUsdt = async r => { await rate().catch(() => null); if (!usdt) throw new Error('geen USDT→EUR-koers'); return { p: r.p * usdt, o: r.o ? r.o * usdt : null, h: r.h ? r.h * usdt : null, l: r.l ? r.l * usdt : null, vq: (r.vq || 0) * usdt }; };
   const srcs = [
     ['Bitvavo', async () => { const d = await getJSON(`${BV}/ticker/24h?market=${sym}-EUR`, b); if (d.last == null) throw new Error('geen koers'); return { p: +d.last, o: +d.open || null, h: +d.high || null, l: +d.low || null, vq: +d.volumeQuote || 0 }; }],
-    ['Gate', async () => { const [d] = await getJSON(`https://api.gateio.ws/api/v4/spot/tickers?currency_pair=${sym}_USDT`, b); if (!d || !(+d.last)) throw new Error('niet genoteerd'); const p = +d.last, ch = +d.change_percentage; return viaUsdt({ p, o: isFinite(ch) ? p / (1 + ch / 100) : null, h: +d.high_24h, l: +d.low_24h, vq: +d.quote_volume }); }],
-    ['MEXC', async () => { const d = await getJSON(`https://api.mexc.com/api/v3/ticker/24hr?symbol=${sym}USDT`, b); if (!(+d.lastPrice)) throw new Error('niet genoteerd'); return viaUsdt({ p: +d.lastPrice, o: +d.openPrice || null, h: +d.highPrice, l: +d.lowPrice, vq: +d.quoteVolume }); }],
-    ['OKX', async () => { const j = await getJSON(`https://www.okx.com/api/v5/market/ticker?instId=${sym}-USDT`, b); const d = j.data && j.data[0]; if (!d || !(+d.last)) throw new Error(j.msg || 'niet genoteerd'); return viaUsdt({ p: +d.last, o: +d.open24h || null, h: +d.high24h, l: +d.low24h, vq: (+d.volCcy24h || 0) }); }],
+    ['Gate', async () => { const [d] = await getJSON(`https://api.gateio.ws/api/v4/spot/tickers?currency_pair=${sym}_USDT`, b); if (!d || !(+d.last)) throw new Error('niet genoteerd'); const p = +d.last, ch = +d.change_percentage; return await viaUsdt({ p, o: isFinite(ch) ? p / (1 + ch / 100) : null, h: +d.high_24h, l: +d.low_24h, vq: +d.quote_volume }); }],
+    ['MEXC', async () => { const d = await getJSON(`https://api.mexc.com/api/v3/ticker/24hr?symbol=${sym}USDT`, b); if (!(+d.lastPrice)) throw new Error('niet genoteerd'); return await viaUsdt({ p: +d.lastPrice, o: +d.openPrice || null, h: +d.highPrice, l: +d.lowPrice, vq: +d.quoteVolume }); }],
+    ['OKX', async () => { const j = await getJSON(`https://www.okx.com/api/v5/market/ticker?instId=${sym}-USDT`, b); const d = j.data && j.data[0]; if (!d || !(+d.last)) throw new Error(j.msg || 'niet genoteerd'); return await viaUsdt({ p: +d.last, o: +d.open24h || null, h: +d.high24h, l: +d.low24h, vq: (+d.volCcy24h || 0) }); }],
   ];
   for (const [name, fn] of srcs) { if (b.left < 1) { tried[name] = 'budget op'; break; } try { const r = await fn(); if (r.p > 0) return { ...r, src: name, u: Date.now(), tried }; tried[name] = 'ongeldige koers'; } catch (e) { tried[name] = String(e.message).slice(0, 120); } }
   return { p: null, tried };
