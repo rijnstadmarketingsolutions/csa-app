@@ -39,8 +39,16 @@ export const FEEDS = [
   ['The Block', 'https://www.theblock.co/rss.xml'],
   ['CNBC Markets', 'https://www.cnbc.com/id/100003114/device/rss/rss.html'],
   ['MarketWatch', 'https://feeds.content.dowjones.io/public/rss/mw_topstories'],
-  ['Nasdaq', 'https://www.nasdaq.com/feed/rssoutbound?category=Markets'],
   ['CryptoSlate', 'https://cryptoslate.com/feed/']
+];
+/* kandidaten die alleen via ?diag=1&probefeeds=1 getest worden (vaste lijst, geen vrije adressen) */
+export const FEED_CANDIDATES = [
+  ['Investing.com', 'https://www.investing.com/rss/news_25.rss'],
+  ['Seeking Alpha', 'https://seekingalpha.com/market_currents.xml'],
+  ['Financial Times', 'https://www.ft.com/markets?format=rss'],
+  ['Nasdaq', 'https://www.nasdaq.com/feed/rssoutbound?category=Markets'],
+  ['Benzinga', 'https://www.benzinga.com/feed'],
+  ['Fortune', 'https://fortune.com/feed/fortune-feeds/?id=3230629']
 ];
 const ENT = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ' };
 const unent = t => t.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').replace(/&(#x?[0-9a-f]+|[a-z]+);/gi, (m, e) => e[0] === '#' ? String.fromCodePoint(e[1] === 'x' || e[1] === 'X' ? parseInt(e.slice(2), 16) : +e.slice(1)) : (ENT[e.toLowerCase()] ?? m));

@@ -9,7 +9,7 @@ jobs:
     steps:
       - name: Status van de 24/7-scanner ophalen
         run: |
-          curl -sS "https://vantis.rijnstadmarketing.workers.dev/api/health?diag=1&probe=MMT,SOL&probestock=NVDA,ASML,SPY" | python3 -m json.tool
+          curl -sS "https://vantis.rijnstadmarketing.workers.dev/api/health?diag=1&probe=MMT,SOL&probestock=NVDA,ASML,SPY&probefeeds=1" | python3 -m json.tool
       - name: Bereikbaarheid koersbronnen vanaf GitHub (ter vergelijking)
         run: |
           for u in "https://api.bitvavo.com/v2/ticker/price?market=BTC-EUR" "https://api.coingecko.com/api/v3/ping" "https://api.kraken.com/0/public/Time"; do
