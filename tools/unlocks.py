@@ -1,6 +1,6 @@
 """Bouwt een compacte unlock-kalender uit de open DefiLlama-dataset (dagelijks via GitHub Actions).
 Schrijft tools/unlocks.sql met één kv-regel ('unlocks') voor de D1-database."""
-import json, time, urllib.request, sys
+import json, time, urllib.request, sys, re
 BASE = 'https://defillama-datasets.llama.fi'
 # DefiLlama-slug -> symbool zoals op Bitvavo/CSA
 MAP = {'arbitrum-foundation': 'ARB', 'arbitrum': 'ARB', 'optimism-foundation': 'OP', 'aptos': 'APT', 'sui-foundation': 'SUI', 'avalanche': 'AVAX', 'worldcoin': 'WLD', 'jupiter': 'JUP',
@@ -34,25 +34,32 @@ for slug, sym in MAP.items():
   if slug not in slugs: continue
   try: d = get('/emissions/' + slug)
   except Exception as e: print('fout', slug, e, file=sys.stderr); continue
-  found = find_events(d)
-  if slug in ('arbitrum-foundation', 'arbitrum', 'aptos', 'sui-foundation'): print('debug', slug, [(p, len(v), min(float(x.get('timestamp') or 0) for x in v), max(float(x.get('timestamp') or 0) for x in v)) for p, v in found][:6], list(d.keys())[:12])
-  ev = [e for _, v in found for e in v];
-  if slug=='arbitrum-foundation':
-    win=[e for e in ev if lo <= float(e.get('timestamp') or 0) <= hi]; print('debug2', len(win), json.dumps(win[:2])[:900], 'lo', lo, 'hi', hi)
+  ev = [e for _, v in find_events(d) for e in v]
   sm = (d.get('supplyMetrics') or {}); mx = sm.get('maxSupply') or sm.get('adjustedSupply')
   try: mx = float(mx) if mx else None
   except (TypeError, ValueError): mx = None
-  n = 0
+  grp = {}
   for e in ev:
     try: t = float(e.get('timestamp') or 0)
     except (TypeError, ValueError): continue
     if not (lo <= t <= hi): continue
-    try: cliff = float((e.get('summary') or {}).get('totalTokensCliff') or 0)
-    except (TypeError, ValueError): cliff = 0
-    if cliff <= 0: continue
-    al = e.get('cliffAllocations') or []
-    out.append({'sym': sym, 'name': d.get('name') or slug, 't': int(t * 1000), 'tokens': round(cliff, 2), 'max': mx,
-      'cats': sorted({a.get('category') for a in al if a.get('category')}), 'to': sorted({a.get('recipient') for a in al if a.get('recipient')})[:4]})
+    if (e.get('unlockType') or 'cliff') != 'cliff': continue
+    toks = e.get('noOfTokens')
+    try: amt = sum(float(x) for x in toks) if isinstance(toks, list) else float(toks or 0)
+    except (TypeError, ValueError): amt = 0
+    if not amt and e.get('summary'): amt = float((e.get('summary') or {}).get('totalTokensCliff') or 0)
+    if amt <= 0: continue
+    g = grp.setdefault(int(t // 86400), {'t': t, 'tokens': 0, 'cats': set(), 'to': set()})
+    g['tokens'] += amt
+    if e.get('category'): g['cats'].add(e['category'])
+    for al in (e.get('cliffAllocations') or []):
+      if al.get('category'): g['cats'].add(al['category'])
+      if al.get('recipient'): g['to'].add(al['recipient'])
+    m = re.search(r'of (.+?) tokens will', e.get('description') or '')
+    if m: g['to'].add(m.group(1))
+  n = 0
+  for g in grp.values():
+    out.append({'sym': sym, 'name': d.get('name') or slug, 't': int(g['t'] * 1000), 'tokens': round(g['tokens'], 2), 'max': mx, 'cats': sorted(g['cats']), 'to': sorted(g['to'])[:4]})
     n += 1
   done.append(f'{sym}:{n}')
 out.sort(key=lambda x: x['t']); out = out[:400]
