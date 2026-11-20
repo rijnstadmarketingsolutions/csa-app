@@ -6,7 +6,7 @@ import { refreshMarket, lookupPrice, lookupStock, usdPerEur, analyse, detect, ba
 import { checkout, portal, webhook, stripeReady } from './billing.js';
 import { handlePaper, paperCron, paperNeed } from './paper.js';
 
-const VERSION = '1.3.0';
+const VERSION = '1.4.0';
 const NATIVE_ORIGINS = ['capacitor://localhost', 'http://localhost', 'https://localhost', 'ionic://localhost'];
 const DEFAULT_SETTINGS = { notify: true, briefing: true, minScore: 60, scope: 'all', quiet: false, quietFrom: '23:00', quietTo: '07:00', cats: {} };
 const EMAIL_RX = /^[^@\s]{1,64}@[^@\s]{1,190}\.[^@\s]{2,}$/;
@@ -136,7 +136,7 @@ async function api(req, env, ctx, url) {
   if (pm && m === 'DELETE') { if (!s) return needAuth(); await env.DB.prepare('DELETE FROM positions WHERE id=? AND user_id=?').bind(+pm[1], s.user_id).run(); return json({ ok: true }); }
 
   /* ---------- oefenportefeuille (virtueel geld, koersen van de server) ---------- */
-  if (p.startsWith('/api/paper') || p === '/api/quote') { if (!s && p !== '/api/quote') return needAuth();
+  if (p.startsWith('/api/paper') || p === '/api/quote' || p === '/api/board' || p === '/api/history') { if (!s && p !== '/api/quote' && p !== '/api/history') return needAuth();
     const r = await handlePaper(req, env, s || {}, p, m, url); if (r) return r; }
 
   /* ---------- koersalerts ---------- */

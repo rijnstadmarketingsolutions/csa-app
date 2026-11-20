@@ -38,20 +38,21 @@ const PT={P:null,q:{},err:'',
     if(!(price>0))throw new Error('Geen geldige koers.');
     if(o.side==='buy'){eur=r2(o.eur!=null?o.eur:o.qty*price);if(!(eur>=1))throw new Error('Minimaal € 1.');fee=r2(eur*F);if(eur+fee>P.cash+1e-9)throw new Error(`Onvoldoende virtueel saldo: je hebt ${eur2(P.cash)}, nodig is ${eur2(eur+fee)} inclusief 0,25% kosten.`);qty=eur/price;h.qty+=qty;h.cost+=eur+fee;h.k=kind;P.cash-=eur+fee;P.holdings[o.sym]=h}
     else{if(!h.qty)throw new Error(`Je hebt geen ${o.sym} in je oefenportefeuille.`);qty=o.all?h.qty:o.qty!=null?o.qty:o.eur/price;if(qty>h.qty*(1+1e-6))throw new Error(`Je hebt maar ${qtyFmt(h.qty)} ${o.sym}.`);qty=Math.min(qty,h.qty);eur=r2(qty*price);fee=r2(eur*F);const basis=h.cost*(qty/h.qty);pnl=r2(eur-fee-basis);h.cost-=basis;h.qty-=qty;P.cash+=eur-fee;if(h.qty<1e-12||h.qty*price<.005)delete P.holdings[o.sym];else P.holdings[o.sym]=h}
-    P.realized+=pnl||0;P.fees+=fee;const t={id:Date.now()+Math.random(),sym:o.sym,kind,side:o.side,eur,qty,price,fee,pnl,src:q.src||null,via,t:Date.now()};P.trades.unshift(t);P.hist.push({t:t.t,value:Math.round(pfCalc(P).tot*100)/100});return t},
+    P.realized+=pnl||0;P.fees+=fee;const t={id:Date.now()+Math.random(),sym:o.sym,kind,side:o.side,eur,qty,price,fee,pnl,src:q.src||null,via,t:Date.now(),note:o.note||null};P.trades.unshift(t);P.hist.push({t:t.t,value:Math.round(pfCalc(P).tot*100)/100,btc:S.crypto.get('BTC')?.price??null});return t},
   locOrder(b){const P=this.loc();const kind=b.kind||'crypto';const q=this.px(b.sym,kind);const type=b.type||'market';P.notes=[];P.last=null;P.placed=null;
     if(type==='market'){if(!q)throw new Error('Geen actuele koers voor '+b.sym);const t=this.exec(P,b,q,'market');P.last=t;
       if(b.side==='buy'){const legs=[];if(b.tp&&b.tp>t.price)legs.push(['limit',+b.tp,'Winst nemen']);if(b.sl&&b.sl<t.price)legs.push(['stop',+b.sl,'Stop-loss']);const oco=legs.length>1?Date.now():null;
         legs.forEach(([ty,lvl,note],i)=>P.orders.unshift({id:Date.now()+i+1,sym:b.sym,kind,type:ty,side:'sell',qty:t.qty,eur:null,allq:0,lvl,oco,status:'open',created:Date.now(),note}))}
       this.save(P);return P}
+    if(type==='trail'){if(!q)throw new Error('Geen actuele koers.');if(!P.holdings[b.sym])throw new Error(`Je hebt geen ${b.sym} om te verkopen.`);const lvl=q.p*(1-b.trail/100);P.orders.unshift({id:Date.now(),sym:b.sym,kind,type:'trail',side:'sell',eur:b.eur??null,qty:b.qty??null,allq:b.all?1:0,lvl,trail:b.trail,peak:q.p,oco:null,status:'open',created:Date.now(),note:'Trailing stop'});P.placed={sym:b.sym,type,side:'sell',lvl,trail:b.trail};this.save(P);return P}
     if(!(b.lvl>0))throw new Error('Vul de koers in waarop de order moet worden uitgevoerd.');
     if(b.side==='sell'&&!P.holdings[b.sym])throw new Error(`Je hebt geen ${b.sym} om te verkopen.`);
     if(q&&type==='stop'&&(b.side==='sell'?q.p<=b.lvl:q.p>=b.lvl))throw new Error(`De koers (${eur(q.p)}) staat al ${b.side==='sell'?'onder':'boven'} dit stopniveau.`);
     if(q&&type==='limit'&&(b.side==='buy'?q.p<=b.lvl:q.p>=b.lvl)){P.last=this.exec(P,b,q,'limit');P.notes=['De limiet was meteen haalbaar, dus de order is direct uitgevoerd tegen de marktkoers.'];this.save(P);return P}
     P.orders.unshift({id:Date.now(),sym:b.sym,kind,type,side:b.side,eur:b.eur??null,qty:b.qty??null,allq:b.all?1:0,lvl:b.lvl,oco:null,status:'open',created:Date.now(),note:null});P.placed={sym:b.sym,type,side:b.side,lvl:b.lvl};this.save(P);return P},
   checkLocal(){const P=this.P;if(Api.authed||!P||!P.local)return;let ch=false;
-    for(const o of P.orders.filter(x=>x.status==='open')){const q=this.px(o.sym,o.kind);if(!q)continue;const hit=o.type==='limit'?(o.side==='buy'?q.p<=o.lvl:q.p>=o.lvl):(o.side==='buy'?q.p>=o.lvl:q.p<=o.lvl);if(!hit)continue;ch=true;
-      try{const t=this.exec(P,{sym:o.sym,kind:o.kind,side:o.side,eur:o.eur,qty:o.qty,all:!!o.allq},q,o.note==='Stop-loss'?'stop-loss':o.note==='Winst nemen'?'take-profit':o.type);o.status='filled';o.done=Date.now();o.price=t.price;
+    for(const o of P.orders.filter(x=>x.status==='open')){const q=this.px(o.sym,o.kind);if(!q)continue;if(o.type==='trail'&&q.p>(o.peak||0)){o.peak=q.p;o.lvl=q.p*(1-o.trail/100);ch=true}const hit=o.type==='trail'?q.p<=o.lvl:o.type==='limit'?(o.side==='buy'?q.p<=o.lvl:q.p>=o.lvl):(o.side==='buy'?q.p>=o.lvl:q.p<=o.lvl);if(!hit)continue;ch=true;
+      try{const t=this.exec(P,{sym:o.sym,kind:o.kind,side:o.side,eur:o.eur,qty:o.qty,all:!!o.allq},q,o.type==='trail'?'trailing':o.note==='Stop-loss'?'stop-loss':o.note==='Winst nemen'?'take-profit':o.type);o.status='filled';o.done=Date.now();o.price=t.price;
         if(o.oco)P.orders.filter(x=>x.oco===o.oco&&x.id!==o.id&&x.status==='open').forEach(x=>{x.status='cancelled';x.done=Date.now();x.note=(x.note||'')+' · vervallen'});
         Alerts.push({id:'order:'+o.id,cat:'order',force:true,href:'#handel',title:`${ordLbl(o)} uitgevoerd: ${o.side==='buy'?'koop':'verkoop'} ${o.sym}`,body:`${qtyFmt(t.qty)} ${o.sym} tegen ${eur(t.price)}${t.pnl!=null?' · resultaat '+sgnEur(t.pnl):''} · oefengeld`})}
       catch(e){o.status='failed';o.done=Date.now();o.note=e.message}}
@@ -59,7 +60,7 @@ const PT={P:null,q:{},err:'',
     if(ch){this.save(P);if(UI.cur==='handel'&&UI.el)Pages.handel.live(UI.el,null,'calc')}}
 };
 setInterval(()=>PT.checkLocal(),20000);
-const ordLbl=o=>o.note==='Stop-loss'?'Stop-loss':o.note==='Winst nemen'?'Winst nemen':o.type==='limit'?(o.side==='buy'?'Limiet koop':'Limiet verkoop'):(o.side==='buy'?'Stop koop':'Stop verkoop');
+const ordLbl=o=>o.type==='trail'?`Trailing ${nlN(o.trail,1)}%`:o.note==='Stop-loss'?'Stop-loss':o.note==='Winst nemen'?'Winst nemen':o.type==='limit'?(o.side==='buy'?'Limiet koop':'Limiet verkoop'):(o.side==='buy'?'Stop koop':'Stop verkoop');
 
 function pfCalc(P){
   const rows=Object.entries(P.holdings||{}).map(([sym,h])=>{const kind=h.k||'crypto';const a=getAsset(sym);const q=PT.px(sym,kind);const p=q?.p??null;const v=p!=null?p*h.qty:null;const res=v!=null?v-h.cost:null;
@@ -79,16 +80,16 @@ function assetChoices(q){q=(q||'').trim().toLowerCase();const held=new Set(Objec
   const m=a=>!q||a.sym.toLowerCase().startsWith(q)||a.name.toLowerCase().includes(q);
   return {held:[...cr,...st].filter(a=>held.has(a.sym)&&m(a)),crypto:cr.filter(m).slice(0,q?40:25),stocks:st.filter(m)}}
 const Ticket={
-  mount(box,o={}){const st={sym:o.sym||'BTC',kind:o.kind||kindOf(o.sym||'BTC'),side:o.side||'buy',type:o.type||'market',unit:'eur',amt:o.amt||'',all:false,lvl:o.lvl||'',tp:'',sl:'',tpsl:false,confirm:false,busy:false,fixed:!!o.fixed,compact:!!o.compact,pick:false,pq:''};
+  mount(box,o={}){const st={sym:o.sym||'BTC',kind:o.kind||kindOf(o.sym||'BTC'),side:o.side||'buy',type:o.type||'market',unit:'eur',amt:o.amt||'',all:false,lvl:o.lvl||'',trail:'5',note:'',shownote:false,tp:'',sl:'',tpsl:false,confirm:false,busy:false,fixed:!!o.fixed,compact:!!o.compact,pick:false,pq:''};
     box._tk=st;box.classList.add('tk');this.render(box);PT.quote(st.sym,st.kind).then(()=>this.refresh(box));
     box.addEventListener('click',e=>this.click(box,e));box.addEventListener('input',e=>this.input(box,e));box.addEventListener('keydown',e=>{if(e.key==='Escape'&&st.pick){st.pick=false;this.render(box)}});
     if(!PT.P)PT.load().then(()=>this.refresh(box));return st},
   set(box,patch){Object.assign(box._tk,patch,{confirm:false});if(patch.sym){box._tk.kind=patch.kind||kindOf(patch.sym);PT.quote(box._tk.sym,box._tk.kind).then(()=>this.refresh(box))}this.render(box)},
   calc(st){const P=PT.P||{cash:0,holdings:{},fee:.0025};const q=PT.px(st.sym,st.kind);const p=q?.p??null;const h=P.holdings?.[st.sym];const F=P.fee??.0025;
-    const lvl=numIn(st.lvl);const exP=st.type==='market'?p:lvl;const amt=numIn(st.amt);let eurV=null,qty=null;
+    const tr=numIn(st.trail);const lvl=st.type==='trail'?(p&&tr?p*(1-tr/100):null):numIn(st.lvl);const exP=st.type==='market'?p:lvl;const amt=numIn(st.amt);let eurV=null,qty=null;
     if(st.side==='sell'&&st.all){qty=h?.qty??0;eurV=exP?qty*exP:null}else if(st.unit==='eur'){eurV=amt;qty=exP&&amt?amt/exP:null}else{qty=amt;eurV=exP&&amt?amt*exP:null}
     const fee=eurV!=null?eurV*F:null;const total=eurV!=null?(st.side==='buy'?eurV+fee:eurV-fee):null;let errm='';
-    if(st.type!=='market'&&!(lvl>0))errm='Vul de koers in waarop de order moet worden uitgevoerd.';
+    if(st.type==='trail'&&!(tr>=.5&&tr<=50))errm='Kies een afstand tussen 0,5% en 50%.';else if(st.type==='trail'&&p==null)errm='Nog geen koers voor deze asset; even geduld.';else if(st.type!=='market'&&st.type!=='trail'&&!(lvl>0))errm='Vul de koers in waarop de order moet worden uitgevoerd.';
     else if(!st.all&&!(amt>0))errm='';
     else if(st.side==='buy'&&eurV!=null&&eurV<1)errm='Minimaal € 1.';
     else if(st.side==='buy'&&total!=null&&total>P.cash+1e-9)errm=`Onvoldoende saldo: je hebt ${eur2(P.cash)} vrij.`;
@@ -98,8 +99,8 @@ const Ticket={
     if(!errm&&st.type==='stop'&&p!=null&&lvl>0&&(st.side==='sell'?p<=lvl:p>=lvl))errm=`De koers staat al ${st.side==='sell'?'onder':'boven'} dit stopniveau.`;
     const ready=!errm&&(st.all||amt>0)&&(st.type==='market'?p!=null:lvl>0);
     const tp=numIn(st.tp),sl=numIn(st.sl);
-    return {P,q,p,h,F,lvl,exP,eurV,qty,fee,total,errm,ready,tp,sl,cashAfter:total!=null?(st.side==='buy'?P.cash-total:P.cash+total):null,posAfter:h||qty?((h?.qty||0)+(st.side==='buy'?1:-1)*(qty||0)):null}},
-  typeHelp(st){return st.type==='market'?'Direct uitvoeren tegen de actuele koers.':st.type==='limit'?(st.side==='buy'?'Koopt pas als de koers daalt tot jouw prijs of lager.':'Verkoopt pas als de koers stijgt tot jouw prijs of hoger.'):(st.side==='buy'?'Koopt zodra de koers stijgt tot dit niveau (doorbraak).':'Stop-loss: verkoopt zodra de koers daalt tot dit niveau.')},
+    return {P,q,p,h,F,lvl,tr,exP,eurV,qty,fee,total,errm,ready,tp,sl,cashAfter:total!=null?(st.side==='buy'?P.cash-total:P.cash+total):null,posAfter:h||qty?((h?.qty||0)+(st.side==='buy'?1:-1)*(qty||0)):null}},
+  typeHelp(st){return st.type==='trail'?'Verkoopt zodra de koers dit percentage onder de hoogste koers sinds nu zakt. Stijgt de koers, dan schuift de stop mee omhoog.':st.type==='market'?'Direct uitvoeren tegen de actuele koers.':st.type==='limit'?(st.side==='buy'?'Koopt pas als de koers daalt tot jouw prijs of lager.':'Verkoopt pas als de koers stijgt tot jouw prijs of hoger.'):(st.side==='buy'?'Koopt zodra de koers stijgt tot dit niveau (doorbraak).':'Stop-loss: verkoopt zodra de koers daalt tot dit niveau.')},
   render(box){const st=box._tk;const a=getAsset(st.sym);const buy=st.side==='buy';const lvlLbl=st.type==='limit'?(buy?'Koop als de koers daalt tot':'Verkoop als de koers stijgt tot'):(buy?'Koop als de koers stijgt tot':'Verkoop als de koers daalt tot');
     const rel=buy===(st.type==='limit')?[-1,-2,-5,-10]:[1,2,5,10];
     box.innerHTML=`<div class="tkside" role="tablist"><button data-side="buy" class="${buy?'on buy':''}" role="tab" aria-selected="${buy}">Kopen</button><button data-side="sell" class="${!buy?'on sell':''}" role="tab" aria-selected="${!buy}">Verkopen</button></div>
@@ -107,12 +108,14 @@ const Ticket={
       `<button class="tkpicked btnlike" data-act="pick" aria-haspopup="listbox" aria-expanded="${st.pick}">${a?ab(a):''}<span class="tkn"><b>${esc(a?.name||st.sym)}</b><small>${esc(st.sym)} · ${a?.kind==='stock'?'aandeel':'crypto'}</small></span><span class="tkpx" data-r="px"></span>${ico('down','class="chev"')}</button>
       ${st.pick?`<div class="tkpop"><input class="inp" data-in="pq" placeholder="Zoek op naam of symbool" value="${esc(st.pq)}" autocomplete="off" aria-label="Zoek asset"><div class="tklist" data-r="plist">${this.plist(st)}</div></div>`:''}`}</div>
     <div class="tkpos" data-r="pos"></div>
-    <div class="field"><label>Soort order</label><div class="seg tktype">${[['market','Markt'],['limit','Limiet'],['stop','Stop']].map(([k,l])=>`<button data-type="${k}" class="${st.type===k?'on':''}">${l}</button>`).join('')}</div><div class="tkhelp">${this.typeHelp(st)}</div></div>
-    ${st.type!=='market'?`<div class="field"><label for="tklvl_${box.id}">${lvlLbl}</label><div class="tkin"><span>€</span><input class="inp" id="tklvl_${box.id}" data-in="lvl" inputmode="decimal" value="${esc(st.lvl)}" placeholder="0,00"></div><div class="tkq">${rel.map(r=>`<button data-rel="${r}">${r>0?'+':''}${r}%</button>`).join('')}</div></div>`:''}
+    <div class="field"><label>Soort order</label><div class="seg tktype ${buy?'':'t4'}">${[['market','Markt'],['limit','Limiet'],['stop','Stop'],...(buy?[]:[['trail','Trailing']])].map(([k,l])=>`<button data-type="${k}" class="${st.type===k?'on':''}">${l}</button>`).join('')}</div><div class="tkhelp">${this.typeHelp(st)}</div></div>
+    ${st.type==='trail'?`<div class="field"><label for="tktr_${box.id}">Afstand onder de hoogste koers</label><div class="tkin"><input class="inp" id="tktr_${box.id}" data-in="trail" inputmode="decimal" value="${esc(st.trail)}"><span style="padding-right:12px">%</span></div><div class="tkq">${[3,5,10,15].map(r=>`<button data-trail="${r}" class="${numIn(st.trail)===r?'on':''}">${r}%</button>`).join('')}</div></div>`:''}
+    ${st.type!=='market'&&st.type!=='trail'?`<div class="field"><label for="tklvl_${box.id}">${lvlLbl}</label><div class="tkin"><span>€</span><input class="inp" id="tklvl_${box.id}" data-in="lvl" inputmode="decimal" value="${esc(st.lvl)}" placeholder="0,00"></div><div class="tkq">${rel.map(r=>`<button data-rel="${r}">${r>0?'+':''}${r}%</button>`).join('')}</div></div>`:''}
     <div class="field"><label for="tkamt_${box.id}">${buy?'Bedrag':'Hoeveel verkopen'}</label><div class="tkin"><span>${st.unit==='eur'?'€':esc(st.sym)}</span><input class="inp" id="tkamt_${box.id}" data-in="amt" inputmode="decimal" value="${st.all?'':esc(st.amt)}" placeholder="${st.all?'Alles':'0,00'}"><button class="tkunit" data-act="unit" title="Wissel tussen euro en aantal">${st.unit==='eur'?'in aantal':'in euro'}</button></div>
       <div class="tkq">${(buy?[10,25,50,100]:[25,50,75,100]).map(r=>`<button data-pct="${r}" class="${!buy&&r===100&&st.all?'on':''}">${r===100?'Max':r+'%'}</button>`).join('')}</div></div>
     ${buy&&st.type==='market'?`<div class="tktpsl"><button class="lnk" data-act="tpsl">${st.tpsl?'− ':'+ '}Winst nemen en stop-loss</button>${st.tpsl?`<div class="tkgrid"><div class="field"><label>Winst nemen bij</label><div class="tkin"><span>€</span><input class="inp" data-in="tp" inputmode="decimal" value="${esc(st.tp)}" placeholder="optioneel"></div><div class="tkq">${[5,10,20].map(r=>`<button data-tp="${r}">+${r}%</button>`).join('')}</div></div>
       <div class="field"><label>Stop-loss bij</label><div class="tkin"><span>€</span><input class="inp" data-in="sl" inputmode="decimal" value="${esc(st.sl)}" placeholder="optioneel"></div><div class="tkq">${[3,5,10].map(r=>`<button data-sl="${r}">−${r}%</button>`).join('')}</div></div></div><p class="tkhelp">Wordt er één geraakt, dan vervalt de andere automatisch.</p>`:''}</div>`:''}
+    <div class="tknotew"><button class="lnk" data-act="note">${st.shownote?'− ':'+ '}Notitie voor je dagboek</button>${st.shownote?`<textarea class="inp tknote2" data-in="note" maxlength="280" rows="2" placeholder="Waarom ${buy?'koop':'verkoop'} je dit? Over 30 dagen laat CSA zien hoe het uitpakte.">${esc(st.note)}</textarea>`:''}</div>
     <dl class="tksum" data-r="sum"></dl><div class="tkerr" data-r="err" role="alert"></div>
     <div data-r="go"></div><p class="tknote">Oefengeld · geen echte transactie${Api.authed?' · de CSA-server bepaalt de uitvoerkoers':''}</p>`;
     this.refresh(box);if(st.pick){const i=$('[data-in="pq"]',box);i&&i.focus()}},
@@ -122,15 +125,15 @@ const Ticket={
     set('px',c.p!=null?`<b class="num">${eur(c.p)}</b><small class="num ${cls(c.q?.o?c.p/c.q.o-1:a?.ch24)}">${c.q?.o?pct((c.p/c.q.o-1)*100):a?.ch24!=null?pct(a.ch24):''}</small>`:'<small>koers laden…</small>');
     const h=c.h;const hv=h&&c.p?h.qty*c.p:null;set('pos',h?`<span>Je hebt <b>${qtyFmt(h.qty)} ${esc(st.sym)}</b>${hv!=null?` ≈ ${eur2(hv)}`:''}</span>${hv!=null?`<span class="num ${cls(hv-h.cost)}">${sgnEur(hv-h.cost)} (${pct((hv/h.cost-1)*100)})</span>`:''}`:`<span>Vrij saldo <b>${eur2(c.P.cash)}</b></span>`);
     const srv=PT.q[PT.key(st.sym,st.kind)];const diff=srv&&c.p&&srv!==c.q?Math.abs(srv.p/c.p-1)*100:null;
-    const rows=[[st.type==='market'?'Koers':'Uitvoeren rond',c.exP!=null?`${eur(c.exP)}<small>${st.type==='market'?' · '+esc(c.q?.src||''):' · jouw niveau'}</small>`:'—'],
+    const rows=[[st.type==='market'?'Koers':st.type==='trail'?'Stop nu op':'Uitvoeren rond',c.exP!=null?`${eur(c.exP)}<small>${st.type==='market'?' · '+esc(c.q?.src||''):st.type==='trail'?' · schuift mee':' · jouw niveau'}</small>`:'—'],
       ...(Api.authed&&srv&&st.type==='market'&&diff!=null&&diff>.3?[['Serverkoers',`${eur(srv.p)}<small> · ${esc(srv.src)}</small>`]]:[]),
       ['Aantal',c.qty!=null?`${qtyFmt(c.qty)} ${esc(st.sym)}`:'—'],['Kosten (0,25%)',c.fee!=null?eur2(c.fee):'—'],
       [buy?'Totaal':'Je ontvangt',c.total!=null?`<b>${eur2(c.total)}</b>`:'—'],['Saldo na order',c.cashAfter!=null?eur2(c.cashAfter):eur2(c.P.cash)]];
     if(buy&&st.tpsl&&c.qty&&(c.tp||c.sl)){const base=c.exP;if(c.tp&&base)rows.push(['Bij winst nemen',`<span class="up">${sgnEur(c.qty*c.tp*(1-c.F)-c.total)}</span>`]);if(c.sl&&base)rows.push(['Bij stop-loss',`<span class="down">${sgnEur(c.qty*c.sl*(1-c.F)-c.total)}</span>`])}
     set('sum',rows.map(([k,v])=>`<div><dt>${k}</dt><dd class="num">${v}</dd></div>`).join(''));set('err',c.errm?ico('warn')+esc(c.errm):'');
     const verb=buy?'Koop':'Verkoop';const what=st.all?`alle ${st.sym}`:c.eurV!=null?`${st.sym} voor ${eur2(c.eurV)}`:st.sym;
-    const lbl=st.type==='market'?`${verb} ${what}`:`Plaats ${st.type==='limit'?'limietorder':'stoporder'}: ${verb.toLowerCase()} ${st.all?'alles':c.eurV!=null?eur2(c.eurV):''}`;
-    set('go',st.confirm?`<div class="tkconfirm"><p><b>Weet je het zeker?</b> ${esc(lbl)}${st.type!=='market'?` bij ${eur(c.lvl)}`:''}.</p><div><button class="btn ghost" data-act="no">Annuleren</button><button class="btn ${buy?'gobuy':'gosell'}" data-act="yes" ${st.busy?'disabled':''}>${st.busy?'Bezig…':'Bevestigen'}</button></div></div>`
+    const lbl=st.type==='market'?`${verb} ${what}`:`Plaats ${st.type==='limit'?'limietorder':st.type==='trail'?'trailing stop':'stoporder'}: ${verb.toLowerCase()} ${st.all?'alles':c.eurV!=null?eur2(c.eurV):''}`;
+    set('go',st.confirm?`<div class="tkconfirm"><p><b>Weet je het zeker?</b> ${esc(lbl)}${st.type==='trail'?` op ${nlN(c.tr,1)}% onder de top`:st.type!=='market'?` bij ${eur(c.lvl)}`:''}.</p><div><button class="btn ghost" data-act="no">Annuleren</button><button class="btn ${buy?'gobuy':'gosell'}" data-act="yes" ${st.busy?'disabled':''}>${st.busy?'Bezig…':'Bevestigen'}</button></div></div>`
       :`<button class="btn tkgo ${buy?'gobuy':'gosell'}" data-act="go" ${c.ready?'':'disabled'}>${esc(lbl)}</button>`)},
   input(box,e){const st=box._tk;const k=e.target.dataset.in;if(!k)return;if(k==='pq'){st.pq=e.target.value;const l=$('[data-r="plist"]',box);if(l)l.innerHTML=this.plist(st);return}
     st[k]=e.target.value;if(k==='amt')st.all=false;st.confirm=false;this.refresh(box)},
@@ -139,6 +142,7 @@ const Ticket={
     if(d.type){this.set(box,{type:d.type});return}
     if(d.pickv){st.pick=false;st.pq='';this.set(box,{sym:d.pickv,kind:d.kind,all:false,amt:'',lvl:''});return}
     if(d.rel&&c.p){st.lvl=nlN(c.p*(1+ +d.rel/100),c.p>=100?2:c.p>=1?4:6).replace(/\./g,'');this.render(box);return}
+    if(d.trail){st.trail=d.trail;this.render(box);return}
     if(d.tp&&c.exP){st.tp=nlN(c.exP*(1+ +d.tp/100),c.exP>=100?2:4).replace(/\./g,'');this.render(box);return}
     if(d.sl&&c.exP){st.sl=nlN(c.exP*(1- +d.sl/100),c.exP>=100?2:4).replace(/\./g,'');this.render(box);return}
     if(d.pct){const r=+d.pct/100;if(st.side==='buy'){st.unit='eur';st.amt=nlN(Math.floor(c.P.cash*r/(1+c.F)*100)/100,2).replace(/\./g,'');st.all=false}else{if(!c.h)return;if(r>=1){st.all=true;st.amt=''}else{st.all=false;st.unit='qty';st.amt=qtyFmt(c.h.qty*r).replace(/\./g,'')}}st.confirm=false;this.render(box);return}
@@ -146,15 +150,16 @@ const Ticket={
       case 'pick':st.pick=!st.pick;this.render(box);return;
       case 'unit':{const v=numIn(st.amt);st.unit=st.unit==='eur'?'qty':'eur';if(v&&c.exP)st.amt=st.unit==='qty'?qtyFmt(v/c.exP).replace(/\./g,''):nlN(v*c.exP,2).replace(/\./g,'');this.render(box);return}
       case 'tpsl':st.tpsl=!st.tpsl;this.render(box);return;
+      case 'note':st.shownote=!st.shownote;this.render(box);if(st.shownote)$('[data-in="note"]',box)?.focus();return;
       case 'go':if(!c.ready)return;if(S.settings.confirmOrders===false)return this.submit(box);st.confirm=true;this.refresh(box);return;
       case 'no':st.confirm=false;this.refresh(box);return;
       case 'yes':return this.submit(box)}
   },
   async submit(box){const st=box._tk;const c=this.calc(st);{if(st.busy||!c.ready)return;st.busy=true;this.refresh(box);const amt=numIn(st.amt);
-        const body={sym:st.sym,kind:st.kind,side:st.side,type:st.type,...(st.all?{all:true}:st.unit==='eur'?{eur:amt}:{qty:amt}),...(st.type!=='market'?{lvl:c.lvl}:{}),...(st.side==='buy'&&st.tpsl&&st.type==='market'?{tp:c.tp||null,sl:c.sl||null}:{})};
-        try{const P=await PT.order(body);st.busy=false;st.confirm=false;st.amt='';st.all=false;st.tp='';st.sl='';st.tpsl=false;
+        const body={sym:st.sym,kind:st.kind,side:st.side,type:st.type,...(st.all?{all:true}:st.unit==='eur'?{eur:amt}:{qty:amt}),...(st.type==='trail'?{trail:c.tr}:st.type!=='market'?{lvl:c.lvl}:{}),...(st.note.trim()?{note:st.note.trim()}:{}),...(st.side==='buy'&&st.tpsl&&st.type==='market'?{tp:c.tp||null,sl:c.sl||null}:{})};
+        try{const P=await PT.order(body);st.busy=false;st.confirm=false;st.amt='';st.all=false;st.tp='';st.sl='';st.tpsl=false;st.note='';st.shownote=false;
           if(P.last){const L=P.last;UI.toast({kind:'success',title:`${L.side==='buy'?'Gekocht':'Verkocht'}: ${qtyFmt(L.qty)} ${L.sym}`,body:`Tegen ${eur(L.price)}${L.src?' via '+L.src:''} · ${eur2(L.eur)}${L.pnl!=null?' · resultaat '+sgnEur(L.pnl):''} · oefengeld`,href:'#handel'})}
-          else if(P.placed){const o=P.placed;UI.toast({kind:'success',title:`${o.type==='limit'?'Limietorder':'Stoporder'} geplaatst`,body:`${o.side==='buy'?'Koop':'Verkoop'} ${o.sym} bij ${eur(o.lvl)}. Je krijgt een melding zodra hij is uitgevoerd.`,href:'#handel'})}
+          else if(P.placed){const o=P.placed;UI.toast({kind:'success',title:`${o.type==='limit'?'Limietorder':o.type==='trail'?'Trailing stop':'Stoporder'} geplaatst`,body:o.type==='trail'?`Verkoopt ${o.sym} als de koers ${nlN(o.trail,1)}% onder de top zakt (nu bij ${eur(o.lvl)}).`:`${o.side==='buy'?'Koop':'Verkoop'} ${o.sym} bij ${eur(o.lvl)}. Je krijgt een melding zodra hij is uitgevoerd.`,href:'#handel'})}
           (P.notes||[]).forEach(n=>UI.toast({kind:'info',title:'Let op',body:n}));
           this.render(box);box.dispatchEvent(new CustomEvent('traded',{bubbles:true}))}
         catch(x){st.busy=false;st.confirm=false;this.refresh(box);UI.toast({kind:'error',title:'Order niet uitgevoerd',body:x.message})}}}
