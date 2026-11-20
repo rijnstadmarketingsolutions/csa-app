@@ -802,90 +802,90 @@ summary.lnk{white-space:normal;display:list-item}
 .sw-luxlight{background:radial-gradient(70% 90% at 80% 0%,#fff,transparent 70%),linear-gradient(180deg,#f7f8fa,#e4e7ec)}.sw-luxlight::after{content:"";position:absolute;left:10px;right:10px;top:18px;height:8px;border-radius:4px;background:linear-gradient(135deg,#2b2e34,#9aa0a9 45%,#1c1e22 60%,#7c828c)}
 
 /* ===================== VANTIS: DARK LUXURY ===================== */
-:root[data-skin=luxdark]{--bg:#050505;--bg2:rgba(255,255,255,.045);--bg3:rgba(255,255,255,.08);--panel:rgba(16,16,19,.62);--ink:#F3F4F6;--ink2:#A8ADB6;--ink3:#737985;--line:rgba(255,255,255,.10);--line2:rgba(255,255,255,.17);
+:root:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux]){--bg:#050505;--bg2:rgba(255,255,255,.045);--bg3:rgba(255,255,255,.08);--panel:rgba(16,16,19,.62);--ink:#F3F4F6;--ink2:#A8ADB6;--ink3:#737985;--line:rgba(255,255,255,.10);--line2:rgba(255,255,255,.17);
   --navy:#0A0A0C;--navy2:#141417;--navy3:#C9CDD4;--accent:#E4E6EA;--accentInk:#0A0A0C;--chip:rgba(255,255,255,.065);--focus:#E6E9EE;--up:#3DDC97;--down:#FF5C69;--warn:#F2C14E;--upbg:rgba(61,220,151,.12);--downbg:rgba(255,92,105,.12);--warnbg:rgba(242,193,78,.12);
   --heat0:#141417;--ring-hi:#E6E8EB;--r:10px;--logo-paint:var(--metal);--logo-paint-side:var(--metal);--shadow:inset 0 1px 0 rgba(255,255,255,.07),0 18px 44px rgba(0,0,0,.55);--glass:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.015));--hair:rgba(255,255,255,.14);--glow:rgba(225,230,240,.22);--sheen:rgba(255,255,255,.16);color-scheme:dark}
-:root[data-skin=luxdark] body{background:radial-gradient(1100px 600px at 85% -15%,rgba(205,210,220,.11),transparent 60%),radial-gradient(900px 600px at -15% 110%,rgba(150,160,175,.08),transparent 60%),linear-gradient(180deg,#070708,#050505) fixed}
+:root:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux]) body{background:radial-gradient(1100px 600px at 85% -15%,rgba(205,210,220,.11),transparent 60%),radial-gradient(900px 600px at -15% 110%,rgba(150,160,175,.08),transparent 60%),linear-gradient(180deg,#070708,#050505) fixed}
 
 /* ===================== VANTIS: LIGHT LUXURY ===================== */
-:root[data-skin=luxlight]{--bg:#F3F4F6;--bg2:rgba(20,24,32,.035);--bg3:rgba(20,24,32,.06);--panel:rgba(255,255,255,.66);--ink:#0B0D12;--ink2:#535A65;--ink3:#8A909A;--line:rgba(16,20,28,.08);--line2:rgba(16,20,28,.14);
+:root:is([data-skin=luxlight],[data-skin=arctic]){--bg:#F3F4F6;--bg2:rgba(20,24,32,.035);--bg3:rgba(20,24,32,.06);--panel:rgba(255,255,255,.66);--ink:#0B0D12;--ink2:#535A65;--ink3:#8A909A;--line:rgba(16,20,28,.08);--line2:rgba(16,20,28,.14);
   --navy:#15171B;--navy2:#2A2D33;--navy3:#5E6570;--accent:#15171B;--accentInk:#fff;--chip:rgba(20,24,32,.05);--focus:#3B4049;--upbg:rgba(10,135,84,.09);--downbg:rgba(204,51,64,.08);
   --heat0:#E8EAEE;--ring-hi:#15171B;--r:10px;--metal:linear-gradient(135deg,#2a2d33 0%,#7a808a 28%,#1b1d21 48%,#a2a8b1 68%,#3a3e45 100%);--logo-paint:var(--metal);--logo-paint-side:var(--metal);
   --shadow:inset 0 1px 0 #fff,0 1px 2px rgba(20,24,35,.05),0 14px 36px rgba(20,24,35,.10);--glass:linear-gradient(180deg,rgba(255,255,255,.88),rgba(255,255,255,.58));--hair:rgba(255,255,255,.95);--glow:rgba(120,130,145,.22);--sheen:rgba(255,255,255,.75);color-scheme:light}
-:root[data-skin=luxlight] body{background:radial-gradient(1200px 700px at 85% -10%,#ffffff,transparent 60%),radial-gradient(1000px 650px at -10% 105%,#e2e5ea,transparent 60%),linear-gradient(180deg,#f8f9fa,#eceef1) fixed}
+:root:is([data-skin=luxlight],[data-skin=arctic]) body{background:radial-gradient(1200px 700px at 85% -10%,#ffffff,transparent 60%),radial-gradient(1000px 650px at -10% 105%,#e2e5ea,transparent 60%),linear-gradient(180deg,#f8f9fa,#eceef1) fixed}
 
 /* ===================== gedeeld door beide luxe-stijlen ===================== */
-:is([data-skin=luxdark],[data-skin=luxlight]) body{font-feature-settings:"cv11","ss01","tnum"}
-:is([data-skin=luxdark],[data-skin=luxlight]) :is(.card,.kpi,.plan,.sect,.bd,.opp,.ovaddb,.tkpicked,.fk>div,.wak>div,.ovpfk>div,.tkpos,.ulr .uld,.lrc){background:var(--glass)!important;-webkit-backdrop-filter:blur(18px) saturate(150%);backdrop-filter:blur(18px) saturate(150%);border:1px solid var(--line2)!important;box-shadow:var(--shadow);border-radius:14px}
-:is([data-skin=luxdark],[data-skin=luxlight]) :is(.kpi,.card,.plan,.sect,.bd.on){position:relative;overflow:hidden;isolation:isolate}
-:is([data-skin=luxdark],[data-skin=luxlight]) :is(.kpi,.card,.plan,.sect,.bd.on)::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;background:linear-gradient(115deg,transparent 30%,var(--sheen) 48%,transparent 62%);transform:translateX(-130%);transition:transform .9s cubic-bezier(.2,.7,.2,1)}
-:is([data-skin=luxdark],[data-skin=luxlight]) :is(.kpi,.card:not(.tkcard),.plan,.sect,.bd.on):hover::before{transform:translateX(130%)}
-:is([data-skin=luxdark],[data-skin=luxlight]) :is(.kpi,.plan,.sect,.bd.on):hover{border-color:var(--line2)!important;box-shadow:var(--shadow),0 0 0 1px var(--hair),0 0 34px var(--glow);transform:translateY(-1px);transition:box-shadow .3s,transform .3s}
-:is([data-skin=luxdark],[data-skin=luxlight]) .card.flush{overflow:hidden}
-:is([data-skin=luxdark],[data-skin=luxlight]) h1{background:var(--metal);-webkit-background-clip:text;background-clip:text;color:transparent;letter-spacing:-.02em}
-:is([data-skin=luxdark],[data-skin=luxlight]) .dprice,:is([data-skin=luxdark],[data-skin=luxlight]) .kv{letter-spacing:-.015em}
-:is([data-skin=luxdark],[data-skin=luxlight]) .btn{position:relative;overflow:hidden;border-radius:999px;background:var(--metal);color:var(--accentInk);border:1px solid var(--hair);box-shadow:inset 0 1px 0 rgba(255,255,255,.55),inset 0 -1px 0 rgba(0,0,0,.25),0 6px 18px rgba(0,0,0,.28);font-weight:650;transition:box-shadow .25s,transform .2s,filter .2s}
-:root[data-skin=luxlight] .btn{color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.35);box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 6px 16px rgba(20,24,35,.18)}
-:root[data-skin=luxdark] .btn{text-shadow:0 1px 0 rgba(255,255,255,.4)}
-:is([data-skin=luxdark],[data-skin=luxlight]) .btn::after{content:"";position:absolute;top:0;bottom:0;width:60%;left:-80%;background:linear-gradient(105deg,transparent,rgba(255,255,255,.55),transparent);transform:skewX(-18deg);transition:left .7s cubic-bezier(.2,.7,.2,1);pointer-events:none}
-:is([data-skin=luxdark],[data-skin=luxlight]) .btn:hover{filter:none;transform:translateY(-1px);box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 0 0 1px var(--hair),0 0 28px var(--glow),0 10px 26px rgba(0,0,0,.3)}
-:is([data-skin=luxdark],[data-skin=luxlight]) .btn:hover::after{left:130%}
-:is([data-skin=luxdark],[data-skin=luxlight]) .btn.ghost{background:var(--glass);color:var(--ink);text-shadow:none;border:1px solid var(--line2);box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
-:is([data-skin=luxdark],[data-skin=luxlight]) .btn.ghost:hover{border-color:var(--ink3)}
-:is([data-skin=luxdark],[data-skin=luxlight]) .btn.gobuy{background:linear-gradient(180deg,#4BE3A3,#159a63);color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.25)}
-:is([data-skin=luxdark],[data-skin=luxlight]) .btn.gosell{background:linear-gradient(180deg,#FF7480,#C42A39);color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.25)}
-:is([data-skin=luxdark],[data-skin=luxlight]) .btn[disabled]{opacity:.4;transform:none;box-shadow:none}
-:is([data-skin=luxdark],[data-skin=luxlight]) :is(.inp,.tkin,select.inp){background:var(--bg2);border:1px solid var(--line2);border-radius:10px}
-:is([data-skin=luxdark],[data-skin=luxlight]) .tkin .inp{background:transparent;border:0}
-:is([data-skin=luxdark],[data-skin=luxlight]) :is(.inp,.tkin):focus-within,:is([data-skin=luxdark],[data-skin=luxlight]) .inp:focus{border-color:var(--ink3);box-shadow:0 0 0 3px var(--glow)}
-:is([data-skin=luxdark],[data-skin=luxlight]) .seg{background:var(--bg2);border:1px solid var(--line2);border-radius:999px;padding:2px}
-:is([data-skin=luxdark],[data-skin=luxlight]) .seg button{border:0;border-radius:999px}
-:is([data-skin=luxdark],[data-skin=luxlight]) .seg button.on{background:var(--metal);color:var(--accentInk);box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 2px 8px rgba(0,0,0,.25);font-weight:650}
-:root[data-skin=luxlight] .seg button.on{color:#fff}
-:is([data-skin=luxdark],[data-skin=luxlight]) .chip{border-radius:999px;border:1px solid var(--line2);background:var(--bg2)}
-:is([data-skin=luxdark],[data-skin=luxlight]) .chip.on{background:var(--metal);color:var(--accentInk);border-color:var(--hair)}
-:root[data-skin=luxlight] .chip.on{color:#fff}
-:is([data-skin=luxdark],[data-skin=luxlight]) .tag{border-radius:999px}
-:is([data-skin=luxdark],[data-skin=luxlight]) .tag.navy{background:var(--metal);color:var(--accentInk)}
-:root[data-skin=luxlight] .tag.navy{color:#fff}
-:is([data-skin=luxdark],[data-skin=luxlight]) .side{background:var(--glass);-webkit-backdrop-filter:blur(24px) saturate(150%);backdrop-filter:blur(24px) saturate(150%);border-right:1px solid var(--line2);color:var(--ink)}
-:root[data-skin=luxdark] .side{background:linear-gradient(180deg,rgba(18,18,21,.92),rgba(6,6,7,.94))}
-:is([data-skin=luxdark],[data-skin=luxlight]) .nav a{color:var(--ink2);border-radius:10px}
-:is([data-skin=luxdark],[data-skin=luxlight]) .nav a:hover{background:var(--bg3);color:var(--ink)}
-:is([data-skin=luxdark],[data-skin=luxlight]) .nav a.on{background:var(--bg3);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line2),inset 3px 0 0 var(--ink3)}
-:is([data-skin=luxdark],[data-skin=luxlight]) .nav a.on svg{stroke:url(#vmetal) currentColor}
-:is([data-skin=luxdark],[data-skin=luxlight]) .brand small,:is([data-skin=luxdark],[data-skin=luxlight]) .sidefoot{color:var(--ink3)}
-:is([data-skin=luxdark],[data-skin=luxlight]) .topbar{background:color-mix(in srgb,var(--bg) 70%,transparent);-webkit-backdrop-filter:blur(20px) saturate(160%);backdrop-filter:blur(20px) saturate(160%);border-bottom:1px solid var(--line)}
-:is([data-skin=luxdark],[data-skin=luxlight]) .tape{background:transparent;border-bottom:1px solid var(--line)}
-:is([data-skin=luxdark],[data-skin=luxlight]) .ibtn:hover{background:var(--bg3)}
-:is([data-skin=luxdark],[data-skin=luxlight]) .avatar{background:var(--metal);color:var(--accentInk)}
-:is([data-skin=luxdark],[data-skin=luxlight]) .callout{background:var(--glass);border:1px solid var(--line2);border-left:3px solid var(--ink3);border-radius:12px}
-:is([data-skin=luxdark],[data-skin=luxlight]) .tst{background:var(--glass);-webkit-backdrop-filter:blur(22px) saturate(150%);backdrop-filter:blur(22px) saturate(150%);border-radius:14px}
-:root[data-skin=luxdark] .tst{background:linear-gradient(180deg,rgba(28,28,32,.92),rgba(12,12,14,.94))}
-:is([data-skin=luxdark],[data-skin=luxlight]) #overlay .card{background:var(--panel)!important}
-:root[data-skin=luxdark] #overlay .card{background:linear-gradient(180deg,rgba(26,26,30,.96),rgba(10,10,12,.97))!important}
-:root[data-skin=luxlight] #overlay .card{background:rgba(255,255,255,.95)!important}
-:is([data-skin=luxdark],[data-skin=luxlight]) .scrim{-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
-:is([data-skin=luxdark],[data-skin=luxlight]) table tr:hover td{background:var(--bg2)}
-:is([data-skin=luxdark],[data-skin=luxlight]) .tkside{border-radius:999px;padding:3px;background:var(--bg2)}
-:is([data-skin=luxdark],[data-skin=luxlight]) .tkside button{border-radius:999px;background:transparent}
-:is([data-skin=luxdark],[data-skin=luxlight]) .kbar,.wbar{border-radius:99px}
-:is([data-skin=luxdark],[data-skin=luxlight]) .lg-l{background:radial-gradient(900px 500px at 80% -10%,rgba(210,215,225,.14),transparent 60%),#050505;color:#fff}
-:root[data-skin=luxlight] .lg-l{background:radial-gradient(900px 500px at 80% -10%,#fff,transparent 60%),linear-gradient(180deg,#eef0f3,#dfe2e7);color:var(--ink)}
-:root[data-skin=luxlight] .lg-l :is(li,p){color:var(--ink2)}
-:is([data-skin=luxdark],[data-skin=luxlight]) .tabbar{background:color-mix(in srgb,var(--bg) 72%,transparent);-webkit-backdrop-filter:blur(20px) saturate(160%);backdrop-filter:blur(20px) saturate(160%);border-top:1px solid var(--line2)}
-:is([data-skin=luxdark],[data-skin=luxlight]) ::selection{background:var(--glow)}
-:root[data-skin=luxdark] ::-webkit-scrollbar{width:10px;height:10px}:root[data-skin=luxdark] ::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#5b6068,#2b2e33);border-radius:10px;border:2px solid #050505}:root[data-skin=luxdark] ::-webkit-scrollbar-track{background:#050505}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) body{font-feature-settings:"cv11","ss01","tnum"}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) :is(.card,.kpi,.plan,.sect,.bd,.opp,.ovaddb,.tkpicked,.fk>div,.wak>div,.ovpfk>div,.tkpos,.ulr .uld,.lrc){background:var(--glass)!important;-webkit-backdrop-filter:blur(18px) saturate(150%);backdrop-filter:blur(18px) saturate(150%);border:1px solid var(--line2)!important;box-shadow:var(--shadow);border-radius:14px}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) :is(.kpi,.card,.plan,.sect,.bd.on){position:relative;overflow:hidden;isolation:isolate}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) :is(.kpi,.card,.plan,.sect,.bd.on)::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;background:linear-gradient(115deg,transparent 30%,var(--sheen) 48%,transparent 62%);transform:translateX(-130%);transition:transform .9s cubic-bezier(.2,.7,.2,1)}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) :is(.kpi,.card:not(.tkcard),.plan,.sect,.bd.on):hover::before{transform:translateX(130%)}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) :is(.kpi,.plan,.sect,.bd.on):hover{border-color:var(--line2)!important;box-shadow:var(--shadow),0 0 0 1px var(--hair),0 0 34px var(--glow);transform:translateY(-1px);transition:box-shadow .3s,transform .3s}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .card.flush{overflow:hidden}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) h1{background:var(--metal);-webkit-background-clip:text;background-clip:text;color:transparent;letter-spacing:-.02em}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .dprice,:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .kv{letter-spacing:-.015em}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .btn{position:relative;overflow:hidden;border-radius:999px;background:var(--metal);color:var(--accentInk);border:1px solid var(--hair);box-shadow:inset 0 1px 0 rgba(255,255,255,.55),inset 0 -1px 0 rgba(0,0,0,.25),0 6px 18px rgba(0,0,0,.28);font-weight:650;transition:box-shadow .25s,transform .2s,filter .2s}
+:root:is([data-skin=luxlight],[data-skin=arctic]) .btn{color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.35);box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 6px 16px rgba(20,24,35,.18)}
+:root:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux]) .btn{text-shadow:0 1px 0 rgba(255,255,255,.4)}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .btn::after{content:"";position:absolute;top:0;bottom:0;width:60%;left:-80%;background:linear-gradient(105deg,transparent,rgba(255,255,255,.55),transparent);transform:skewX(-18deg);transition:left .7s cubic-bezier(.2,.7,.2,1);pointer-events:none}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .btn:hover{filter:none;transform:translateY(-1px);box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 0 0 1px var(--hair),0 0 28px var(--glow),0 10px 26px rgba(0,0,0,.3)}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .btn:hover::after{left:130%}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .btn.ghost{background:var(--glass);color:var(--ink);text-shadow:none;border:1px solid var(--line2);box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .btn.ghost:hover{border-color:var(--ink3)}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .btn.gobuy{background:linear-gradient(180deg,#4BE3A3,#159a63);color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.25)}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .btn.gosell{background:linear-gradient(180deg,#FF7480,#C42A39);color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.25)}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .btn[disabled]{opacity:.4;transform:none;box-shadow:none}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) :is(.inp,.tkin,select.inp){background:var(--bg2);border:1px solid var(--line2);border-radius:10px}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .tkin .inp{background:transparent;border:0}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) :is(.inp,.tkin):focus-within,:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .inp:focus{border-color:var(--ink3);box-shadow:0 0 0 3px var(--glow)}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .seg{background:var(--bg2);border:1px solid var(--line2);border-radius:999px;padding:2px}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .seg button{border:0;border-radius:999px}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .seg button.on{background:var(--metal);color:var(--accentInk);box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 2px 8px rgba(0,0,0,.25);font-weight:650}
+:root:is([data-skin=luxlight],[data-skin=arctic]) .seg button.on{color:#fff}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .chip{border-radius:999px;border:1px solid var(--line2);background:var(--bg2)}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .chip.on{background:var(--metal);color:var(--accentInk);border-color:var(--hair)}
+:root:is([data-skin=luxlight],[data-skin=arctic]) .chip.on{color:#fff}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .tag{border-radius:999px}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .tag.navy{background:var(--metal);color:var(--accentInk)}
+:root:is([data-skin=luxlight],[data-skin=arctic]) .tag.navy{color:#fff}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .side{background:var(--glass);-webkit-backdrop-filter:blur(24px) saturate(150%);backdrop-filter:blur(24px) saturate(150%);border-right:1px solid var(--line2);color:var(--ink)}
+:root:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux]) .side{background:linear-gradient(180deg,rgba(18,18,21,.92),rgba(6,6,7,.94))}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .nav a{color:var(--ink2);border-radius:10px}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .nav a:hover{background:var(--bg3);color:var(--ink)}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .nav a.on{background:var(--bg3);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line2),inset 3px 0 0 var(--ink3)}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .nav a.on svg{stroke:url(#vmetal) currentColor}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .brand small,:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .sidefoot{color:var(--ink3)}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .topbar{background:color-mix(in srgb,var(--bg) 70%,transparent);-webkit-backdrop-filter:blur(20px) saturate(160%);backdrop-filter:blur(20px) saturate(160%);border-bottom:1px solid var(--line)}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .tape{background:transparent;border-bottom:1px solid var(--line)}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .ibtn:hover{background:var(--bg3)}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .avatar{background:var(--metal);color:var(--accentInk)}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .callout{background:var(--glass);border:1px solid var(--line2);border-left:3px solid var(--ink3);border-radius:12px}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .tst{background:var(--glass);-webkit-backdrop-filter:blur(22px) saturate(150%);backdrop-filter:blur(22px) saturate(150%);border-radius:14px}
+:root:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux]) .tst{background:linear-gradient(180deg,rgba(28,28,32,.92),rgba(12,12,14,.94))}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) #overlay .card{background:var(--panel)!important}
+:root:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux]) #overlay .card{background:linear-gradient(180deg,rgba(26,26,30,.96),rgba(10,10,12,.97))!important}
+:root:is([data-skin=luxlight],[data-skin=arctic]) #overlay .card{background:rgba(255,255,255,.95)!important}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .scrim{-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) table tr:hover td{background:var(--bg2)}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .tkside{border-radius:999px;padding:3px;background:var(--bg2)}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .tkside button{border-radius:999px;background:transparent}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .kbar,.wbar{border-radius:99px}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .lg-l{background:radial-gradient(900px 500px at 80% -10%,rgba(210,215,225,.14),transparent 60%),#050505;color:#fff}
+:root:is([data-skin=luxlight],[data-skin=arctic]) .lg-l{background:radial-gradient(900px 500px at 80% -10%,#fff,transparent 60%),linear-gradient(180deg,#eef0f3,#dfe2e7);color:var(--ink)}
+:root:is([data-skin=luxlight],[data-skin=arctic]) .lg-l :is(li,p){color:var(--ink2)}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .tabbar{background:color-mix(in srgb,var(--bg) 72%,transparent);-webkit-backdrop-filter:blur(20px) saturate(160%);backdrop-filter:blur(20px) saturate(160%);border-top:1px solid var(--line2)}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) ::selection{background:var(--glow)}
+:root:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux]) ::-webkit-scrollbar{width:10px;height:10px}:root:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux]) ::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#5b6068,#2b2e33);border-radius:10px;border:2px solid #050505}:root:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux]) ::-webkit-scrollbar-track{background:#050505}
 @keyframes vshine{0%{background-position:0% 50%}100%{background-position:200% 50%}}
-:is([data-skin=luxdark],[data-skin=luxlight]) .vword,:is([data-skin=luxdark],[data-skin=luxlight]) .vfull,:is([data-skin=luxdark],[data-skin=luxlight]) .logo{background-size:200% 100%;animation:vshine 9s linear infinite}
-@media (prefers-reduced-motion:reduce){:is([data-skin=luxdark],[data-skin=luxlight]) *{animation:none!important;transition:none!important}}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .vword,:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .vfull,:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .logo{background-size:200% 100%;animation:vshine 9s linear infinite}
+@media (prefers-reduced-motion:reduce){:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) *{animation:none!important;transition:none!important}}
 .skinrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px}
 .bname{font:650 15px/1.1 "Inter Tight",Inter,sans-serif}
 #skinbtn svg{stroke:currentColor;fill:none;stroke-width:1.7}
-:root[data-skin=luxdark] :is(a.link,.lnk,.lg-r a,.card a:not(.btn):not(.tag)){color:#E6E8EB}
-:root[data-skin=luxlight] :is(a.link,.lnk,.lg-r a,.card a:not(.btn):not(.tag)){color:#15171B}
-:root:is([data-skin=luxdark],[data-skin=luxlight]) .side .nav a.on{background:var(--bg3);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line2),inset 3px 0 0 var(--ink3)}
-:root:is([data-skin=luxdark],[data-skin=luxlight]) .sidefoot{border-top-color:var(--line)}
+:root:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux]) :is(a.link,.lnk,.lg-r a,.card a:not(.btn):not(.tag)){color:#E6E8EB}
+:root:is([data-skin=luxlight],[data-skin=arctic]) :is(a.link,.lnk,.lg-r a,.card a:not(.btn):not(.tag)){color:#15171B}
+:root:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .side .nav a.on{background:var(--bg3);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line2),inset 3px 0 0 var(--ink3)}
+:root:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .sidefoot{border-top-color:var(--line)}
 
 /* ===================== v9: overzicht in één oogopslag ===================== */
 .ovhead{margin-bottom:14px}.ovhead h1{font-size:28px}
@@ -925,9 +925,9 @@ summary.lnk{white-space:normal;display:list-item}
 @media (max-width:700px){.glance{grid-template-columns:1fr}.glance>*+*{border-left:0;border-top:1px solid var(--line)}.glance>*{padding:14px 16px}
   .glg{width:92px}.glv>b{font-size:21px}.ovhead h1{font-size:24px}
   .ptiles{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.ptadd{min-height:70px}}
-:is([data-skin=luxdark],[data-skin=luxlight]) .ptile{background:var(--glass);border-color:var(--line2);border-radius:14px;box-shadow:var(--shadow);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px)}
-:is([data-skin=luxdark],[data-skin=luxlight]) .ptile:hover{box-shadow:var(--shadow),0 0 26px var(--glow)}
-:is([data-skin=luxdark],[data-skin=luxlight]) .ptadd{background:transparent;box-shadow:none}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .ptile{background:var(--glass);border-color:var(--line2);border-radius:14px;box-shadow:var(--shadow);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px)}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .ptile:hover{box-shadow:var(--shadow),0 0 26px var(--glow)}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .ptadd{background:transparent;box-shadow:none}
 @media (max-width:700px){
   .ovhead{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:10px}
   .ovhead>div:last-child a.btn{display:none}
@@ -957,8 +957,8 @@ summary.lnk{white-space:normal;display:list-item}
 .achero>*{padding:18px 20px;min-width:0}.achero>*+*{border-left:1px solid var(--line)}
 .aclv{display:flex;gap:14px;align-items:center}
 .aclvn{flex:none;width:56px;height:56px;border-radius:50%;display:grid;place-items:center;font:700 22px/1 "Inter Tight",Inter,sans-serif;background:var(--navy);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.4)}
-:is([data-skin=luxdark],[data-skin=luxlight]) .aclvn{background:var(--metal);color:var(--accentInk)}
-:root[data-skin=luxlight] .aclvn{color:#fff}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .aclvn{background:var(--metal);color:var(--accentInk)}
+:root:is([data-skin=luxlight],[data-skin=arctic]) .aclvn{color:#fff}
 .aclv small,.acst small,.acnext small{display:block;font-size:11.5px;color:var(--ink3)}
 .aclv b{display:block;font-size:18px;margin:1px 0 6px}.aclv span{font-size:12px;color:var(--ink2)}
 .acxp{height:6px;border-radius:9px;background:var(--bg3);overflow:hidden;margin-bottom:5px}.acxp i{display:block;height:100%;background:var(--up);border-radius:9px}
@@ -973,7 +973,7 @@ a.acnext:hover b{text-decoration:underline}
 .acph .chev{width:18px;height:18px;stroke:var(--ink3);fill:none;stroke-width:2}
 .acring{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--up) calc(var(--p)*1%),var(--bg3) 0);position:relative}
 .acring::before{content:"";position:absolute;inset:5px;border-radius:50%;background:var(--panel)}
-:root[data-skin=luxdark] .acring::before{background:#0d0d10}:root[data-skin=luxlight] .acring::before{background:#fff}
+:root:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux]) .acring::before{background:#0d0d10}:root:is([data-skin=luxlight],[data-skin=arctic]) .acring::before{background:#fff}
 .acring b{position:relative;font-size:12.5px;font-weight:650}
 .acll{list-style:none;margin:0;padding:6px 10px 10px;border-top:1px solid var(--line)}
 .acll a,.actask{display:grid;grid-template-columns:28px minmax(0,1fr);gap:12px;align-items:center;padding:10px 8px;border-radius:10px;color:inherit;text-decoration:none}
@@ -1038,4 +1038,51 @@ a.acnext:hover b{text-decoration:underline}
 @media (max-width:900px){.achero{grid-template-columns:1fr}.achero>*+*{border-left:0;border-top:1px solid var(--line)}}
 @media (max-width:640px){.aclbody{padding:20px 16px!important}.aclbody h1{font-size:24px}.acsvw{grid-template-columns:1fr}.acwhy{grid-template-columns:1fr}.acrec>div{grid-template-columns:110px minmax(0,1fr) 54px}.actask{grid-template-columns:28px minmax(0,1fr)}.actask .tag{display:none}.acstats{gap:12px}}
 .aclegend i.acafter.down{background:var(--down)}
-.lg-l li b{width:84px!important;font-size:12.5px!important}:is([data-skin=luxdark],[data-skin=luxlight]) .lg-l li b{color:var(--ink2)!important}
+.lg-l li b{width:84px!important;font-size:12.5px!important}:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .lg-l li b{color:var(--ink2)!important}
+#themebtn{display:none!important}
+.sw-classic-light{background:linear-gradient(90deg,#17243A 0 34%,#F3F5F9 34%)}
+.sw-classic-dark{background:linear-gradient(90deg,#0E1626 0 34%,#1B2433 34%)}.sw-classic-dark::after{content:"";position:absolute;left:44%;right:10px;top:18px;height:8px;border-radius:4px;background:#3B5A8C}
+
+/* ===================== v11: extra stijlen (alleen in de app) ===================== */
+:root[data-skin=navygold]{--bg:#0A1224;--bg2:rgba(255,255,255,.04);--bg3:rgba(255,255,255,.075);--panel:rgba(16,27,52,.72);--ink:#F3EEE2;--ink2:#B4BCCD;--ink3:#7D889F;--line:rgba(255,255,255,.08);--line2:rgba(212,175,95,.26);
+  --navy:#0A1224;--navy2:#121D38;--navy3:#D4AF5F;--accent:#D4AF5F;--accentInk:#1B1406;--focus:#E2C27A;--chip:rgba(212,175,95,.08);--heat0:#121D38;--ring-hi:#E2C27A;
+  --metal:linear-gradient(135deg,#FBEFC6 0%,#D9B464 28%,#9B7630 48%,#F4DB92 66%,#B88F3E 100%);--logo-paint:var(--metal);--logo-paint-side:var(--metal);
+  --glass:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.015));--hair:rgba(226,194,122,.3);--glow:rgba(212,175,95,.22);--sheen:rgba(255,236,190,.16);--shadow:inset 0 1px 0 rgba(255,236,190,.06),0 18px 44px rgba(0,0,0,.5)}
+:root[data-skin=navygold] body{background:radial-gradient(1100px 600px at 85% -15%,rgba(212,175,95,.12),transparent 60%),radial-gradient(900px 600px at -15% 110%,rgba(60,90,150,.18),transparent 60%),linear-gradient(180deg,#0B1428,#070D1B) fixed}
+:root[data-skin=navygold] .side{background:linear-gradient(180deg,rgba(14,24,46,.95),rgba(8,14,28,.96))}
+:root[data-skin=navygold] .btn{text-shadow:0 1px 0 rgba(255,240,200,.45)}
+
+:root[data-skin=oled]{--bg:#000;--bg2:#0B0B0B;--bg3:#151515;--panel:#000;--ink:#F5F5F5;--ink2:#A6A6A6;--ink3:#6E6E6E;--line:#1A1A1A;--line2:#2A2A2A;--navy:#000;--navy2:#0B0B0B;--chip:#0E0E0E;--heat0:#0B0B0B;
+  --glass:#000;--shadow:none;--hair:#333;--glow:rgba(255,255,255,.08);--sheen:rgba(255,255,255,.08)}
+:root[data-skin=oled] body{background:#000}
+:root[data-skin=oled] :is(.side,.topbar,.tabbar,.tape){background:#000!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+:root[data-skin=oled] :is(.card,.kpi,.plan,.sect,.ptile,.tst,#overlay .card){background:#000!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;box-shadow:none!important}
+:root[data-skin=oled] :is(.kpi,.card,.plan,.sect,.bd.on)::before{display:none}
+
+:root[data-skin=emerald]{--bg:#05110D;--bg2:rgba(255,255,255,.04);--bg3:rgba(255,255,255,.075);--panel:rgba(10,30,23,.7);--ink:#EAF5EF;--ink2:#A3BDB0;--ink3:#6C8A7C;--line:rgba(255,255,255,.08);--line2:rgba(110,214,165,.24);
+  --navy:#05110D;--navy2:#0B1F18;--navy3:#6ED6A5;--accentInk:#03140D;--focus:#8FE3BC;--chip:rgba(110,214,165,.08);--heat0:#0B1F18;--ring-hi:#8FE3BC;
+  --metal:linear-gradient(135deg,#E9FFF5 0%,#8BE0B9 28%,#2E8C66 48%,#C8F4E0 66%,#4DB487 100%);--logo-paint:var(--metal);--logo-paint-side:var(--metal);
+  --glass:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.015));--hair:rgba(140,224,185,.28);--glow:rgba(110,214,165,.2);--sheen:rgba(220,255,240,.14)}
+:root[data-skin=emerald] body{background:radial-gradient(1100px 600px at 85% -15%,rgba(110,214,165,.12),transparent 60%),linear-gradient(180deg,#06140F,#030A07) fixed}
+:root[data-skin=emerald] .side{background:linear-gradient(180deg,rgba(9,28,21,.95),rgba(4,12,9,.96))}
+
+:root[data-skin=bordeaux]{--bg:#120709;--bg2:rgba(255,255,255,.04);--bg3:rgba(255,255,255,.075);--panel:rgba(38,13,19,.7);--ink:#F6ECEA;--ink2:#C3A9A6;--ink3:#8E7471;--line:rgba(255,255,255,.08);--line2:rgba(230,170,145,.24);
+  --navy:#120709;--navy2:#220D12;--navy3:#E3A68C;--accentInk:#1C0B07;--focus:#EDBBA4;--chip:rgba(230,170,145,.08);--heat0:#220D12;--ring-hi:#EDBBA4;
+  --metal:linear-gradient(135deg,#FFE9DE 0%,#E4AA90 28%,#9A5747 48%,#F7D1BE 66%,#BB7963 100%);--logo-paint:var(--metal);--logo-paint-side:var(--metal);
+  --glass:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.015));--hair:rgba(237,187,164,.28);--glow:rgba(227,166,140,.2);--sheen:rgba(255,230,220,.14)}
+:root[data-skin=bordeaux] body{background:radial-gradient(1100px 600px at 85% -15%,rgba(227,166,140,.12),transparent 60%),linear-gradient(180deg,#17080C,#0A0405) fixed}
+:root[data-skin=bordeaux] .side{background:linear-gradient(180deg,rgba(34,12,17,.95),rgba(14,5,7,.96))}
+
+:root[data-skin=arctic]{--bg:#EDF2F8;--bg2:rgba(20,40,70,.035);--bg3:rgba(20,40,70,.06);--panel:rgba(255,255,255,.72);--ink:#0B1A2B;--ink2:#4A5B70;--ink3:#8494A8;--line:rgba(16,40,70,.08);--line2:rgba(16,40,70,.15);
+  --navy:#0F2440;--navy2:#1D3A63;--navy3:#3E6EA6;--accent:#1D4E89;--accentInk:#fff;--focus:#2C64A8;--chip:rgba(20,60,110,.06);--heat0:#E2E9F2;--ring-hi:#1D4E89;
+  --metal:linear-gradient(135deg,#1C3A61 0%,#5C8BC2 28%,#132C4B 48%,#8DB3DD 66%,#284B77 100%);--logo-paint:var(--metal);--logo-paint-side:var(--metal);
+  --glass:linear-gradient(180deg,rgba(255,255,255,.9),rgba(255,255,255,.62));--hair:rgba(255,255,255,.95);--glow:rgba(60,110,170,.18);--sheen:rgba(255,255,255,.75);--shadow:inset 0 1px 0 #fff,0 1px 2px rgba(15,35,60,.05),0 14px 36px rgba(15,35,60,.10)}
+:root[data-skin=arctic] body{background:radial-gradient(1200px 700px at 85% -10%,#ffffff,transparent 60%),radial-gradient(1000px 650px at -10% 105%,#d9e4f1,transparent 60%),linear-gradient(180deg,#f5f8fc,#e6edf5) fixed}
+
+.sw-navygold{background:radial-gradient(70% 90% at 80% 0%,rgba(212,175,95,.35),transparent 60%),#0A1224}.sw-navygold::after{content:"";position:absolute;left:10px;right:10px;top:18px;height:8px;border-radius:4px;background:linear-gradient(135deg,#FBEFC6,#D9B464 30%,#9B7630 50%,#F4DB92 70%,#B88F3E)}
+.sw-oled{background:#000;border-color:#333!important}.sw-oled::after{content:"";position:absolute;left:10px;right:10px;top:18px;height:8px;border-radius:4px;background:#E5E5E5}
+.sw-emerald{background:radial-gradient(70% 90% at 80% 0%,rgba(110,214,165,.3),transparent 60%),#05110D}.sw-emerald::after{content:"";position:absolute;left:10px;right:10px;top:18px;height:8px;border-radius:4px;background:linear-gradient(135deg,#E9FFF5,#8BE0B9 30%,#2E8C66 50%,#C8F4E0 70%,#4DB487)}
+.sw-bordeaux{background:radial-gradient(70% 90% at 80% 0%,rgba(227,166,140,.3),transparent 60%),#120709}.sw-bordeaux::after{content:"";position:absolute;left:10px;right:10px;top:18px;height:8px;border-radius:4px;background:linear-gradient(135deg,#FFE9DE,#E4AA90 30%,#9A5747 50%,#F7D1BE 70%,#BB7963)}
+.sw-arctic{background:radial-gradient(70% 90% at 80% 0%,#fff,transparent 70%),linear-gradient(180deg,#f5f8fc,#dfe8f2)}.sw-arctic::after{content:"";position:absolute;left:10px;right:10px;top:18px;height:8px;border-radius:4px;background:linear-gradient(135deg,#1C3A61,#5C8BC2 30%,#132C4B 50%,#8DB3DD 70%,#284B77)}
+.skinmenu{max-height:calc(100vh - 90px);overflow-y:auto}
+.skinopt{grid-template-columns:56px 1fr auto;padding:7px 8px}.skinopt .sw{height:38px}
