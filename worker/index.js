@@ -2,12 +2,12 @@
 import { json, err, readJSON, hashPassword, verifyPassword, b32enc, rand, totpCheck, newSession, sessionFrom, sessionByToken, sha256, seal, open,
   limited, bump, clearAttempts, kvGet, kvPutStmt, randToken, DAY, HOUR, MIN } from './lib.js';
 import { vapidKeys, sendPush } from './push.js';
-import { refreshMarket, analyse, detect, backtest, budget, RADAR, STOCK_SYMS } from './market.js';
+import { refreshMarket, analyse, detect, backtest, budget, RADAR, STOCK_SYMS, ALERT_KINDS, quote, alertHit, alertText, buildBriefing } from './market.js';
 import { checkout, portal, webhook, stripeReady } from './billing.js';
 
-const VERSION = '1.1.1';
+const VERSION = '1.2.0';
 const NATIVE_ORIGINS = ['capacitor://localhost', 'http://localhost', 'https://localhost', 'ionic://localhost'];
-const DEFAULT_SETTINGS = { notify: true, minScore: 60, scope: 'all', quiet: false, quietFrom: '23:00', quietTo: '07:00', cats: {} };
+const DEFAULT_SETTINGS = { notify: true, briefing: true, minScore: 60, scope: 'all', quiet: false, quietFrom: '23:00', quietTo: '07:00', cats: {} };
 const EMAIL_RX = /^[^@\s]{1,64}@[^@\s]{1,190}\.[^@\s]{2,}$/;
 
 function cors(req, res) {
@@ -34,7 +34,7 @@ export default {
     catch (e) { console.error(e); return cors(request, err(500, 'Serverfout: ' + e.message)); }
   },
   async scheduled(event, env, ctx) {
-    if (event.cron === '17 3 * * *') ctx.waitUntil(daily(env)); else ctx.waitUntil(tick(env));
+    if (event.cron === '17 3 * * *') ctx.waitUntil(daily(env)); else if (event.cron === '0 7 * * *') ctx.waitUntil(morning(env)); else ctx.waitUntil(tick(env));
   }
 };
 
@@ -88,7 +88,7 @@ async function api(req, env, ctx, url) {
   if (p === '/api/auth/logout' && m === 'POST') { if (s) await env.DB.prepare('DELETE FROM sessions WHERE token=?').bind(await sha256(s.token)).run(); return json({ ok: true }); }
   if (p === '/api/me' && m === 'GET') { if (!s) return needAuth(); return json({ user: userOut(s) }); }
   if (p === '/api/me' && m === 'DELETE') { if (!s) return needAuth(); const id = s.user_id;
-    await env.DB.batch(['sessions', 'prefs', 'push_subs', 'positions', 'paper', 'paper_trades', 'sent'].map(t => env.DB.prepare(`DELETE FROM ${t} WHERE user_id=?`).bind(id)).concat([env.DB.prepare('DELETE FROM users WHERE id=?').bind(id)]));
+    await env.DB.batch(['sessions', 'prefs', 'push_subs', 'positions', 'paper', 'paper_trades', 'sent', 'price_alerts', 'notif'].map(t => env.DB.prepare(`DELETE FROM ${t} WHERE user_id=?`).bind(id)).concat([env.DB.prepare('DELETE FROM users WHERE id=?').bind(id)]));
     return json({ ok: true, deleted: true }); }
 
   /* ---------- voorkeuren ---------- */
@@ -153,6 +153,33 @@ async function api(req, env, ctx, url) {
     return json({ start: START, fee: FEE, cash: acc.cash, holdings: JSON.parse(acc.holdings), trades });
   }
 
+  /* ---------- koersalerts ---------- */
+  if (p === '/api/alerts') { if (!s) return needAuth();
+    if (m === 'GET') return json({ alerts: (await env.DB.prepare('SELECT id,sym,kind,value,active,created,fired,note FROM price_alerts WHERE user_id=? ORDER BY created DESC').bind(s.user_id).all()).results, kinds: ALERT_KINDS });
+    if (m === 'POST') { const b = await readJSON(req); const sym = String(b.sym || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12); const value = Number(b.value);
+      if (!sym || !ALERT_KINDS[b.kind] || !(value > 0)) return err(400, 'Kies een asset, een soort alert en een geldige waarde.');
+      if (/1h|24h/.test(b.kind) && value > 90) return err(400, 'Kies een percentage tot 90%.');
+      const n = await env.DB.prepare('SELECT COUNT(*) n FROM price_alerts WHERE user_id=? AND active=1').bind(s.user_id).first(); if (n.n >= 50) return err(400, 'Maximaal 50 actieve koersalerts.');
+      const st = await loadState(env, ['tickers', 'stocks', 'names']); const q = quote(st, sym); if (!q) return err(404, `Geen koers gevonden voor ${sym}.`);
+      if (b.kind === 'above' && q.p >= value) return err(400, `De koers staat al boven deze waarde (nu ${q.p}).`);
+      if (b.kind === 'below' && q.p <= value) return err(400, `De koers staat al onder deze waarde (nu ${q.p}).`);
+      const r = await env.DB.prepare('INSERT INTO price_alerts(user_id,sym,kind,value,active,created,note) VALUES(?,?,?,?,1,?,?)').bind(s.user_id, sym, b.kind, value, Date.now(), String(b.note || '').slice(0, 80)).run();
+      return json({ ok: true, id: r.meta.last_row_id }); } }
+  const am = p.match(/^\/api\/alerts\/(\d+)$/);
+  if (am && m === 'DELETE') { if (!s) return needAuth(); await env.DB.prepare('DELETE FROM price_alerts WHERE id=? AND user_id=?').bind(+am[1], s.user_id).run(); return json({ ok: true }); }
+  if (am && m === 'PUT') { if (!s) return needAuth(); const b = await readJSON(req); await env.DB.prepare('UPDATE price_alerts SET active=?, fired=NULL WHERE id=? AND user_id=?').bind(b.active ? 1 : 0, +am[1], s.user_id).run(); return json({ ok: true }); }
+
+  /* ---------- meldingen (ook wat binnenkwam terwijl de app dicht was) ---------- */
+  if (p === '/api/notifications' && m === 'GET') { if (!s) return needAuth();
+    return json({ items: (await env.DB.prepare('SELECT id,title,body,url,cat,score,t FROM notif WHERE user_id=? ORDER BY t DESC LIMIT 150').bind(s.user_id).all()).results }); }
+
+  /* ---------- dagelijkse briefing ---------- */
+  if (p === '/api/briefing' && m === 'GET') {
+    const r = await kvGet(env, 'briefing'); if (r && Date.now() - r.ts < 20 * HOUR) return json({ ...r.val, edition: true });
+    const st = await loadState(env, ['tickers', 'ticks', 'names', 'candles', 'news', 'extra']); if (!st.tickers) return json({ pending: true });
+    const ev = (await env.DB.prepare('SELECT data FROM events WHERE first>?').bind(Date.now() - DAY).all()).results.map(x => JSON.parse(x.data));
+    return json({ ...buildBriefing(st, ev, analyse(st)), edition: false }); }
+
   /* ---------- premium / Stripe ---------- */
   if (p === '/api/billing/status') return json({ ready: stripeReady(env), enforced: env.PREMIUM_ENFORCED === 'true', plan: s ? s.plan : null, price: env.PREMIUM_PRICE_LABEL || null });
   if (p === '/api/billing/checkout' && m === 'POST') { if (!s) return needAuth(); return checkout(env, s, url.origin); }
@@ -175,39 +202,65 @@ async function tick(env) {
   writes.push(kvPutStmt(env, 'market', { t: now, mk: an.mk }));
   if (writes.length) await env.DB.batch(writes);
   const fresh = found.filter(e => !prev.has(e.id));
-  try { await dispatch(env, fresh, b); } catch (e) { console.error('push', e.message); }
+  try { await dispatch(env, fresh, b, state); } catch (e) { console.error('push', e.message); }
 }
 function localHM(tz = 'Europe/Amsterdam') { const p = new Intl.DateTimeFormat('nl-NL', { timeZone: tz, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date()); return +p.find(x => x.type === 'hour').value * 60 + +p.find(x => x.type === 'minute').value; }
 function inQuiet(st) { if (!st.quiet) return false; const m = localHM(); const [fh, fm] = (st.quietFrom || '23:00').split(':').map(Number), [th, tm] = (st.quietTo || '07:00').split(':').map(Number); const f = fh * 60 + fm, t = th * 60 + tm; return f < t ? (m >= f && m < t) : (m >= f || m < t); }
-async function dispatch(env, fresh, b) {
-  const rows = (await env.DB.prepare('SELECT s.endpoint,s.user_id,s.p256dh,s.auth,p.settings,p.watch,p.rem,u.plan FROM push_subs s JOIN users u ON u.id=s.user_id LEFT JOIN prefs p ON p.user_id=s.user_id').all()).results;
-  if (!rows.length) return;
-  const now = Date.now(); const sentRows = (await env.DB.prepare('SELECT user_id,key FROM sent WHERE t>?').bind(now - 3 * HOUR).all()).results; const sent = new Set(sentRows.map(r => r.user_id + '|' + r.key));
-  const ops = []; const gone = new Set(); const perUser = {};
+async function dispatch(env, fresh, b, state) {
+  const now = Date.now(); const ops = []; const gone = new Set();
+  const subsRows = (await env.DB.prepare('SELECT s.endpoint,s.user_id,s.p256dh,s.auth,p.settings,p.watch,p.rem,u.plan FROM push_subs s JOIN users u ON u.id=s.user_id LEFT JOIN prefs p ON p.user_id=s.user_id').all()).results;
+  const subsBy = {}; for (const r of subsRows) (subsBy[r.user_id] = subsBy[r.user_id] || []).push(r);
+  const out = {}; // user_id -> [{key,title,body,url,tag,cat,score,force}]
+  const add = (uid, msg) => (out[uid] = out[uid] || []).push(msg);
+  // 1. koersalerts (voor iedereen met een account; push als er een apparaat is)
+  const alerts = (await env.DB.prepare('SELECT * FROM price_alerts WHERE active=1').all()).results;
+  for (const a of alerts) {
+    if (/1h|24h/.test(a.kind) && a.fired && now - a.fired < 6 * HOUR) continue;
+    const q = quote(state, a.sym); if (!alertHit(a, q)) continue;
+    const t = alertText(a, q); add(a.user_id, { key: 'alert:' + a.id + ':' + now, title: t.title, body: t.body, url: '/#asset-' + a.sym.toLowerCase(), tag: 'alert-' + a.id, cat: 'alert', score: null, force: true });
+    ops.push(/1h|24h/.test(a.kind) ? env.DB.prepare('UPDATE price_alerts SET fired=? WHERE id=?').bind(now, a.id) : env.DB.prepare('UPDATE price_alerts SET active=0, fired=? WHERE id=?').bind(now, a.id));
+  }
+  // 2. gebeurtenissen en herinneringen (gebruikers met pushmeldingen)
+  const sentRows = (await env.DB.prepare('SELECT user_id,key FROM sent WHERE t>?').bind(now - 3 * HOUR).all()).results; const sent = new Set(sentRows.map(r => r.user_id + '|' + r.key));
   const radarDue = []; for (const e of RADAR) for (const off of [1440, 60, 15]) { const at = e.t - off * MIN; if (now >= at && now < at + 6 * MIN) radarDue.push({ e, off }); }
-  for (const r of rows) {
-    if (env.PREMIUM_ENFORCED === 'true' && r.plan !== 'premium') continue;
+  for (const [uid, subs] of Object.entries(subsBy)) {
+    const r = subs[0]; if (env.PREMIUM_ENFORCED === 'true' && r.plan !== 'premium') continue;
     const st = { ...DEFAULT_SETTINGS, ...JSON.parse(r.settings || '{}') }; const watch = JSON.parse(r.watch || '[]'); const rem = JSON.parse(r.rem || '{}'); const cats = st.cats || {};
-    const msgs = [];
-    for (const { e, off } of radarDue) if ((rem[e.id] || []).includes(off)) msgs.push({ key: `rem:${e.id}:${off}`, title: `Over ${off >= 60 ? off / 60 + ' uur' : off + ' minuten'}: ${e.title}`, body: new Date(e.t).toLocaleString('nl-NL', { timeZone: 'Europe/Amsterdam', weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }), url: '/#radar', tag: 'rem-' + e.id, force: true });
-    if (st.notify !== false && !inQuiet(st)) for (const e of fresh.sort((a, b2) => b2.score - a.score)) {
+    for (const { e, off } of radarDue) if ((rem[e.id] || []).includes(off)) add(uid, { key: `rem:${e.id}:${off}`, title: `Over ${off >= 60 ? off / 60 + ' uur' : off + ' minuten'}: ${e.title}`, body: new Date(e.t).toLocaleString('nl-NL', { timeZone: 'Europe/Amsterdam', weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }), url: '/#radar', tag: 'rem-' + e.id, cat: 'reminder', force: true });
+    if (st.notify !== false && !inQuiet(st)) for (const e of fresh.slice().sort((x, y) => y.score - x.score)) {
       if (e.score < (st.minScore ?? 60) || cats[e.cat] === false) continue;
       if (st.scope === 'watch' && e.s && !watch.includes(e.s)) continue;
-      msgs.push({ key: e.type + ':' + (e.s || 'market'), title: e.title, body: `Impact ${e.score}/100 · ${e.body}`, url: e.s ? '/#asset-' + e.s.toLowerCase() : '/#impact', tag: e.id });
-    }
-    for (const msg of msgs.slice(0, 3)) {
-      const k = r.user_id + '|' + msg.key; if (sent.has(k) && !msg.force) continue; if (gone.has(r.endpoint)) continue; if (!b.take()) return finish();
-      const res = await sendPush(env, r, msg).catch(e => 'fail:' + e.message);
-      if (res === 'gone') { gone.add(r.endpoint); ops.push(env.DB.prepare('DELETE FROM push_subs WHERE endpoint=?').bind(r.endpoint)); }
-      else if (res === 'ok' && !perUser[k]) { perUser[k] = 1; ops.push(env.DB.prepare('INSERT INTO sent(user_id,key,t) VALUES(?,?,?) ON CONFLICT(user_id,key) DO UPDATE SET t=excluded.t').bind(r.user_id, msg.key, now)); }
+      if (sent.has(uid + '|' + e.type + ':' + (e.s || 'market'))) continue;
+      add(uid, { key: e.type + ':' + (e.s || 'market'), title: e.title, body: `Impact ${e.score}/100 · ${e.body}`, url: e.s ? '/#asset-' + e.s.toLowerCase() : '/#impact', tag: e.id, cat: 'impact', score: e.score });
     }
   }
-  return finish();
-  async function finish() { if (ops.length) await env.DB.batch(ops); }
+  // 3. versturen + loggen in het meldingencentrum
+  for (const [uid, msgs] of Object.entries(out)) {
+    for (const msg of msgs.slice(0, 4)) {
+      ops.push(env.DB.prepare('INSERT OR IGNORE INTO notif(id,user_id,title,body,url,cat,score,t) VALUES(?,?,?,?,?,?,?,?)').bind(msg.tag + ':' + now, uid, msg.title, msg.body || '', msg.url || '/', msg.cat || '', msg.score ?? null, now));
+      if (msg.cat !== 'alert' && msg.cat !== 'reminder') ops.push(env.DB.prepare('INSERT INTO sent(user_id,key,t) VALUES(?,?,?) ON CONFLICT(user_id,key) DO UPDATE SET t=excluded.t').bind(uid, msg.key, now));
+      for (const sub of subsBy[uid] || []) { if (gone.has(sub.endpoint) || !b.take()) continue;
+        const res = await sendPush(env, sub, { title: msg.title, body: msg.body, url: msg.url, tag: msg.tag, urgency: msg.cat === 'alert' ? 'high' : 'normal' }).catch(e => 'fail:' + e.message);
+        if (res === 'gone') { gone.add(sub.endpoint); ops.push(env.DB.prepare('DELETE FROM push_subs WHERE endpoint=?').bind(sub.endpoint)); } }
+    }
+  }
+  if (ops.length) await env.DB.batch(ops);
+}
+async function morning(env) {
+  const st = await loadState(env, ['tickers', 'ticks', 'names', 'candles', 'news', 'extra']); if (!st.tickers) return;
+  const ev = (await env.DB.prepare('SELECT data FROM events WHERE first>?').bind(Date.now() - DAY).all()).results.map(x => JSON.parse(x.data));
+  const br = buildBriefing(st, ev, analyse(st)); await kvPutStmt(env, 'briefing', br).run();
+  const rows = (await env.DB.prepare('SELECT s.endpoint,s.user_id,s.p256dh,s.auth,p.settings,u.plan FROM push_subs s JOIN users u ON u.id=s.user_id LEFT JOIN prefs p ON p.user_id=s.user_id').all()).results;
+  const b = budget(45); const ops = []; const logged = new Set(); const now = Date.now();
+  for (const r of rows) { const st2 = { ...DEFAULT_SETTINGS, ...JSON.parse(r.settings || '{}') }; if (st2.briefing === false) continue; if (env.PREMIUM_ENFORCED === 'true' && r.plan !== 'premium') continue;
+    if (!logged.has(r.user_id)) { logged.add(r.user_id); ops.push(env.DB.prepare('INSERT OR IGNORE INTO notif(id,user_id,title,body,url,cat,score,t) VALUES(?,?,?,?,?,?,?,?)').bind('brief:' + br.day, r.user_id, 'Ochtendbriefing · ' + br.day, br.headline, '/#briefing', 'briefing', null, now)); }
+    if (!b.take()) continue; const res = await sendPush(env, r, { title: 'CSA ochtendbriefing', body: br.headline, url: '/#briefing', tag: 'briefing' }).catch(() => 'fail');
+    if (res === 'gone') ops.push(env.DB.prepare('DELETE FROM push_subs WHERE endpoint=?').bind(r.endpoint)); }
+  if (ops.length) await env.DB.batch(ops);
 }
 async function daily(env) {
   const now = Date.now();
-  await env.DB.batch([env.DB.prepare('DELETE FROM sessions WHERE expires<?').bind(now), env.DB.prepare('DELETE FROM events WHERE first<?').bind(now - 7 * DAY), env.DB.prepare('DELETE FROM sent WHERE t<?').bind(now - 2 * DAY), env.DB.prepare('DELETE FROM attempts WHERE until<?').bind(now)]);
+  await env.DB.batch([env.DB.prepare('DELETE FROM sessions WHERE expires<?').bind(now), env.DB.prepare('DELETE FROM events WHERE first<?').bind(now - 7 * DAY), env.DB.prepare('DELETE FROM sent WHERE t<?').bind(now - 2 * DAY), env.DB.prepare('DELETE FROM attempts WHERE until<?').bind(now), env.DB.prepare('DELETE FROM notif WHERE t<?').bind(now - 30 * DAY)]);
   const t = await kvGet(env, 'tickers'); const top = (t?.val?.list || []).slice(0, 20).map(x => x.s);
   if (!top.length) return;
   try { const bt = await backtest(env, budget(45), top); await kvPutStmt(env, 'backtest', bt).run(); } catch (e) { console.error('backtest', e.message); }

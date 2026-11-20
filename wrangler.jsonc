@@ -13,7 +13,7 @@
   "d1_databases": [
     { "binding": "DB", "database_name": "csa-db", "database_id": "00000000-0000-0000-0000-000000000000", "migrations_dir": "migrations" }
   ],
-  "triggers": { "crons": ["*/5 * * * *", "17 3 * * *"] },
+  "triggers": { "crons": ["*/5 * * * *", "0 7 * * *", "17 3 * * *"] },
   "observability": { "enabled": true },
   "vars": {
     "PREMIUM_ENFORCED": "false",

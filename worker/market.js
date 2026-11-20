@@ -67,7 +67,7 @@ export async function refreshMarket(env, state, b) {
   // prijsgeschiedenis voor 15-minutenbewegingen (laatste 6 tikken)
   const hist = state.ticks || { t: [], p: {} }; hist.t.push(now); const top = list.slice(0, 40);
   for (const x of top) { (hist.p[x.s] = hist.p[x.s] || []).push(x.p); }
-  while (hist.t.length > 6) { hist.t.shift(); for (const k in hist.p) hist.p[k].shift(); }
+  while (hist.t.length > 13) { hist.t.shift(); for (const k in hist.p) hist.p[k].shift(); }
   for (const k in hist.p) if (hist.p[k].length > hist.t.length) hist.p[k] = hist.p[k].slice(-hist.t.length);
   state.ticks = hist; writes.push(kvPutStmt(env, 'ticks', hist));
   // 2. namen (dagelijks)
@@ -180,4 +180,64 @@ export async function backtest(env, b, topSyms) {
   const recent = ev.filter(e => e.f3 != null).sort((a, b) => b.t - a.t).slice(0, 20).map(e => ({ s: e.s, t: e.t, ch: e.ch, score: e.score, f1: e.f1, f3: e.f3, f7: e.f7 }));
   return { t: Date.now(), days: Math.min(...syms.map(s => series[s].length)), assets: syms, events: ev.length, buckets, recent,
     method: 'Gebeurtenis = dagbeweging ≥ 2× de 30-daagse volatiliteit. Score met dezelfde formule als live (snelheid onbekend → 0,3; historische invloed 0,6). Vervolg = koersverandering na 1, 3 en 7 dagen, positief als de beweging doorzette.' };
+}
+
+/* ---------- koersalerts ---------- */
+export const ALERT_KINDS = { above: 'koers boven', below: 'koers onder', up1h: 'stijgt in 1 uur met', down1h: 'daalt in 1 uur met', up24h: 'stijgt in 24 uur met', down24h: 'daalt in 24 uur met' };
+export function quote(state, sym) {
+  const t = (state.tickers?.list || []).find(x => x.s === sym);
+  if (t) { const arr = state.ticks?.p?.[sym]; return { p: t.p, cur: 'EUR', ch24: t.o ? (t.p / t.o - 1) * 100 : null, ch1h: arr && arr.length >= 13 ? (t.p / arr[arr.length - 13] - 1) * 100 : null, name: state.names?.[sym] || sym }; }
+  const q = state.stocks?.[sym]; if (q) return { p: q.p, cur: 'USD', ch24: q.dp, ch1h: null, name: sym };
+  return null;
+}
+export function alertHit(a, q) {
+  if (!q) return false;
+  switch (a.kind) {
+    case 'above': return q.p >= a.value; case 'below': return q.p <= a.value;
+    case 'up1h': return q.ch1h != null && q.ch1h >= a.value; case 'down1h': return q.ch1h != null && q.ch1h <= -a.value;
+    case 'up24h': return q.ch24 != null && q.ch24 >= a.value; case 'down24h': return q.ch24 != null && q.ch24 <= -a.value;
+  } return false;
+}
+export function alertText(a, q) {
+  const money = v => (q.cur === 'USD' ? '$ ' : '€ ') + Number(v).toLocaleString('nl-NL', { maximumFractionDigits: v < 1 ? 6 : 2 });
+  if (a.kind === 'above' || a.kind === 'below') return { title: `${q.name} ${a.kind === 'above' ? 'boven' : 'onder'} ${money(a.value)}`, body: `Koers nu ${money(q.p)} (${pct(q.ch24 ?? 0)} in 24 uur). Je koersalert is uitgegaan.` };
+  const w = a.kind.endsWith('1h') ? '1 uur' : '24 uur', ch = a.kind.endsWith('1h') ? q.ch1h : q.ch24;
+  return { title: `${q.name} ${pct(ch)} in ${w}`, body: `Koers nu ${money(q.p)}. Je alert stond op ${a.kind.startsWith('up') ? '+' : '−'}${nl(a.value, 1)}% in ${w}.` };
+}
+
+/* ---------- dagelijkse briefing (volgens vaste regels, zonder AI) ---------- */
+const STOPW = new Set('the a an and or of to in on for with as at by is are be was were from after over its it this that than new says will could may into amid ahead'.split(' '));
+const tk = t => new Set(t.toLowerCase().replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).filter(w => w.length > 2 && !STOPW.has(w)));
+function topNews(items, n = 5) {
+  const cl = [];
+  for (const it of (items || []).filter(x => Date.now() - x.t < 24 * HOUR)) { const k = tk(it.title); let hit = null;
+    for (const c of cl) { let i = 0; k.forEach(w => { if (c.k.has(w)) i++; }); if (i / (k.size + c.k.size - i || 1) >= .4) { hit = c; break; } }
+    if (hit) { hit.src.add(it.src); } else cl.push({ k, title: it.title, url: it.url, src: new Set([it.src]), t: it.t }); }
+  return cl.sort((a, b) => b.src.size - a.src.size || b.t - a.t).slice(0, n).map(c => ({ title: c.title, url: c.url, sources: [...c.src], t: c.t }));
+}
+export function buildBriefing(state, events, an) {
+  const { A, mk } = an; const btc = A.find(a => a.s === 'BTC'), eth = A.find(a => a.s === 'ETH');
+  const now = Date.now(); const day = new Date(now).toLocaleDateString('nl-NL', { timeZone: 'Europe/Amsterdam', weekday: 'long', day: 'numeric', month: 'long' });
+  const tone = mk.breadth >= .65 && mk.vw > 0 ? 'positief' : mk.breadth <= .35 && mk.vw < 0 ? 'negatief' : 'gemengd';
+  let headline;
+  if (!btc) headline = 'Marktdata nog niet beschikbaar';
+  else if (Math.abs(btc.ch) < 1.5 && Math.abs(mk.vw) < 1.5) headline = `Rustige markt: Bitcoin ${pct(btc.ch)}, ${Math.round(mk.breadth * 100)}% van de top-${mk.n} in de plus`;
+  else headline = `Crypto ${tone === 'positief' ? 'in de lift' : tone === 'negatief' ? 'onder druk' : 'verdeeld'}: Bitcoin ${pct(btc.ch)}, ${Math.round(mk.breadth * 100)}% van de top-${mk.n} in de plus`;
+  const sorted = A.slice().sort((a, b) => b.ch - a.ch);
+  const tz = d => new Date(d).toLocaleDateString('en-CA', { timeZone: 'Europe/Amsterdam' });
+  const today = tz(now), tomorrow = tz(now + DAY);
+  const agenda = RADAR.filter(e => [today, tomorrow].includes(tz(e.t))).map(e => ({ title: e.title, t: e.t, today: tz(e.t) === today }));
+  const ex = state.extra || {};
+  const points = [];
+  if (btc) points.push(`Bitcoin staat op ${pct(btc.ch)} in 24 uur${btc.vol ? `, ${nl(Math.abs(btc.z || 0))}× de normale dagbeweging` : ''}.`);
+  if (mk.n) points.push(`De brede markt is ${tone}: ${Math.round(mk.breadth * 100)}% van de top-${mk.n} stijgt, volumegewogen ${pct(mk.vw)}. Handelsvolume ${nl(mk.volRegime, 2)}× normaal.`);
+  if (ex.fng && ex.fng[0]) points.push(`Fear & Greed-index: ${ex.fng[0].v}/100 (${ex.fng[0].l}).`);
+  if (events.length) points.push(`${events.length} opvallende gebeurtenis${events.length > 1 ? 'sen' : ''} in de afgelopen 24 uur; de hoogste Impact Score is ${Math.max(...events.map(e => e.score))}.`);
+  if (agenda.length) points.push(`Op de agenda: ${agenda.map(e => e.title + ' (' + new Date(e.t).toLocaleString('nl-NL', { timeZone: 'Europe/Amsterdam', weekday: 'short', hour: '2-digit', minute: '2-digit' }) + ')').join('; ')}.`);
+  return { t: now, day, headline, tone, points,
+    market: { btc: btc ? { p: btc.p, ch: btc.ch } : null, eth: eth ? { p: eth.p, ch: eth.ch } : null, breadth: mk.breadth, vw: mk.vw, n: mk.n, volRegime: mk.volRegime },
+    up: sorted.slice(0, 3).map(a => ({ s: a.s, name: a.name, ch: a.ch, p: a.p })), down: sorted.slice(-3).reverse().map(a => ({ s: a.s, name: a.name, ch: a.ch, p: a.p })),
+    events: events.slice().sort((a, b) => b.score - a.score).slice(0, 5).map(e => ({ title: e.title, score: e.score, s: e.s, t: e.t })),
+    news: topNews(state.news?.items), agenda, extra: ex.global ? { cap: ex.global.cap, capCh: ex.global.capCh, btcDom: ex.global.btcDom } : null,
+    note: 'Automatisch samengesteld uit marktdata volgens vaste regels. Geen beleggingsadvies.' };
 }

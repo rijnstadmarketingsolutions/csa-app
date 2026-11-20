@@ -3,7 +3,7 @@
    ===================================================================== */
 const greet=()=>{const h=new Date().getHours();return h<6?'Goedenacht':h<12?'Goedemorgen':h<18?'Goedemiddag':'Goedenavond'};
 const uname=()=>(LS.get('user',{}).name||'').split(' ')[0];
-const waitBox=(t='Marktdata laden…')=>`<div class="empty">${t}</div>`;
+const waitBox=(t='Marktdata laden…')=>`<div class="skel" aria-busy="true"><span class="sr">${t}</span><i style="width:90%"></i><i style="width:72%"></i><i style="width:82%"></i></div>`;
 const noData=()=>S.src.bitvavo.st==='err'?`<div class="callout warn"><b>Geen koersdata.</b> ${esc(S.src.bitvavo.msg)} CSA toont geen nep-koersen; zodra de bron weer bereikbaar is, verschijnt alles automatisch.</div>`:waitBox();
 
 const Pages={};
@@ -13,13 +13,14 @@ const DV={range:'24u',mv:'up'};
 Pages.overzicht={
   title:()=>'Overzicht',
   html:()=>`<div class="phead"><div><div class="kicker">${new Date().toLocaleDateString('nl-NL',{weekday:'long',day:'numeric',month:'long'})} · <span class="dot live" style="display:inline-block"></span> live</div><h1>${greet()}${uname()?', '+esc(uname()):''}</h1></div><a class="btn" href="#waarom">${ico('why')}Waarom beweegt de markt?</a></div>
+  <a class="brban hidden" id="brban" href="#briefing"></a>
   <section class="kpis" id="kpis"></section>
   <section class="kpis k3" id="kpis2" style="margin-top:12px"></section>
   <div class="grid g2x" style="margin-top:16px">
     <div class="card"><div class="chead"><div><div class="kicker" style="margin:0" id="bhead">Bitcoin</div><div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap"><span class="dprice" id="bprice">—</span><span id="bchg" class="num" style="font-weight:600"></span></div></div>
       <div class="seg" id="brange"><button data-r="24u" class="on">24 uur</button><button data-r="30d">30 dagen</button></div></div><div id="bchart"></div>
       <div class="bfoot" id="bfoot"></div></div>
-    <div class="card senti-card"><div class="chead"><h2>CSA Market Sentiment</h2><span class="src" id="sage"></span></div><div id="sbox"></div></div>
+    <div class="card senti-card"><div class="chead"><h2>${gl('senti','CSA Market Sentiment')}</h2><span class="src" id="sage"></span></div><div id="sbox"></div></div>
   </div>
   <div class="grid g2" style="margin-top:16px">
     <div class="card"><div class="chead"><h2>Cryptomarkt in één oogopslag</h2><span class="src">24 uur · top-34 op volume</span></div><div id="dheat"></div><div class="heatleg"><span>−6%</span><i></i><span>+6%</span></div></div>
@@ -32,6 +33,7 @@ Pages.overzicht={
   </div>
   <p class="disc">CSA geeft marktinformatie en analyses, geen financieel advies. Scores en scenario's zijn berekend uit openbare data volgens een vaste methode en garanderen geen koersontwikkeling. Beleggen brengt risico's met zich mee; je kunt (een deel van) je inleg verliezen.</p>`,
   mount(el){
+    (async()=>{try{if(!BR.d&&Api.on){const d=await Api.call('/api/briefing');if(!d.pending)BR.d=d}}catch(e){}const b=$('#brban',el);if(b&&BR.d){b.innerHTML=`${ico('sun')}<span><small>Ochtendbriefing · ${esc(BR.d.day)}</small><b>${esc(BR.d.headline)}</b></span><span class="lnk">Lees →</span>`;b.classList.remove('hidden')}})();
     $('#brange',el).onclick=e=>{const b=e.target.closest('[data-r]');if(!b)return;DV.range=b.dataset.r;$$('#brange button',el).forEach(x=>x.classList.toggle('on',x===b));this.live(el,null,'calc')};
     $('#mvseg',el).onclick=e=>{const b=e.target.closest('[data-m]');if(!b)return;DV.mv=b.dataset.m;$$('#mvseg button',el).forEach(x=>x.classList.toggle('on',x===b));this.live(el,null,'calc')};
   },
@@ -39,16 +41,18 @@ Pages.overzicht={
     const btc=S.crypto.get('BTC'),eth=S.crypto.get('ETH');
     if(!btc||btc.price==null){$('#kpis',el).innerHTML=`<div style="grid-column:1/-1">${noData()}</div>`;return}
     const mk=S.market,o=S.senti.overall;
+    const oldK=$$('#kpis .kv',el).map(x=>x.textContent);
     $('#kpis',el).innerHTML=
       kpi(`${ab(btc)} Bitcoin`,eur(btc.price),`<span class="${cls(btc.ch24)}">${pct(btc.ch24)}</span> 24u`,spark(hseries(btc)||series(btc),120,30),'#asset-btc')+
       (eth?kpi(`${ab(eth)} Ethereum`,eur(eth.price),`<span class="${cls(eth.ch24)}">${pct(eth.ch24)}</span> 24u`,spark(hseries(eth)||series(eth),120,30),'#asset-eth'):'')+
-      kpi('Marktbreedte',mk.n?Math.round(mk.breadth*100)+'%':'—',mk.n?`van top-${mk.n} stijgt`:'',mk.n?`<div class="kbar"><i style="width:${Math.round(mk.breadth*100)}%;background:var(--${mk.breadth<.4?'down':mk.breadth>.6?'up':'ink3'})"></i></div>`:'','#markten')+
-      kpi('Handelsvolume',mk.volRegime?nlN(mk.volRegime,2)+'×':'—','t.o.v. 30-daags gemiddelde',mk.volRegime?`<div class="kbar"><i style="width:${clamp(mk.volRegime/2*100,4,100)}%;background:var(--ink2)"></i></div>`:'','#markten')+
-      kpi('Sentiment',o?esc(o.l):'—',o?`score ${o.score>0?'+':''}${Math.round(o.score)}`:'berekenen…',`<div class="kg">${gauge(o?.score,{w:110,sw:9})}</div>`,'#overzicht');
+      kpi(gl('breadth','Marktbreedte'),mk.n?Math.round(mk.breadth*100)+'%':'—',mk.n?`van top-${mk.n} stijgt`:'',mk.n?`<div class="kbar"><i style="width:${Math.round(mk.breadth*100)}%;background:var(--${mk.breadth<.4?'down':mk.breadth>.6?'up':'ink3'})"></i></div>`:'','#markten')+
+      kpi(gl('volume','Handelsvolume'),mk.volRegime?nlN(mk.volRegime,2)+'×':'—','t.o.v. 30-daags gemiddelde',mk.volRegime?`<div class="kbar"><i style="width:${clamp(mk.volRegime/2*100,4,100)}%;background:var(--ink2)"></i></div>`:'','#markten')+
+      kpi(gl('senti','Sentiment'),o?esc(o.l):'—',o?`score ${o.score>0?'+':''}${Math.round(o.score)}`:'berekenen…',`<div class="kg">${gauge(o?.score,{w:110,sw:9})}</div>`,'#overzicht');
+    $$('#kpis .kv',el).forEach((x,i)=>{if(oldK[i]&&oldK[i]!==x.textContent&&/[0-9]/.test(oldK[i])){const a=parseFloat(oldK[i].replace(/[^0-9,−-]/g,'').replace(',','.')),b=parseFloat(x.textContent.replace(/[^0-9,−-]/g,'').replace(',','.'));if(isFinite(a)&&isFinite(b)&&a!==b)x.classList.add(b>a?'flash-up':'flash-down')}});
     const X=S.extra||{},g=X.global,f=X.fng&&X.fng[0];
-    $('#kpis2',el).innerHTML=kpi('Totale cryptomarktwaarde',g?big(g.cap):'—',g?`<span class="${cls(g.capCh)}">${pct(g.capCh)}</span> 24u · CoinGecko`:(Api.on?'laden via server…':'alleen via de online app'))+
-      kpi('Bitcoin-dominantie',g?nlN(g.btcDom,1)+'%':'—',g?`Ethereum ${nlN(g.ethDom,1)}% · CoinGecko`:'aandeel van Bitcoin in de markt',g?`<div class="kbar"><i style="width:${clamp(g.btcDom,0,100)}%;background:var(--ink2)"></i></div>`:'')+
-      kpi('Fear & Greed-index',f?f.v+' / 100':'—',f?`${esc(({'Extreme Fear':'Extreme angst','Fear':'Angst','Neutral':'Neutraal','Greed':'Hebzucht','Extreme Greed':'Extreme hebzucht'})[f.l]||f.l)} · alternative.me`:'externe index, los van CSA',f?`<div class="kbar fng"><i style="left:${f.v}%"></i></div>`:'');
+    $('#kpis2',el).innerHTML=kpi(gl('cap','Totale cryptomarktwaarde'),g?big(g.cap):'—',g?`<span class="${cls(g.capCh)}">${pct(g.capCh)}</span> 24u · CoinGecko`:(Api.on?'laden via server…':'alleen via de online app'))+
+      kpi(gl('dom','Bitcoin-dominantie'),g?nlN(g.btcDom,1)+'%':'—',g?`Ethereum ${nlN(g.ethDom,1)}% · CoinGecko`:'aandeel van Bitcoin in de markt',g?`<div class="kbar"><i style="width:${clamp(g.btcDom,0,100)}%;background:var(--ink2)"></i></div>`:'')+
+      kpi(gl('fng','Fear & Greed-index'),f?f.v+' / 100':'—',f?`${esc(({'Extreme Fear':'Extreme angst','Fear':'Angst','Neutral':'Neutraal','Greed':'Hebzucht','Extreme Greed':'Extreme hebzucht'})[f.l]||f.l)} · alternative.me`:'externe index, los van CSA',f?`<div class="kbar fng"><i style="left:${f.v}%"></i></div>`:'');
     // BTC grafiek
     const ser=DV.range==='24u'?(hseries(btc)||series(btc)):series(btc);
     $('#bprice',el).textContent=eur(btc.price);$('#bchg',el).innerHTML=`<span class="${cls(btc.ch24)}">${pct(btc.ch24)}</span> <span class="faint" style="font-weight:400">24 uur</span>`;
@@ -140,26 +144,32 @@ Pages.asset={
   html(arg){const a=getAsset(arg);if(!a)return `<div class="phead"><h1>Niet gevonden</h1></div>${S.crypto.size?`<div class="empty">Geen markt "${esc(arg)}" gevonden bij Bitvavo of in de aandelenlijst.</div>`:noData()}`;
     return `<a class="lnk" href="#${a.kind==='crypto'?'markten':'aandelen'}" style="display:inline-flex;align-items:center;gap:4px;margin-bottom:14px">← ${a.kind==='crypto'?'Markten':'Aandelen'}</a>
     <div class="phead" style="align-items:center"><div class="dhead">${ab(a,1)}<div><h1 style="font-size:26px">${esc(a.name)}</h1><div class="src">${esc(a.sym)} · ${a.kind==='crypto'?'Crypto · '+a.market:esc(a.sector)+' · '+esc(a.tv)}</div></div></div>
-    <div style="display:flex;align-items:center;gap:8px">${star(a.sym)}<button class="btn ghost" id="news">${ico('news')}Nieuws <span id="ncount"></span></button><a class="btn" href="#waarom-${a.sym.toLowerCase()}">${ico('why')}Waarom beweegt het?</a></div></div>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">${star(a.sym)}<button class="btn ghost" id="palert">${ico('alarm')}Koersalert</button><button class="btn ghost" id="shr" aria-label="Delen">${ico('share')}</button><button class="btn ghost" id="news">${ico('news')}Nieuws <span id="ncount"></span></button><a class="btn" href="#waarom-${a.sym.toLowerCase()}">${ico('why')}Waarom beweegt het?</a></div></div>
     <div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:6px"><span class="dprice" id="dp"></span><span id="dc" class="num" style="font-weight:600"></span></div>
     <div class="src" id="dsrc" style="margin-bottom:16px"></div>
-    <div class="grid g2"><div class="grid" style="align-content:start"><div class="tv" id="tvc"></div><div class="mgrid" id="dm"></div></div>
-    <div class="grid" style="align-content:start"><div class="card"><div class="chead"><h2>CSA Sentiment</h2><span class="src">${a.kind==='crypto'?'Herberekend elke minuut':'Dagbasis'}</span></div><div id="ds"></div></div>
+    <div class="grid g2"><div class="grid" style="align-content:start"><div class="card flush chartcard"><div class="chead" style="padding:12px 14px 0;margin:0"><div class="seg" id="crng">${Object.keys(RANGES).map(r=>`<button data-r="${r}" class="${CH.range===r?'on':''}">${r}</button>`).join('')}</div><div class="seg" id="cmode"><button data-c="csa" class="on">CSA-grafiek</button><button data-c="tv">TradingView</button></div></div><div id="csabox" style="padding:10px 14px 14px">${skel(1,'h300')}</div><div class="tv hidden" id="tvc" style="border:0;border-radius:0"></div></div><div class="mgrid" id="dm"></div></div>
+    <div class="grid" style="align-content:start"><div class="card"><div class="chead"><h2>${gl('senti','CSA Sentiment')}</h2><span class="src">${a.kind==='crypto'?'Herberekend elke minuut':'Dagbasis'}</span></div><div id="ds"></div></div>
     <div class="card"><div class="chead"><h2>Waarom beweegt ${esc(a.name)}?</h2><a class="lnk" href="#waarom-${a.sym.toLowerCase()}">Details →</a></div><div id="dw"></div></div></div></div>
     <div class="card" style="margin-top:16px"><div class="chead"><h2>Bull vs. Bear scenario's</h2><span class="src">Op basis van actuele niveaus en indicatoren; geen voorspelling</span></div><div id="dsc"></div></div>
     <div class="grid g2" style="margin-top:16px"><div class="card"><div class="chead"><h2>Gebeurtenissen</h2><span class="src">Laatste 48 uur</span></div><div id="de"></div></div><div class="card"><div class="chead"><h2>Risico's</h2></div><div id="dr"></div></div></div>`},
   mount(el,arg){const a=getAsset(arg);if(!a)return;bindStars(el);
-    tvChart($('#tvc',el),tvSym(a));$('#news',el).onclick=()=>newsDrawer(a);
+    this.cd=null;$('#news',el).onclick=()=>newsDrawer(a);$('#palert',el).onclick=()=>PA.dialog(a.sym);$('#shr',el).onclick=()=>shareCard({kind:'why',a,w:whyMoving(a)});
+    const mode=c=>{$$('#cmode button',el).forEach(b=>b.classList.toggle('on',b.dataset.c===c));$('#csabox',el).classList.toggle('hidden',c!=='csa');$('#crng',el).classList.toggle('hidden',c!=='csa');$('#tvc',el).classList.toggle('hidden',c!=='tv');if(c==='tv'&&!$('#tvc',el).dataset.f){$('#tvc',el).dataset.f=1;tvChart($('#tvc',el),tvSym(a))}};
+    $('#cmode',el).onclick=e=>{const b=e.target.closest('[data-c]');if(b)mode(b.dataset.c)};
+    this.draw=async()=>{if(a.kind!=='crypto')return;try{this.cd=await chartData(a,CH.range);if(UI.el===el)drawChart($('#csabox',el),a,this.cd)}catch(x){$('#csabox',el).innerHTML='<div class="achart empty">Grafiek kon niet laden. Gebruik TradingView.</div>'}};
+    $('#crng',el).onclick=e=>{const b=e.target.closest('[data-r]');if(!b)return;CH.range=b.dataset.r;$$('#crng button',el).forEach(x=>x.classList.toggle('on',x===b));$('#csabox',el).innerHTML=skel(1,'h300');this.draw()};
+    if(a.kind==='crypto')this.draw();else{$('#cmode [data-c="csa"]',el).remove();mode('tv')}
     loadHourlyFor(a);loadCompanyNews(a).then(()=>this.live(el,arg,'calc'));},
   live(el,arg,kind){const a=getAsset(arg);if(!a||!$('#dp',el))return;const m=a.m||{};
     $('#dp',el).textContent=a.price!=null?money(a,a.price):'—';$('#dc',el).innerHTML=`<span class="${cls(a.ch24)}">${pct(a.ch24)}</span> <span class="faint" style="font-weight:400">${a.kind==='crypto'?'24 uur':'vandaag'}</span>`;
     $('#dsrc',el).innerHTML=srcLine(a);
     const nN=S.clusters.filter(c=>c.assets.includes(a.sym)).length;$('#ncount',el).textContent=nN?`(${nN})`:'';
-    const cells=a.kind==='crypto'?[['24u hoog',eur(a.high)],['24u laag',eur(a.low)],['Volume 24u',big(a.volQ)],['Volume vs 30d',m.volRatio?nlN(m.volRatio,1)+'×':'—'],['7 dagen',`<span class="${cls(m.ch7)}">${pct(m.ch7)}</span>`],['30 dagen',`<span class="${cls(m.ch30)}">${pct(m.ch30)}</span>`],['Volatiliteit',m.vol?nlN(m.vol,1)+'% /dag':'—'],['RSI (14d)',m.rsi!=null?nlN(m.rsi,0):'—'],['20d gemiddelde',eur(m.sma20)],['30d bereik',m.lo30?eur(m.lo30)+' – '+eur(m.hi30):'—'],['Correlatie BTC',m.corr!=null?nlN(m.corr,2):'—'],['Rang (volume)',a.rank?'#'+a.rank:'—']]
+    const cells=a.kind==='crypto'?[['24u hoog',eur(a.high)],['24u laag',eur(a.low)],['Volume 24u',big(a.volQ)],[gl('volx','Volume vs 30d'),m.volRatio?nlN(m.volRatio,1)+'×':'—'],['7 dagen',`<span class="${cls(m.ch7)}">${pct(m.ch7)}</span>`],['30 dagen',`<span class="${cls(m.ch30)}">${pct(m.ch30)}</span>`],[gl('vol','Volatiliteit'),m.vol?nlN(m.vol,1)+'% /dag':'—'],[gl('rsi','RSI (14d)'),m.rsi!=null?nlN(m.rsi,0):'—'],[gl('sma','20d gemiddelde'),eur(m.sma20)],[gl('range','30d bereik'),m.lo30?eur(m.lo30)+' – '+eur(m.hi30):'—'],[gl('corr','Correlatie BTC'),m.corr!=null?nlN(m.corr,2):'—'],['Rang (volume)',a.rank?'#'+a.rank:'—'],...(S.settings.mode==='pro'?[[gl('beta','Beta t.o.v. BTC'),m.beta!=null?nlN(m.beta,2):'—'],[gl('z','Z-score 24u'),m.z24!=null?nlN(m.z24,2):'—'],['Dagrange vs normaal',m.rangeRatio?nlN(m.rangeRatio,1)+'×':'—'],['Afstand 20d gem.',pct(m.devSma)]]:[])]
       :[['Dag hoog',money(a,a.high)],['Dag laag',money(a,a.low)],['Opening',money(a,a.open)],['Vorige slot',money(a,a.prev)],['Sector',esc(a.sector)],['Beurs',esc(a.tv.split(':')[0])],['Valuta',a.cur],['Databron',a.fh?(a.price!=null?'Finnhub':'Niet gekoppeld'):'TradingView']];
     $('#dm',el).innerHTML=cells.map(([k,v])=>`<div><small>${k}</small><b>${v}</b></div>`).join('');
     if(kind==='calc'||!$('#ds',el).dataset.f){$('#ds',el).dataset.f=1;
       const s=a.s;$('#ds',el).innerHTML=s?`<div class="sgauge">${gauge(s.score,{w:230,sw:16})}<div class="sl">${esc(s.l)}</div><div class="src">score ${s.score>0?'+':''}${Math.round(s.score)} op een schaal van −100 tot +100</div></div><ul class="why-list">${s.reasons.map(r=>`<li class="${r.v>0.05?'up':r.v<-0.05?'down':''}"><i></i>${esc(r.t)}</li>`).join('')}</ul>`:`<div class="empty">${a.kind==='stock'&&!S.settings.fhKey?'Koppel aandelendata om sentiment te berekenen.':a.deep||a.kind==='stock'?'Data laden…':'Analyse laden…'}</div>`;
+      if(this.cd&&a.kind==='crypto'&&!$('.mkpop',el))drawChart($('#csabox',el),a,this.cd);
       const w=whyMoving(a);$('#dw',el).innerHTML=`<p style="margin:0 0 10px">${esc(w.summary)}</p><div class="kicker">Zekerheid: <b>${w.conf}</b></div>${w.causes.slice(0,3).map(c=>`<div class="cause" style="padding:8px 0"><div class="h"><span>${esc(c.k)}</span><span class="num muted">${Math.round(c.share*100)}%</span></div><div class="tr"><i style="width:${Math.round(c.share*100)}%"></i></div></div>`).join('')}`;
       const sc=scenarios(a);$('#dsc',el).innerHTML=sc?scenHTML(a,sc):waitBox();
       const ev=[...S.events.values()].filter(e=>(e.assets||[]).includes(a.sym)).sort((x,y)=>y.score-x.score).slice(0,5);
@@ -181,7 +191,8 @@ Pages.waarom={
     <div class="chips" id="wchips" style="margin-bottom:16px"></div><div id="wbody"></div>`},
   mount(el,arg){const pick=s=>location.hash='#waarom-'+s.toLowerCase();
     $('#wsel',el).onchange=e=>pick(e.target.value);
-    $('#wchips',el).onclick=e=>{const b=e.target.closest('[data-w]');if(b)pick(b.dataset.w)}},
+    $('#wchips',el).onclick=e=>{const b=e.target.closest('[data-w]');if(b)pick(b.dataset.w)};
+    el.addEventListener('click',e=>{if(e.target.closest('#wshare')&&this.a)shareCard({kind:'why',a:this.a,w:this.w})})},
   live(el,arg,kind){
     if(kind!=='calc'&&$('#wbody',el).dataset.f)return;
     const sym=(arg||'BTC').toUpperCase();const a=getAsset(sym);
@@ -192,10 +203,10 @@ Pages.waarom={
     const mv=deepList().sort((x,y)=>Math.abs(y.m.z24||0)-Math.abs(x.m.z24||0)).slice(0,5).map(x=>x.sym);
     $('#wchips',el).innerHTML=[...new Set(['BTC','ETH',...mv,...S.watch])].slice(0,10).map(s=>{const x=getAsset(s);return x?`<button class="chip ${s===sym?'on':''}" data-w="${s}">${s} <span class="${s===sym?'':cls(x.ch24)}">${pct(x.ch24,1)}</span></button>`:''}).join('');
     if(!a){$('#wbody',el).innerHTML='<div class="empty">Kies een asset.</div>';return}
-    const w=whyMoving(a);
+    const w=whyMoving(a);this.w=w;this.a=a;
     const srcs=w.causes.flatMap(c=>c.src||[]);
     $('#wbody',el).innerHTML=`<div class="card" style="margin-bottom:16px;display:flex;gap:18px;align-items:center;flex-wrap:wrap">${ab(a,1)}<div style="flex:1;min-width:220px"><div class="kicker">${esc(a.name)} · ${money(a,a.price)} · <span class="${cls(a.ch24)}">${pct(a.ch24)}</span> ${a.kind==='crypto'?'in 24 uur':'vandaag'}</div><div style="font:600 19px/1.35 'Inter Tight',sans-serif">${esc(w.summary)}</div></div>
-      <div style="text-align:right"><div class="src">Zekerheid analyse</div><div style="font:650 22px 'Inter Tight',sans-serif">${w.conf}</div><div class="src">${hhmm(Date.now())} · ${w.checks.filter(c=>c.st!=='u').length}/8 punten met data</div></div></div>
+      <button class="btn ghost" id="wshare">${ico('share')}Delen</button><div style="text-align:right"><div class="src">Zekerheid analyse</div><div style="font:650 22px 'Inter Tight',sans-serif">${w.conf}</div><div class="src">${hhmm(Date.now())} · ${w.checks.filter(c=>c.st!=='u').length}/8 punten met data</div></div></div>
       ${w.unknown?`<div class="callout warn" style="margin-bottom:16px"><b>Oorzaak nog onbekend.</b> CSA vult dit niet in met een gok. Er zijn geen gegevens die de beweging overtuigend verklaren; CSA blijft controleren en meldt het zodra er bewijs is.</div>`:''}
       <div class="grid g2"><div class="card"><div class="chead"><h2>Controlelijst</h2><span class="src">Ja · Nee · ? = geen data</span></div>${w.checks.map(c=>`<div class="check"><span class="ck ${c.st}">${c.st==='y'?'Ja':c.st==='n'?'—':'?'}</span><div><b>${esc(c.q)}</b><p>${esc(c.d)}</p></div></div>`).join('')}</div>
       <div class="grid" style="align-content:start"><div class="card"><div class="chead"><h2>Meest waarschijnlijke oorzaken</h2><span class="src">Aandeel in verklaring</span></div>${w.causes.length?w.causes.map(c=>`<div class="cause"><div class="h"><b>${esc(c.k)}</b><span class="num muted">${Math.round(c.share*100)}%</span></div><div class="note" style="margin-top:4px">${esc(c.d)}</div><div class="tr"><i style="width:${Math.round(c.share*100)}%"></i></div></div>`).join(''):'<div class="empty">Geen oorzaken aangetoond.</div>'}</div>
@@ -212,7 +223,7 @@ Pages.impact={
   <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px"><div class="chips" id="imin">${[[0,'Alles'],[40,'40+'],[60,'60+ hoog'],[80,'80+ zeer hoog']].map(([v,l])=>`<button class="chip ${IMPF.min===v?'on':''}" data-m="${v}">${l}</button>`).join('')}</div>
   <div class="chips" id="icat">${[['all','Alle typen'],['price','Koers & volume'],['news','Nieuws'],['macro','Macro']].map(([v,l])=>`<button class="chip ${IMPF.cat===v?'on':''}" data-c="${v}">${l}</button>`).join('')}</div></div>
   <div class="grid g2"><div class="card"><div id="ilist"></div></div>
-  <div class="grid" style="align-content:start"><div class="card"><div class="chead"><h2>Methodologie</h2><span class="src">Versie 1.0</span></div>
+  <div class="grid" style="align-content:start"><div class="card"><div class="chead"><h2>${gl('impact','Methodologie')}</h2><span class="src">Versie 1.0</span></div>
     <p class="note" style="margin-top:0"><b>I = 100 × Σ (gewicht × factor)</b>, elke factor tussen 0 en 1 en gemeten uit data.</p>
     <table style="font-size:13px"><thead><tr><th>Factor</th><th class="n">Gewicht</th></tr></thead><tbody>${IW.map(([k,n,w,d])=>`<tr style="cursor:default"><td style="white-space:normal"><b>${n}</b><div class="note">${d}</div></td><td class="n">${Math.round(w*100)}%</td></tr>`).join('')}</tbody></table>
     <p class="note">Labels: 80+ zeer hoog · 60–79 hoog · 40–59 gemiddeld · 20–39 laag. Naast de score toont CSA altijd de mogelijke richting, de betrouwbaarheid van de bron en de onzekerheid. Een hoge score zegt iets over de <b>omvang</b> van de mogelijke invloed, niet over de richting.</p></div>
@@ -237,7 +248,7 @@ Pages.impact={
 /* ---------------- EVENT RADAR ---------------- */
 Pages.radar={
   title:()=>'Event Radar',
-  html:()=>`<div class="phead"><div><h1>Economic Event Radar</h1><p>De belangrijkste publicaties en besluiten met CSA Impact Score, uitleg en herinneringen. Datums gecontroleerd bij de officiële bron; de volledige kalender met verwachte, vorige en werkelijke waarden staat rechts.</p></div></div>
+  html:()=>`<div class="phead"><div><h1>Economic Event Radar</h1><button class="btn ghost" data-ics="all" style="float:right;margin-left:12px">${ico('cal')}Alles naar mijn agenda</button><p>De belangrijkste publicaties en besluiten met CSA Impact Score, uitleg en herinneringen. Datums gecontroleerd bij de officiële bron; de volledige kalender met verwachte, vorige en werkelijke waarden staat rechts.</p></div></div>
   <div class="grid g2"><div class="card"><div class="chead"><h2>Belangrijkste gebeurtenissen</h2><span class="src">Tijden in jouw tijdzone</span></div><div id="rlist"></div></div>
   <div class="card"><div class="chead"><h2>Volledige economische kalender</h2><span class="src">Live via TradingView · verwacht / vorige / werkelijk</span></div><div class="tv xl" id="tvcal" style="border:0;height:900px"></div></div></div>`,
   mount(el){tv($('#tvcal',el),'events',{width:'100%',height:'100%',importanceFilter:'0,1',countryFilter:'us,eu,de,nl,gb,jp,cn'});
@@ -251,7 +262,7 @@ Pages.radar={
       <div><div class="ttl">${esc(e.title)}</div><div class="meta"><span class="tag ${I.score>=70?'navy':''}">Impact ${I.score}/100</span><span class="tag">${T.l}</span><span class="cd" data-cd="${e.t}">${countdown(e.t)}</span></div>
       <p><b style="color:var(--ink)">Verwacht / vorige:</b> ${e.exp?esc(e.exp):'zie live kalender'}${e.act?` · <b style="color:var(--ink)">Werkelijk:</b> ${esc(e.act)}`:''}</p>
       <p>${esc(T.why)}</p><p><b style="color:var(--ink)">Relevante assets:</b> ${esc((e.sym?[e.sym,...T.assets]:T.assets).join(', ')||e.sym)} · Bron: ${e.url?`<a href="${e.url}" target="_blank" rel="noopener">${esc(e.src)}</a>`:esc(e.src)}</p>
-      <div class="rem" style="margin-top:10px" aria-label="Herinneringen">${[[1440,'24 uur'],[60,'1 uur'],[15,'15 min']].map(([o,l])=>`<button class="${set.includes(o)?'on':''}" data-r="${e.id}|${o}">${l}</button>`).join('')}</div></div></div>`}).join('')+(S.settings.fhKey?'':`<p class="note" style="margin-top:14px">Kwartaalcijfers van grote bedrijven verschijnen hier zodra aandelendata (Finnhub) gekoppeld is.</p>`);
+      <div class="rem" style="margin-top:10px" aria-label="Herinneringen">${[[1440,'24 uur'],[60,'1 uur'],[15,'15 min']].map(([o,l])=>`<button class="${set.includes(o)?'on':''}" data-r="${e.id}|${o}">${l}</button>`).join('')}<button data-ics="${e.id}" title="Agendabestand (.ics) voor Apple, Outlook en Google">${ico('cal','style="width:14px;height:14px;vertical-align:-2px"')} Agenda</button><a class="remlink" href="${gcal(e)}" target="_blank" rel="noopener">Google Agenda ↗</a></div></div></div>`}).join('')+(S.settings.fhKey?'':`<p class="note" style="margin-top:14px">Kwartaalcijfers van grote bedrijven verschijnen hier zodra aandelendata (Finnhub) gekoppeld is.</p>`);
     }
     $$('[data-cd]',el).forEach(c=>c.textContent=countdown(+c.dataset.cd));
   }
@@ -376,15 +387,15 @@ Pages.instellingen={
 function setTheme(t){S.settings.theme=t;saveSettings();document.documentElement.dataset.theme=t;UI.route()}
 const Boot={started:false,
   async start(){if(this.started)return;this.started=true;
-    $('#nav').innerHTML=NAV.map(([k,l,i])=>`<a href="#${k}" data-p="${k}">${ico(i)}<span>${l}</span>${k==='impact'?'<span class="cnt hidden" id="ncnt"></span>':''}</a>`).join('');
+    $('#nav').innerHTML=NAV.map(([k,l,i])=>k==='grp'?`<div class="grp">${l}</div>`:`<a href="#${k}" data-p="${k}">${ico(i)}<span>${l}</span></a>`).join('');
     $('#tabbar').innerHTML=[['overzicht','Overzicht','home'],['markten','Markten','markets'],['waarom','Waarom?','why'],['impact','Impact','impact'],['more','Meer','more']].map(([k,l,i])=>`<a href="${k==='more'?'javascript:void 0':'#'+k}" data-p="${k}">${ico(i)}<span>${l}</span></a>`).join('');
-    $('#tabbar [data-p="more"]').onclick=()=>{$('#overlay').innerHTML=`<div class="scrim" id="scrim" style="align-items:flex-end"><div class="sheet">${NAV.slice(4).map(([k,l,i])=>`<a href="#${k}">${ico(i)}<span>${l.replace('Opportunity ','')}</span></a>`).join('')}</div></div>`;$('#scrim').onclick=e=>{if(e.target.id==='scrim'||e.target.closest('a'))closeOverlay()}};
+    $('#tabbar [data-p="more"]').onclick=()=>{$('#overlay').innerHTML=`<div class="scrim" id="scrim" style="align-items:flex-end"><div class="sheet">${NAV.filter(([k])=>k!=='grp'&&!['overzicht','markten','waarom','impact'].includes(k)).map(([k,l,i])=>`<a href="#${k}">${ico(i)}<span>${l.replace('Opportunity ','')}</span></a>`).join('')}</div></div>`;$('#scrim').onclick=e=>{if(e.target.id==='scrim'||e.target.closest('a'))closeOverlay()}};
     $('#themebtn').onclick=()=>setTheme(dark()?'light':'dark');
-    $('#bell').onclick=()=>{S.unread=0;LS.set('unread',0);UI.badge();drawer('Meldingen',S.alerts.length?S.alerts.map(a=>`<a href="${a.href||'#impact'}" style="display:block;padding:12px 0;border-bottom:1px solid var(--line);text-decoration:none"><div style="display:flex;justify-content:space-between;gap:10px"><b>${esc(a.title)}</b>${a.score?`<span class="tag ${a.score>=60?'navy':''}">${a.score}</span>`:''}</div><div class="note">${esc(a.body||'')}</div><div class="src">${dmy(a.t)} ${hhmm(a.t)}</div></a>`).join(''):'<div class="empty" style="margin-top:14px">Nog geen meldingen. Stel je voorkeuren in bij Instellingen.</div>',b=>b.onclick=e=>{if(e.target.closest('a'))closeOverlay()})};
+    $('#bell').onclick=()=>location.hash='#meldingen';
     $('#status').onclick=()=>location.hash='#instellingen';
     initSearch();UI.badge();window.addEventListener('hashchange',()=>UI.route());UI.route();
     setInterval(()=>{shellLive();const pg=Pages[UI.cur];if(UI.el)$$('[data-cd]',UI.el).forEach(c=>c.textContent=countdown(+c.dataset.cd))},1000);
-    Alerts.silentUntil=Date.now()+90000;Push.reg();Sync.pull();loadServer();setInterval(loadServer,60*1000);connectWS();await loadNames();await loadTickers();recalc();if(['asset','waarom'].includes(UI.cur))UI.route();
+    Alerts.silentUntil=Date.now()+90000;Push.reg();Sync.pull().then(()=>{if(!S.settings.onboarded)setTimeout(()=>Onb.open(),400)});NC.pull();setInterval(()=>NC.pull(),2*60*1000);setInterval(()=>PA.checkLocal(),30*1000);loadServer();setInterval(loadServer,60*1000);connectWS();await loadNames();await loadTickers();recalc();if(['asset','waarom'].includes(UI.cur))UI.route();
     await loadCandles();
     loadCC().then(()=>{cluster();recalc()});loadFHNews().then(recalc);loadStocks();loadEarnings();
     setInterval(recalc,60*1000);setInterval(loadTickers,5*60*1000);setInterval(loadCandles,30*60*1000);

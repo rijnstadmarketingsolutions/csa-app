@@ -56,7 +56,7 @@ const UI={
     if(!Pages[p]){p='overzicht';arg=null}
     this.cur=p;this.arg=arg;const pg=Pages[p];
     $$('#nav a,#tabbar a').forEach(a=>a.classList.toggle('on',a.dataset.p===p||(a.dataset.p==='more'&&!['overzicht','markten','waarom','impact'].includes(p))));
-    const old=$('#view');const v=old.cloneNode(false);old.replaceWith(v);v.innerHTML=pg.html(arg);this.el=v;pg.mount&&pg.mount(v,arg);pg.live&&pg.live(v,arg,'calc');
+    const old=$('#view');const v=old.cloneNode(false);old.replaceWith(v);v.classList.remove('enter');void v.offsetWidth;v.classList.add('enter');v.innerHTML=pg.html(arg);this.el=v;pg.mount&&pg.mount(v,arg);pg.live&&pg.live(v,arg,'calc');
     document.title=(pg.title?pg.title(arg)+' · ':'')+'Crypto Signal AI';
     window.scrollTo(0,0);closeOverlay();
   },
