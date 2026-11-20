@@ -37,11 +37,15 @@ for slug, sym in MAP.items():
   try: d = get('/emissions/' + slug)
   except Exception as e: print('fout', slug, e, file=sys.stderr); continue
   ev = find_events(d) or []; sm = (d.get('supplyMetrics') or {}); mx = sm.get('maxSupply') or sm.get('adjustedSupply')
+  try: mx = float(mx) if mx else None
+  except (TypeError, ValueError): mx = None
   n = 0
   for e in ev:
-    t = e.get('timestamp') or 0
+    try: t = float(e.get('timestamp') or 0)
+    except (TypeError, ValueError): continue
     if not (lo <= t <= hi): continue
-    cliff = (e.get('summary') or {}).get('totalTokensCliff') or 0
+    try: cliff = float((e.get('summary') or {}).get('totalTokensCliff') or 0)
+    except (TypeError, ValueError): cliff = 0
     if cliff <= 0: continue
     al = e.get('cliffAllocations') or []
     out.append({'sym': sym, 'name': d.get('name') or slug, 't': int(t * 1000), 'tokens': round(cliff, 2), 'max': mx,
