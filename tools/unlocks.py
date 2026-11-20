@@ -38,7 +38,8 @@ for slug, sym in MAP.items():
   if slug in ('arbitrum-foundation', 'arbitrum', 'aptos', 'sui-foundation'): print('debug', slug, [(p, len(v), min(float(x.get('timestamp') or 0) for x in v), max(float(x.get('timestamp') or 0) for x in v)) for p, v in found][:6], list(d.keys())[:12])
   ev = [e for _, v in found for e in v];
   if slug=='arbitrum-foundation':
-    win=[e for e in ev if lo <= float(e.get('timestamp') or 0) <= hi]; print('debug2', len(win), json.dumps(win[:2])[:900], 'lo', lo, 'hi', hi) sm = (d.get('supplyMetrics') or {}); mx = sm.get('maxSupply') or sm.get('adjustedSupply')
+    win=[e for e in ev if lo <= float(e.get('timestamp') or 0) <= hi]; print('debug2', len(win), json.dumps(win[:2])[:900], 'lo', lo, 'hi', hi)
+  sm = (d.get('supplyMetrics') or {}); mx = sm.get('maxSupply') or sm.get('adjustedSupply')
   try: mx = float(mx) if mx else None
   except (TypeError, ValueError): mx = None
   n = 0
