@@ -37,7 +37,7 @@ export default {
     catch (e) { console.error(e); return cors(request, err(500, 'Serverfout: ' + e.message)); }
   },
   async scheduled(event, env, ctx) {
-    if (event.cron === '17 3 * * *') ctx.waitUntil(daily(env)); else if (event.cron === '0 7 * * *') ctx.waitUntil(morning(env)); else if (event.cron === '0 17 * * 0') ctx.waitUntil(weekly(env)); else ctx.waitUntil(tick(env));
+    if (event.cron === '17 3 * * *') ctx.waitUntil(daily(env)); else if (event.cron === '0 7 * * *') ctx.waitUntil(morning(env)); else if (event.cron === '0 17 * * SUN') ctx.waitUntil(weekly(env)); else ctx.waitUntil(tick(env));
   }
 };
 
