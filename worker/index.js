@@ -37,7 +37,13 @@ export default {
     catch (e) { console.error(e); return cors(request, err(500, 'Serverfout: ' + e.message)); }
   },
   async scheduled(event, env, ctx) {
-    if (event.cron === '17 3 * * *') ctx.waitUntil(daily(env)); else if (event.cron === '0 7 * * *') ctx.waitUntil(morning(env)); else if (event.cron === '0 17 * * SUN') ctx.waitUntil(weekly(env)); else ctx.waitUntil(tick(env));
+    // Gratis plan: max. 5 cron-triggers per account. Daarom draaien de nachtelijke opruiming (03:15 UTC)
+    // en de weekmail (zondag 17:00 UTC) mee in de 5-minutentik in plaats van met een eigen trigger.
+    if (event.cron === '0 7 * * *') return ctx.waitUntil(morning(env));
+    const d = new Date(event.scheduledTime || Date.now()), h = d.getUTCHours(), m = d.getUTCMinutes();
+    if (h === 3 && m >= 15 && m < 20) return ctx.waitUntil(daily(env));
+    if (d.getUTCDay() === 0 && h === 17 && m < 5) return ctx.waitUntil(weekly(env));
+    ctx.waitUntil(tick(env));
   }
 };
 
