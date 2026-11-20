@@ -5,6 +5,14 @@ on:
       urls:
         description: 'Spatiegescheiden lijst met URLs'
         required: true
+      tail:
+        description: 'Aantal bytes van het einde'
+        required: false
+        default: '0'
+      head:
+        description: 'Aantal bytes van het begin'
+        required: false
+        default: '2500'
 permissions:
   contents: read
 jobs:
@@ -14,10 +22,13 @@ jobs:
       - name: Ophalen
         env:
           URLS: ${{ github.event.inputs.urls }}
+          TAIL: ${{ github.event.inputs.tail }}
+          HEAD: ${{ github.event.inputs.head }}
         run: |
           for u in $URLS; do
             echo "=================== $u"
             curl -sS -m 25 -A "Mozilla/5.0 CSA" -w "\n[HTTP %{http_code}, %{size_download} bytes]\n" "$u" -o /tmp/out.txt || true
-            head -c 2500 /tmp/out.txt; echo; tail -c 200 /tmp/out.txt | head -c 0
+            head -c ${HEAD:-2500} /tmp/out.txt; echo; echo "...[staart]"; tail -c ${TAIL:-0} /tmp/out.txt; echo
+            curl -sS -m 10 -I -H "Origin: https://csa.rijnstadmarketing.workers.dev" "$u" 2>/dev/null | grep -i "access-control-allow-origin" || echo "[geen CORS-header]"
             echo "[grootte: $(wc -c < /tmp/out.txt)]"
           done
