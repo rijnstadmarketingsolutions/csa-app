@@ -165,6 +165,7 @@ export async function refreshMarket(env, state, b, status = {}) {
     const cut = now - 3 * DAY; const seen = new Set();
     N.items = [...fresh, ...(N.items || [])].filter(x => x && x.title && x.url && x.t > cut && !seen.has(x.id) && seen.add(x.id)).sort((p, q) => q.t - p.t).slice(0, 200);
     N.idx = (idx + 2) % FEEDS.length; N.t = now; state.news = N; await save('news', N);
+    for (const k of Object.keys(N.sources || {})) if (!FEEDS.some(f => f[0] === k) && !/^Finnhub/.test(k)) delete N.sources[k];
     return { items: N.items.length, fetched: pick.map(p => p[0]).join(', '), sources: N.sources };
   });
   // 5. extra marktcijfers (elke 10 min): CoinGecko + Fear & Greed
