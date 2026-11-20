@@ -3,7 +3,7 @@ Schrijft tools/unlocks.sql met één kv-regel ('unlocks') voor de D1-database.""
 import json, time, urllib.request, sys
 BASE = 'https://defillama-datasets.llama.fi'
 # DefiLlama-slug -> symbool zoals op Bitvavo/CSA
-MAP = {'arbitrum': 'ARB', 'optimism-foundation': 'OP', 'aptos': 'APT', 'sui-foundation': 'SUI', 'avalanche': 'AVAX', 'worldcoin': 'WLD', 'jupiter': 'JUP',
+MAP = {'arbitrum-foundation': 'ARB', 'arbitrum': 'ARB', 'optimism-foundation': 'OP', 'aptos': 'APT', 'sui-foundation': 'SUI', 'avalanche': 'AVAX', 'worldcoin': 'WLD', 'jupiter': 'JUP',
   'pyth': 'PYTH', 'layerzero': 'ZRO', 'starknet': 'STRK', 'sei': 'SEI', 'celestia': 'TIA', 'dydx': 'DYDX', 'ethena': 'ENA', 'ondo-finance': 'ONDO', 'immutablex': 'IMX',
   'axie-infinity': 'AXS', 'the-sandbox': 'SAND', 'decentraland': 'MANA', 'uniswap': 'UNI', 'aave': 'AAVE', 'lido': 'LDO', 'curve-finance': 'CRV', 'synthetix': 'SNX',
   'filecoin': 'FIL', 'internet-computer': 'ICP', 'injective-orderbook': 'INJ', 'pendle': 'PENDLE', 'eigenlayer': 'EIGEN', 'zksync': 'ZK', 'wormhole': 'W',
@@ -19,24 +19,24 @@ MAP = {'arbitrum': 'ARB', 'optimism-foundation': 'OP', 'aptos': 'APT', 'sui-foun
 def get(path):
   req = urllib.request.Request(BASE + path, headers={'user-agent': 'CSA-unlocks/1.0'})
   with urllib.request.urlopen(req, timeout=60) as r: return json.loads(r.read())
-def find_events(o):
+def find_events(o, path='', out=None):
+  out = [] if out is None else out
   if isinstance(o, dict):
     for k, v in o.items():
-      if k == 'events' and isinstance(v, list) and v and isinstance(v[0], dict) and 'timestamp' in v[0]: return v
-      r = find_events(v)
-      if r: return r
+      if k == 'events' and isinstance(v, list) and v and isinstance(v[0], dict) and 'timestamp' in v[0]: out.append((path + '.' + k, v))
+      else: find_events(v, path + '.' + k, out)
   elif isinstance(o, list):
-    for v in o[:3]:
-      r = find_events(v)
-      if r: return r
-  return None
+    for i, v in enumerate(o[:50]): find_events(v, path + f'[{i}]', out)
+  return out
 now = time.time(); lo, hi = now - 2 * 86400, now + 150 * 86400
 slugs = set(get('/emissionsProtocolsList')); out = []; done = []
 for slug, sym in MAP.items():
   if slug not in slugs: continue
   try: d = get('/emissions/' + slug)
   except Exception as e: print('fout', slug, e, file=sys.stderr); continue
-  ev = find_events(d) or []; sm = (d.get('supplyMetrics') or {}); mx = sm.get('maxSupply') or sm.get('adjustedSupply')
+  found = find_events(d)
+  if slug in ('arbitrum-foundation', 'arbitrum', 'aptos', 'sui-foundation'): print('debug', slug, [(p, len(v), min(float(x.get('timestamp') or 0) for x in v), max(float(x.get('timestamp') or 0) for x in v)) for p, v in found][:6], list(d.keys())[:12])
+  ev = [e for _, v in found for e in v]; sm = (d.get('supplyMetrics') or {}); mx = sm.get('maxSupply') or sm.get('adjustedSupply')
   try: mx = float(mx) if mx else None
   except (TypeError, ValueError): mx = None
   n = 0
