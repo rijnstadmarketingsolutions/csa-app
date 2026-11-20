@@ -8,7 +8,7 @@ import { adminApi, isAdmin } from './admin.js';
 import { handlePaper, paperCron, paperNeed } from './paper.js';
 import { newsKw, tgApi, tgWebhook, tgReady, tgSend, tgFormat, weekly, mailApi, mailReady } from './notify.js';
 
-const VERSION = '1.8.0';
+const VERSION = '1.9.0';
 const NATIVE_ORIGINS = ['capacitor://localhost', 'http://localhost', 'https://localhost', 'ionic://localhost'];
 const DEFAULT_SETTINGS = { notify: true, briefing: true, minScore: 60, scope: 'all', quiet: false, quietFrom: '23:00', quietTo: '07:00', cats: {} };
 const EMAIL_RX = /^[^@\s]{1,64}@[^@\s]{1,190}\.[^@\s]{2,}$/;
@@ -37,12 +37,12 @@ export default {
     catch (e) { console.error(e); return cors(request, err(500, 'Serverfout: ' + e.message)); }
   },
   async scheduled(event, env, ctx) {
-    // Gratis plan: max. 5 cron-triggers per account. Daarom draaien de nachtelijke opruiming (03:15 UTC)
-    // en de weekmail (zondag 17:00 UTC) mee in de 5-minutentik in plaats van met een eigen trigger.
-    if (event.cron === '0 7 * * *') return ctx.waitUntil(morning(env));
-    const d = new Date(event.scheduledTime || Date.now()), h = d.getUTCHours(), m = d.getUTCMinutes();
-    if (h === 3 && m >= 15 && m < 20) return ctx.waitUntil(daily(env));
-    if (d.getUTCDay() === 0 && h === 17 && m < 5) return ctx.waitUntil(weekly(env));
+    // Alles op Nederlandse tijd (ook na de overgang naar zomertijd), via één trigger van elke 5 minuten:
+    // ochtendbriefing 08:00, nachtelijke opruiming 04:15, weekmail zondag 18:00. Op zo'n moment slaat de gewone scan één keer over.
+    const L = amsLocal(event.scheduledTime || Date.now()), hm = L.h * 60 + L.m;
+    if (hm >= 480 && hm < 485) return ctx.waitUntil(morning(env));
+    if (hm >= 255 && hm < 260) return ctx.waitUntil(daily(env));
+    if (L.wd === 'Sun' && hm >= 1080 && hm < 1085) return ctx.waitUntil(weekly(env));
     ctx.waitUntil(tick(env));
   }
 };
@@ -50,7 +50,6 @@ export default {
 /* =================================================================== API */
 async function api(req, env, ctx, url) {
   // eenmalig overzetten van de versleutelsleutel bij de verhuizing naar de nieuwe worker (alleen actief met MIGRATE_TOKEN)
-  if (url.pathname === '/api/_migrate-key') { const t = req.headers.get('x-migrate') || ''; return env.MIGRATE_TOKEN && t.length === env.MIGRATE_TOKEN.length && t === env.MIGRATE_TOKEN ? json({ k: env.ENC_KEY || null }) : err(404, 'Niet gevonden'); }
   const p = url.pathname, m = req.method;
   if (p === '/api/health') { const st = await loadState(env, ['market', 'extra', 'news', 'scanstatus', 'scanstart', 'tickers']);
     if (url.searchParams.has('diag')) { const probe = {}; for (const sy of (url.searchParams.get('probe') || '').toUpperCase().split(',').filter(Boolean).slice(0, 4)) { const r = await lookupPrice(env, sy, budget(10), st.tickers?.usdt); probe[sy] = r.p ? { p: r.p, src: r.src, tried: r.tried } : { p: null, tried: r.tried }; }
@@ -228,6 +227,7 @@ async function tick(env) {
   status.done = Date.now(); status.subrequestsLeft = b.left;
   await kvPutStmt(env, 'scanstatus', status).run();
 }
+function amsLocal(t) { const p = new Intl.DateTimeFormat('en-US', { timeZone: 'Europe/Amsterdam', weekday: 'short', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date(t)); const g = k => p.find(x => x.type === k).value; return { wd: g('weekday'), h: +g('hour'), m: +g('minute') }; }
 function localHM(tz = 'Europe/Amsterdam') { const p = new Intl.DateTimeFormat('nl-NL', { timeZone: tz, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date()); return +p.find(x => x.type === 'hour').value * 60 + +p.find(x => x.type === 'minute').value; }
 function inQuiet(st) { if (!st.quiet) return false; const m = localHM(); const [fh, fm] = (st.quietFrom || '23:00').split(':').map(Number), [th, tm] = (st.quietTo || '07:00').split(':').map(Number); const f = fh * 60 + fm, t = th * 60 + tm; return f < t ? (m >= f && m < t) : (m >= f || m < t); }
 async function dispatch(env, fresh, b, state, extra = {}) {

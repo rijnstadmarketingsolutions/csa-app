@@ -31,7 +31,7 @@ const GLOSS={
   senti:['Vantis Sentiment','De stemming volgens Vantis, berekend uit koersbeweging, trend, volume, het 20-daags gemiddelde en de toon van het nieuws. Van −100 (bearish) tot +100 (bullish).'],
   z:['Normale dagbeweging','Hoeveel keer groter de beweging van vandaag is dan een normale dag voor deze asset. Vanaf 2× is het statistisch ongewoon.'],
   beta:['Beta t.o.v. Bitcoin','Hoeveel deze munt gemiddeld beweegt als Bitcoin 1% beweegt. Beta 1,5 = bij +1% Bitcoin gemiddeld +1,5%.'],
-  cap:['Totale marktwaarde','De waarde van alle crypto samen (koers × aantal munten), volgens CoinGecko.']
+  cap:['Totale marktwaarde','De waarde van alle crypto samen (koers × aantal munten), volgens CoinGecko of een reservebron (CoinPaprika, CoinLore).']
 };
 const gl=(k,label)=>S.settings.mode==='pro'||!GLOSS[k]?label:`${label}<button type="button" class="gi" data-g="${k}" aria-label="Uitleg: ${esc(GLOSS[k][0])}">i</button>`;
 document.addEventListener('click',e=>{const b=e.target.closest('[data-g]');const pop=$('#glpop');

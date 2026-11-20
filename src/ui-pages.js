@@ -50,8 +50,8 @@ Pages.overzicht={
       kpi(gl('senti','Sentiment'),o?esc(o.l):'—',o?`score ${o.score>0?'+':''}${Math.round(o.score)}`:'berekenen…',`<div class="kg">${gauge(o?.score,{w:110,sw:9})}</div>`,'#overzicht');
     $$('#kpis .kv',el).forEach((x,i)=>{if(oldK[i]&&oldK[i]!==x.textContent&&/[0-9]/.test(oldK[i])){const a=parseFloat(oldK[i].replace(/[^0-9,−-]/g,'').replace(',','.')),b=parseFloat(x.textContent.replace(/[^0-9,−-]/g,'').replace(',','.'));if(isFinite(a)&&isFinite(b)&&a!==b)x.classList.add(b>a?'flash-up':'flash-down')}});
     const X=S.extra||{},g=X.global,f=X.fng&&X.fng[0];
-    $('#kpis2',el).innerHTML=kpi(gl('cap','Totale cryptomarktwaarde'),g?big(g.cap):'—',g?`<span class="${cls(g.capCh)}">${pct(g.capCh)}</span> 24u · CoinGecko`:(Api.on?'laden via server…':'alleen via de online app'))+
-      kpi(gl('dom','Bitcoin-dominantie'),g?nlN(g.btcDom,1)+'%':'—',g?`Ethereum ${nlN(g.ethDom,1)}% · CoinGecko`:'aandeel van Bitcoin in de markt',g?`<div class="kbar"><i style="width:${clamp(g.btcDom,0,100)}%;background:var(--ink2)"></i></div>`:'')+
+    $('#kpis2',el).innerHTML=kpi(gl('cap','Totale cryptomarktwaarde'),g?big(g.cap):'—',g?`<span class="${cls(g.capCh)}">${pct(g.capCh)}</span> 24u · ${esc(g.src||'CoinGecko')}`:(Api.on?'laden via server…':'alleen via de online app'))+
+      kpi(gl('dom','Bitcoin-dominantie'),g?nlN(g.btcDom,1)+'%':'—',g?`${g.ethDom!=null?`Ethereum ${nlN(g.ethDom,1)}% · `:''}${esc(g.src||'CoinGecko')}`:'aandeel van Bitcoin in de markt',g?`<div class="kbar"><i style="width:${clamp(g.btcDom,0,100)}%;background:var(--ink2)"></i></div>`:'')+
       kpi(gl('fng','Fear & Greed-index'),f?f.v+' / 100':'—',f?`${esc(({'Extreme Fear':'Extreme angst','Fear':'Angst','Neutral':'Neutraal','Greed':'Hebzucht','Extreme Greed':'Extreme hebzucht'})[f.l]||f.l)} · alternative.me`:'externe index, los van Vantis',f?`<div class="kbar fng"><i style="left:${f.v}%"></i></div>`:'');
     // BTC grafiek
     const ser=DV.range==='24u'?(hseries(btc)||series(btc)):series(btc);
@@ -272,7 +272,7 @@ Pages.radar={
 const SCF={m:'all',r:'all',mo:'all',t:'all'};
 Pages.scanner={
   title:()=>'Opportunity Scanner',
-  html:()=>`<div class="phead"><div><h1>AI Opportunity Scanner</h1><p>Assets die op dit moment opvallen in de data: volume, momentum, breakouts, volatiliteit, ontkoppeling van Bitcoin, sentiment en nieuws. Opvallend betekent niet dat een koers gaat stijgen.</p></div></div>
+  html:()=>`<div class="phead"><div><h1>Opportunity Scanner</h1><p>Assets die op dit moment opvallen in de data: volume, momentum, breakouts, volatiliteit, ontkoppeling van Bitcoin, sentiment en nieuws. Opvallend betekent niet dat een koers gaat stijgen.</p></div></div>
   <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px" id="sfl">
     <div class="chips">${[['all','Alles'],['crypto','Crypto'],['stock','Aandelen']].map(([v,l])=>`<button class="chip ${SCF.m===v?'on':''}" data-k="m" data-v="${v}">${l}</button>`).join('')}</div>
     <div class="chips">${[['all','Elk risico'],['Laag','Laag'],['Gemiddeld','Gemiddeld'],['Hoog','Hoog']].map(([v,l])=>`<button class="chip ${SCF.r===v?'on':''}" data-k="r" data-v="${v}">${l}</button>`).join('')}</div>
@@ -290,7 +290,7 @@ Pages.scanner={
       <div class="note"><b>Waarom het opvalt:</b> ${esc(o.d.map(d=>d[0].toLowerCase()+(d[1]?' ('+d[1]+')':'')).join(', '))}.</div>
       <div class="pn"><div><h5>Positieve factoren</h5><ul>${(o.pos.length?o.pos:['Geen']).map(t=>`<li>${esc(t)}</li>`).join('')}</ul></div><div><h5>Negatieve factoren</h5><ul>${(o.neg.length?o.neg:['Geen']).map(t=>`<li>${esc(t)}</li>`).join('')}</ul></div></div>
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:auto;padding-top:10px;border-top:1px solid var(--line)"><span class="tag ${o.risk==='Hoog'?'down':o.risk==='Laag'?'up':'warn'}">Risico ${o.risk}</span><span>${a.s?senti(a.s):''}</span></div>
-      <div style="display:flex;gap:8px"><a class="btn sm" href="#asset-${a.sym.toLowerCase()}">AI-analyse</a><a class="btn sm ghost" href="#waarom-${a.sym.toLowerCase()}">Waarom?</a>${nN?`<button class="btn sm ghost" data-n="${a.sym}">Nieuws (${nN})</button>`:''}</div></article>`}).join(''):`<div class="empty" style="grid-column:1/-1">${S.lastCalc?'Geen assets die nu opvallen binnen dit filter.':'Scanner wacht op marktdata en historie…'}</div>`;
+      <div style="display:flex;gap:8px"><a class="btn sm" href="#asset-${a.sym.toLowerCase()}">Analyse</a><a class="btn sm ghost" href="#waarom-${a.sym.toLowerCase()}">Waarom?</a>${nN?`<button class="btn sm ghost" data-n="${a.sym}">Nieuws (${nN})</button>`:''}</div></article>`}).join(''):`<div class="empty" style="grid-column:1/-1">${S.lastCalc?'Geen assets die nu opvallen binnen dit filter.':'Scanner wacht op marktdata en historie…'}</div>`;
     $$('[data-n]',el).forEach(b=>b.onclick=()=>newsDrawer(getAsset(b.dataset.n)));
   }
 };
@@ -352,7 +352,7 @@ Pages.instellingen={
       <div class="field" style="margin-top:14px"><label for="fhk">Finnhub API-sleutel (aandelen + extra nieuws)</label><div style="display:flex;gap:8px"><input class="inp" id="fhk" type="password" value="${esc(s.fhKey)}" placeholder="Gratis via finnhub.io" autocomplete="off"><button class="btn" id="fhsave">Opslaan</button></div><p class="note">Alleen opgeslagen in deze browser. In productie draait dit via de Vantis-server, zodat sleutels nooit in de app staan.</p></div></div>
     <div class="card"><div class="chead"><h2>Weergave</h2></div><div class="set"><div><b>Donkere modus</b><p>Licht is de standaard; donker is prettiger 's avonds.</p></div>${sw('s_dark',s.theme==='dark')}</div></div>
     <div class="card"><div class="chead"><h2>Koppelingen</h2><span class="lockbadge">Fase 2</span></div>
-      ${[['Bankrekening koppelen','Saldo en stortingen via een gelicenseerde PSD2-partner.'],['Beleggen in Vantis','Crypto en aandelen kopen en verkopen in de app. Vereist een MiCA-vergunning (AFM) of een gelicenseerde partner, KYC en bewaring van tegoeden.'],['AI Autopilot','AI belegt binnen jouw risicoprofiel. Vereist vergunning voor vermogensbeheer en uitgebreide toetsing.']].map(([t,d])=>`<div class="set lock"><div><b>${t}</b><p>${d}</p></div><span class="tag warn">Gepland</span></div>`).join('')}
+      ${[['Bankrekening koppelen','Saldo en stortingen via een gelicenseerde PSD2-partner.'],['Beleggen in Vantis','Crypto en aandelen kopen en verkopen in de app. Vereist een MiCA-vergunning (AFM) of een gelicenseerde partner, KYC en bewaring van tegoeden.'],['Autopilot','Belegt automatisch binnen jouw risicoprofiel. Vereist vergunning voor vermogensbeheer en uitgebreide toetsing.']].map(([t,d])=>`<div class="set lock"><div><b>${t}</b><p>${d}</p></div><span class="tag warn">Gepland</span></div>`).join('')}
       <p class="note">Bewust nog niet actief: eerst bouwt Vantis het intelligence-platform; geldzaken komen pas met de juiste vergunningen en partners.</p></div>
     <div class="card"><div class="chead"><h2>Over Vantis</h2></div><p class="note" style="margin:0">Vantis · prototype ${new Date().getFullYear()}. Koersen: Bitvavo (crypto, realtime), Finnhub (VS-aandelen, optioneel), TradingView (grafieken, kalender, heatmap; aandelen kunnen vertraagd zijn). Nieuws: CryptoCompare, Finnhub, TradingView. Vantis geeft geen financieel advies.</p></div>
     </div></div>`},

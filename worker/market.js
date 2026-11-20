@@ -39,7 +39,8 @@ export const FEEDS = [
   ['The Block', 'https://www.theblock.co/rss.xml'],
   ['CNBC Markets', 'https://www.cnbc.com/id/100003114/device/rss/rss.html'],
   ['MarketWatch', 'https://feeds.content.dowjones.io/public/rss/mw_topstories'],
-  ['Yahoo Finance', 'https://finance.yahoo.com/news/rssindex']
+  ['Nasdaq', 'https://www.nasdaq.com/feed/rssoutbound?category=Markets'],
+  ['CryptoSlate', 'https://cryptoslate.com/feed/']
 ];
 const ENT = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ' };
 const unent = t => t.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').replace(/&(#x?[0-9a-f]+|[a-z]+);/gi, (m, e) => e[0] === '#' ? String.fromCodePoint(e[1] === 'x' || e[1] === 'X' ? parseInt(e.slice(2), 16) : +e.slice(1)) : (ENT[e.toLowerCase()] ?? m));
@@ -170,10 +171,19 @@ export async function refreshMarket(env, state, b, status = {}) {
   if (now - (state.extraTs || 0) > 10 * MIN || !state.extra || !state.extra.global) await step('extra', async () => {
     const ex = { ...(state.extra || {}) }; const h = env.COINGECKO_KEY ? { headers: { 'x-cg-demo-api-key': env.COINGECKO_KEY } } : undefined;
     delete ex.globalErr; delete ex.trendErr; delete ex.fngErr;
-    try { const g = (await getJSON('https://api.coingecko.com/api/v3/global', b, h)).data; ex.global = { cap: g.total_market_cap?.eur, vol: g.total_volume?.eur, capCh: g.market_cap_change_percentage_24h_usd, btcDom: g.market_cap_percentage?.btc, ethDom: g.market_cap_percentage?.eth, coins: g.active_cryptocurrencies, t: now }; } catch (e) { ex.globalErr = e.message; }
+    // marktwaarde en dominantie: CoinGecko, met CoinPaprika en CoinLore als reserve (CoinGecko weigert Cloudflare vaak)
+    { const errs = [];
+      try { const g = (await getJSON('https://api.coingecko.com/api/v3/global', b, h)).data; ex.global = { cap: g.total_market_cap?.eur, vol: g.total_volume?.eur, capCh: g.market_cap_change_percentage_24h_usd, btcDom: g.market_cap_percentage?.btc, ethDom: g.market_cap_percentage?.eth, coins: g.active_cryptocurrencies, src: 'CoinGecko', t: now }; } catch (e) { errs.push(e.message); ex.global = null; }
+      if (!ex.global) { let fx = null; try { fx = await usdPerEur(env, b, state); } catch (e) { errs.push('wisselkoers: ' + e.message); }
+        if (fx) {
+          try { const g = await getJSON('https://api.coinpaprika.com/v1/global', b); if (!g.market_cap_usd) throw new Error('coinpaprika leeg'); ex.global = { cap: g.market_cap_usd / fx, vol: g.volume_24h_usd / fx, capCh: g.market_cap_change_24h, btcDom: g.bitcoin_dominance_percentage, ethDom: null, coins: g.cryptocurrencies_number, src: 'CoinPaprika', t: now }; } catch (e) { errs.push(e.message); }
+          if (!ex.global) try { const g = (await getJSON('https://api.coinlore.net/api/global/', b))[0]; if (!g || !g.total_mcap) throw new Error('coinlore leeg'); ex.global = { cap: g.total_mcap / fx, vol: g.total_volume / fx, capCh: +g.mcap_change, btcDom: +g.btc_d, ethDom: +g.eth_d, coins: g.coins_count, src: 'CoinLore', t: now }; } catch (e) { errs.push(e.message); }
+        } }
+      if (!ex.global && state.extra && state.extra.global && now - state.extra.global.t < 6 * HOUR) ex.global = state.extra.global;
+      if (errs.length && !ex.global) ex.globalErr = errs.join('; '); }
     try { const tr = await getJSON('https://api.coingecko.com/api/v3/search/trending', b, h); ex.trending = (tr.coins || []).slice(0, 10).map(c => ({ s: (c.item.symbol || '').toUpperCase(), name: c.item.name, rank: c.item.market_cap_rank, ch: c.item.data?.price_change_percentage_24h?.eur ?? null })); ex.trendT = now; } catch (e) { ex.trendErr = e.message; }
     try { const f = await getJSON('https://api.alternative.me/fng/?limit=8', b); ex.fng = (f.data || []).map(d => ({ v: +d.value, l: d.value_classification, t: +d.timestamp * 1000 })); } catch (e) { ex.fngErr = e.message; }
-    state.extra = ex; await save('extra', ex); return { global: !!ex.global, trending: !!ex.trending, fng: !!ex.fng, errors: [ex.globalErr, ex.trendErr, ex.fngErr].filter(Boolean) };
+    state.extra = ex; await save('extra', ex); return { global: ex.global ? ex.global.src : false, trending: !!ex.trending, fng: !!ex.fng, errors: [ex.globalErr, ex.trendErr, ex.fngErr].filter(Boolean) };
   });
   // 6. aandelen via Finnhub (alleen met FINNHUB_KEY), roterend
   if (env.FINNHUB_KEY) await step('stocks', async () => {
