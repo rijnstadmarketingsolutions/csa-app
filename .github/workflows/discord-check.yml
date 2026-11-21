@@ -1,0 +1,13 @@
+name: Discord controleren
+on: workflow_dispatch
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Rollen en kanalen tonen
+        env:
+          T: ${{ secrets.DISCORD_BOT_TOKEN }}
+        run: |
+          G=1573692320757321861
+          curl -s -H "Authorization: Bot $T" https://discord.com/api/v10/guilds/$G/roles | python3 -c "import sys,json;[print(r['position'],r['name']) for r in sorted(json.load(sys.stdin),key=lambda r:-r['position'])]"
+          curl -s -H "Authorization: Bot $T" https://discord.com/api/v10/guilds/$G/channels | python3 -c "import sys,json;[print(c['type'],c['name']) for c in json.load(sys.stdin)]"

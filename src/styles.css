@@ -1238,3 +1238,8 @@ body:has(#login:not(.hidden)) #aiwrap{display:none}
 .blackcard .bkmark{font-weight:900;letter-spacing:.32em;font-size:15px;background:linear-gradient(90deg,#fff,#9a9aa3 40%,#fff 60%,#77777f);-webkit-background-clip:text;background-clip:text;color:transparent}
 .blackcard p{margin:6px 0 0;font-size:13px;color:#a8a8b0}.blackcard ul{display:flex;flex-wrap:wrap;gap:6px 16px;margin:0;padding:0;list-style:none;font-size:13px;color:#d6d6db}.blackcard li{display:flex;align-items:center;gap:6px}.blackcard li svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2}
 .blackcard.cur{border-color:rgba(255,255,255,.4)}@media (max-width:900px){.blackcard{grid-template-columns:1fr}}
+.cx.flip span{left:auto;right:8px}
+.plans5 .plan{overflow:visible}
+.plans5 .pbadge{top:-11px;z-index:2;border-radius:999px;background:var(--metal,var(--navy));color:var(--accentInk,#fff);box-shadow:0 4px 14px rgba(0,0,0,.35)}
+.plans5 .plan.hl{border:1px solid var(--hair,var(--navy));box-shadow:0 0 0 1px var(--hair,var(--navy)),0 18px 44px var(--glow,rgba(0,0,0,.25))}
+.plans5 .pbadge{top:16px;right:16px;left:auto}
