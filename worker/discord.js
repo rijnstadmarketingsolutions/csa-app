@@ -45,7 +45,7 @@ export async function dcPublic(env, payload) {
 export const briefingEmbed = br => ({ embeds: [{ title: `☀️ Ochtendbriefing · ${br.day}`, description: `**${br.headline}**${(br.points || br.bullets || []).slice(0, 5).map(x => '\n• ' + (typeof x === 'string' ? x : x.t || x.text || '')).join('')}`.slice(0, 3500), color: COLOR.briefing, url: origin({}) + '/app#briefing', footer: { text: 'Vantis · geen beleggingsadvies' } }] });
 
 /* rollen in de server: Lid voor iedereen die gekoppeld is, plus een rol per abonnement (Plus, Pro, Elite; opeenstapelend) */
-const ROLE_TIERS = env => [[env.DISCORD_ROLE_PLUS || env.DISCORD_ROLE_PREMIUM, 1], [env.DISCORD_ROLE_PRO, 2], [env.DISCORD_ROLE_ELITE, 3]].filter(([r]) => r);
+const ROLE_TIERS = env => [[env.DISCORD_ROLE_PLUS || env.DISCORD_ROLE_PREMIUM, 1], [env.DISCORD_ROLE_PRO, 2], [env.DISCORD_ROLE_ELITE, 3], [env.DISCORD_ROLE_ULTIMATE, 4], [env.DISCORD_ROLE_BLACK, 5]].filter(([r]) => r);
 async function syncRoles(env, discordId, plan, role) {
   const g = env.DISCORD_GUILD_ID; if (!g) return;
   if (env.DISCORD_ROLE_MEMBER) await DC(env, 'PUT', `/guilds/${g}/members/${discordId}/roles/${env.DISCORD_ROLE_MEMBER}`);
@@ -169,12 +169,13 @@ async function iconData(env) {
 export async function dcSetup(env, force) {
   if (!dcReady(env)) return { ok: false, error: 'geen bot-token' };
   const row = await env.DB.prepare("SELECT val FROM kv WHERE key='dccfg'").first(); const cfg = row ? JSON.parse(row.val) : {};
-  if (cfg.done && !force) return { ok: true, cached: true, cfg };
+  if (cfg.done && cfg.v === 3 && !force) return { ok: true, cached: true, cfg };
   let gid = env.DISCORD_GUILD_ID || cfg.DISCORD_GUILD_ID;
   if (!gid) { const g = await DC(env, 'GET', '/users/@me/guilds'); if (!g.ok || !g.data?.length) return { ok: false, error: 'De bot zit nog in geen enkele server.' }; gid = (g.data.find(x => /vantis/i.test(x.name)) || g.data[0]).id; }
   const log = [];
   const roles = (await DC(env, 'GET', `/guilds/${gid}/roles`)).data || []; const channels = (await DC(env, 'GET', `/guilds/${gid}/channels`)).data || [];
   const role = async (name, color, hoist) => { const ex = roles.find(r => r.name === name); if (ex) return ex.id; const r = await DC(env, 'POST', `/guilds/${gid}/roles`, { name, color, hoist, mentionable: false, permissions: '0' }); log.push('rol ' + name + ' ' + r.status); return r.data?.id; };
+  const black = await role('Vantis Black', 0xF4F4F5, true), ultimate = await role('Ultimate', 0x9B7BFF, true);
   const elite = await role('Elite', 0xD4AF5F, true), pro = await role('Pro', 0x4D8DF5, true), plus = await role('Plus', 0xC9CDD4, true), lid = await role('Lid', 0x8A93A3, false);
   const team = await role('Team', 0x2BB673, false);
   const role2 = async (name, color, perms) => { const ex = roles.find(r => r.name === name); if (ex) return ex.id; const r = await DC(env, 'POST', `/guilds/${gid}/roles`, { name, color, hoist: true, mentionable: true, permissions: perms }); log.push('rol ' + name + ' ' + r.status); return r.data?.id; };
@@ -182,6 +183,7 @@ export async function dcSetup(env, force) {
   const staffIds = { founder: await role2('Founder', 0xE8C77A, '8'), senior_partner: await role2('Senior Partner', 0xD9DCE1, '8'), admin: await role2('Admin', 0xE5484D, '8'),
     moderator: await role2('Moderator', 0x36C46F, MOD), coach: await role2('Coach', 0xB48CF2, '0'), analist: await role2('Analist', 0x4DB6E5, '0'), support: await role2('Support', 0xF29B4B, '0') };
   const me = (await DC(env, 'GET', '/users/@me')).data;
+  await orderRoles(env, gid, me.id, [staffIds.founder, staffIds.senior_partner, staffIds.admin, staffIds.moderator, staffIds.coach, staffIds.analist, staffIds.support, team, black, ultimate, elite, pro, plus, lid], log);
   const ro = [{ id: gid, type: 0, deny: s(P.SEND | P.THREADS), allow: s(P.VIEW) }, { id: me.id, type: 1, allow: s(P.VIEW | P.SEND), deny: '0' }, { id: team, type: 0, allow: s(P.SEND), deny: '0' }];
   const only = (...ids) => [{ id: gid, type: 0, deny: s(P.VIEW), allow: '0' }, { id: me.id, type: 1, allow: s(P.VIEW | P.SEND), deny: '0' }, ...ids.map(id => ({ id, type: 0, allow: s(P.VIEW | P.SEND | P.CONNECT | P.SPEAK), deny: '0' }))];
   const cat = async (name, ov) => { const ex = channels.find(c => c.type === 4 && c.name.toLowerCase() === name.toLowerCase()); if (ex) return ex.id; const r = await DC(env, 'POST', `/guilds/${gid}/channels`, { name, type: 4, permission_overwrites: ov }); log.push('cat ' + name + ' ' + r.status); return r.data?.id; };
@@ -195,10 +197,12 @@ export async function dcSetup(env, force) {
   await ch('academy-vragen', cCom, 'Vragen over de lessen en leerpaden in de Vantis Academy.');
   await ch('trade-ideeen', cCom, 'Deel je ideeën en je plan. Geen beleggingsadvies; beslis altijd zelf.');
   await ch('wins-en-lessen', cCom, 'Wat ging goed, wat heb je geleerd?');
-  await ch('plus-lounge', cPlus, 'Voor leden met Plus, Pro of Elite.', only(plus, pro, elite, team));
-  await ch('pro-analyse', cPro, 'Diepere analyses en scanners, voor Pro en Elite.', only(pro, elite, team));
-  await ch('elite', cElite, 'Het Elite-kanaal: vragen aan de coaches en de planning van de live sessies.', only(elite, team));
-  await ch('Elite live sessie', cElite, null, only(elite, team), 2);
+  await ch('plus-lounge', cPlus, 'Voor leden met Plus, Pro, Elite of Ultimate.', only(plus, pro, elite, ultimate, black, team));
+  await ch('pro-analyse', cPro, 'Diepere analyses en scanners, voor Pro en hoger.', only(pro, elite, ultimate, black, team));
+  await ch('elite', cElite, 'Het Elite-kanaal: vragen aan de coaches en de planning van de live sessies.', only(elite, ultimate, black, team));
+  await ch('Elite live sessie', cElite, null, only(elite, ultimate, black, team), 2);
+  await ch('ultimate-lounge', cUlt, 'Voor Ultimate-leden: 1-op-1 sessies plannen en als eerste nieuwe functies testen.', only(ultimate, black, team));
+  await ch('Ultimate 1-op-1', cUlt, null, only(ultimate, black, team), 2);
   await ch('support', cHelp, 'Hulp nodig met de app? Stel je vraag hier. Deel nooit je wachtwoord of 2FA-code.');
   const ag = channels.find(c => c.type === 2 && c.name === 'Algemeen'); if (ag) await DC(env, 'PATCH', `/channels/${ag.id}`, { parent_id: cCom });
   for (const c of channels.filter(c => c.type === 4 && /^(tekstkanalen|spraakkanalen|text channels|voice channels)$/i.test(c.name))) await DC(env, 'DELETE', `/channels/${c.id}`);
@@ -210,7 +214,17 @@ export async function dcSetup(env, force) {
   }
   const icon = await iconData(env);
   if (icon && !cfg.icon) { await DC(env, 'PATCH', `/guilds/${gid}`, { icon, system_channel_id: welkom || undefined }); await DC(env, 'PATCH', '/users/@me', { avatar: icon }); }
-  const out = { ...cfg, DISCORD_GUILD_ID: gid, DISCORD_ROLE_MEMBER: lid, DISCORD_ROLE_PLUS: plus, DISCORD_ROLE_PRO: pro, DISCORD_ROLE_ELITE: elite, DISCORD_ROLE_TEAM: team, DISCORD_STAFF_ROLES: staffIds, DISCORD_WEBHOOK_URL: hook, DISCORD_INVITE: invite, posted: true, icon: !!icon || cfg.icon, done: true, t: Date.now() };
+  const out = { ...cfg, DISCORD_GUILD_ID: gid, DISCORD_ROLE_MEMBER: lid, DISCORD_ROLE_PLUS: plus, DISCORD_ROLE_PRO: pro, DISCORD_ROLE_ELITE: elite, DISCORD_ROLE_ULTIMATE: ultimate, DISCORD_ROLE_BLACK: black, DISCORD_ROLE_TEAM: team, DISCORD_STAFF_ROLES: staffIds, DISCORD_WEBHOOK_URL: hook, DISCORD_INVITE: invite, posted: true, icon: !!icon || cfg.icon, done: true, v: 3, t: Date.now() };
   await kvPutStmt(env, 'dccfg', out).run(); CFG = null;
   return { ok: true, log, cfg: { ...out, DISCORD_WEBHOOK_URL: hook ? '(ingesteld)' : null } };
+}
+
+/* rollen in de juiste rangorde zetten: staff boven abonnementen, hoogste bovenaan (onder de rol van de bot) */
+async function orderRoles(env, gid, botId, ids, log) {
+  const roles = (await DC(env, 'GET', `/guilds/${gid}/roles`)).data || []; const mem = (await DC(env, 'GET', `/guilds/${gid}/members/${botId}`)).data || {};
+  const top = Math.max(0, ...roles.filter(r => (mem.roles || []).includes(r.id)).map(r => r.position)); const list = ids.filter(Boolean);
+  if (top <= list.length) { log && log.push('rangorde: bot-rol staat te laag (' + top + ')'); }
+  const body = list.map((id, i) => ({ id, position: Math.max(1, top - 1 - i) }));
+  const r = await DC(env, 'PATCH', `/guilds/${gid}/roles`, body); log && log.push('rangorde ' + r.status);
+  return r.ok;
 }

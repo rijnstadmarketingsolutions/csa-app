@@ -27,7 +27,7 @@ const REW={st:null,
   async load(n=0){if(!Api.authed&&Api.token&&n<6){setTimeout(()=>this.load(n+1),2000);return this.get()}
     try{this.st=Api.authed?await Api.call('/api/rewards'):this.local();LS.set('rw',this.st);this.check();this.redraw()}catch(e){}return this.st},
   redraw(){const v=UI.el;if(!v)return;$$('.rwbar',v).forEach(b=>b.outerHTML=this.bar());if($('.skinrow',v))lockMark(v)},
-  open(k){const u=UNLOCKS[k];if(!u||this.admin())return true;const r=this.get();if(u.n&&r.n<u.n)return false;if(u.days&&r.days<u.days)return false;if(u.rank&&rankOf(r.xp).n<u.rank)return false;return true},
+  open(k){const u=UNLOCKS[k];if(!u||this.admin()||tierRank(Api.user&&Api.user.plan)>=4)return true;const r=this.get();if(u.n&&r.n<u.n)return false;if(u.days&&r.days<u.days)return false;if(u.rank&&rankOf(r.xp).n<u.rank)return false;return true},
   prog(k){const u=UNLOCKS[k],r=this.get();if(!u)return 1;if(u.n)return Math.min(1,r.n/u.n);if(u.days)return Math.min(1,r.days/u.days);if(u.rank)return Math.min(1,(r.xp||0)/RANKS[u.rank-1][0]);return 1},
   check(){const now=Object.keys(UNLOCKS).filter(k=>this.open(k));const seen=LS.get('rwseen',null);if(!Array.isArray(seen)){LS.set('rwseen',now);return}
     const fresh=now.filter(k=>!seen.includes(k));if(!fresh.length)return;LS.set('rwseen',now);
@@ -153,8 +153,8 @@ Pages.vrienden={
   const m=M[q]||M.error;history.replaceState(null,'',location.pathname+location.hash);setTimeout(()=>UI.toast({kind:m[0],title:m[1],body:m[2]}),1200)}}
 
 /* ---------- abonnementen: Gratis, Plus, Pro, Elite ---------- */
-const TIERN={free:'Gratis',premium:'Plus',plus:'Plus',pro:'Pro',elite:'Elite'};
-const tierRank=p=>({premium:1,plus:1,pro:2,elite:3})[p]||0;
+const TIERN={free:'Gratis',premium:'Plus',plus:'Plus',pro:'Pro',elite:'Elite',ultimate:'Ultimate',black:'Vantis Black'};
+const tierRank=p=>({premium:1,plus:1,pro:2,elite:3,ultimate:4,black:5})[p]||0;
 const tierKey=p=>p==='premium'?'plus':(TIERN[p]?p:'free');
 const enforced=()=>!!(((Api.h&&Api.h.features)||Api.features||{}).premiumEnforced);
 const canTier=n=>!!(Api.user&&Api.user.admin)||!enforced()||tierRank(Api.user&&Api.user.plan)>=n;
@@ -163,8 +163,10 @@ Object.assign(PLANF,{
   free:['Live koersen, grafieken en nieuws','Oefenhandel met € 10.000','Vrienden, chat en crypto sturen','Koersalerts in de app','De Vantis-community op Discord'],
   plus:['Alles van Gratis','De volledige Vantis Academy: alle leerpaden en lessen','Pushmeldingen 24/7 en meldingen via Discord','Ochtendbriefing, nieuws op trefwoord en weekoverzicht per e-mail','Plus-rol in de Discord-server'],
   pro:['Alles van Plus','Certificaten bij afgeronde leerpaden','Indicator-alerts (zoals RSI) en eigen scanners','Volledige Impact, Event Radar en Marktdata','Track record, backtest en "Wat als"','Pro-kanalen in Discord'],
-  elite:['Alles van Pro','Elke maand een live sessie in Discord','Elite-kanaal in Discord','Vroege toegang tot nieuwe functies','Voorrang bij support']});
-Pages.premium.html=()=>`<div class="phead"><div><h1>Abonnementen</h1><p>Leer traden met de Vantis Academy vanaf Plus, haal certificaten met Pro en krijg persoonlijke begeleiding met Elite. Probeer een betaald abonnement eerst een week gratis; je kunt altijd opzeggen.</p></div></div><div id="prbody">${waitBox()}</div>
+  elite:['Alles van Pro','Elke maand een live sessie in Discord','Elite-kanaal in Discord','Vroege toegang tot nieuwe functies','Voorrang bij support'],
+  ultimate:['Alles van Elite','Elke maand een 1-op-1 sessie met een coach','Ultimate-lounge in Discord','Vantis AI: 5× zoveel vragen per dag','Alle stijlen direct vrijgespeeld','Als eerste nieuwe functies testen'],
+  black:['Alles van Ultimate','Onbeperkt Vantis AI','Vantis Black-rol in Discord']});
+Pages.premium.html=()=>`<div class="phead"><div><h1>Abonnementen</h1><p>Leer traden met de Vantis Academy vanaf Plus, haal certificaten met Pro, krijg begeleiding met Elite en 1-op-1 coaching met Ultimate. Probeer een betaald abonnement eerst een week gratis; je kunt altijd opzeggen.</p></div></div><div id="prbody">${waitBox()}</div>
   <p class="disc">Abonnementen lopen via Stripe. Opzeggen kan op elk moment via "Abonnement beheren". Vantis geeft geen financieel advies.</p>`;
 Pages.premium.title=()=>'Abonnementen';
 Pages.premium.live=function(el,arg,kind){if(kind!=='calc'||!PRF.plans)return;const P=PRF.plans;const cur=tierKey(Api.user&&Api.user.plan);const per=PRF.period;
@@ -172,7 +174,8 @@ Pages.premium.live=function(el,arg,kind){if(kind!=='calc'||!PRF.plans)return;con
   const card=(t,hl)=>{const pl=plan(t);const lab=t==='free'?'€ 0':(pl&&pl.label)||'';const m=lab.match(/^(€\s?[\d.,]+)\s*(.*)$/);const price=m?`${esc(m[1])}<small>${esc(m[2]||'altijd gratis')}</small>`:esc(lab);return `<div class="plan ${hl?'hl':''} ${cur===t?'cur':''}">${hl?'<span class="pbadge">Meest gekozen</span>':''}<h3>${TIERN[t]}</h3><div class="pprice">${price}</div><ul>${PLANF[t].map(f=>`<li>${ico('check')}${esc(f)}</li>`).join('')}</ul>
     ${cur===t?`<div class="tag up" style="justify-self:start">Je huidige abonnement</div>${t!=='free'?'<button class="btn ghost" id="prportal">Abonnement beheren</button>':''}`:t==='free'?'':P.ready&&pl&&pl.available?`<button class="btn ${hl?'':'ghost'}" data-buy="${pl.id}">${P.trialDays&&cur==='free'?`Probeer ${P.trialDays} dagen gratis`:'Kies '+TIERN[t]}</button>`:'<button class="btn ghost" disabled>Binnenkort beschikbaar</button>'}</div>`};
   $('#prbody',el).innerHTML=`<div class="seg" style="margin-bottom:16px"><button data-per="month" class="${per==='month'?'on':''}">Per maand</button><button data-per="year" class="${per==='year'?'on':''}">Per jaar</button></div>
-    <div class="plans plans4">${card('free')}${card('plus',true)}${card('pro')}${card('elite')}</div>
+    <div class="plans plans5">${card('free')}${card('plus',true)}${card('pro')}${card('elite')}${card('ultimate')}</div>
+    <div class="blackcard ${cur==='black'?'cur':''}"><div><span class="bkmark">VANTIS BLACK</span><p>Alleen voor het Vantis-team. Niet te koop.</p></div><ul>${PLANF.black.map(f=>`<li>${ico('check')}${esc(f)}</li>`).join('')}</ul>${cur==='black'?'<span class="tag up">Jouw abonnement</span>':''}</div>
     ${!P.ready?`<p class="note" style="margin-top:12px">Betalen wordt nog gekoppeld. Tot die tijd kun je alles gebruiken.</p>`:''}`};
 {const i=NAV.findIndex(n=>n[0]==='premium');if(i>=0)NAV[i]=['premium','Abonnementen','gem']}
 

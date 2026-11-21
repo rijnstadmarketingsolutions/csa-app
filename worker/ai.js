@@ -1,5 +1,5 @@
 // Vantis AI: voorspellingsmodel per munt of aandeel, chat-assistent en de autopilot (oefengeld).
-import { json, err, readJSON, kvPutStmt, limited, bump, DAY, HOUR, MIN } from './lib.js';
+import { json, err, readJSON, kvPutStmt, limited, bump, tierRank, DAY, HOUR, MIN } from './lib.js';
 import { quote, getJSON, budget, BV_DEFAULT, STOCK_ALL, usdPerEur } from './market.js';
 import { execTrade, account } from './paper.js';
 import { notifyUser } from './social.js';
@@ -177,7 +177,7 @@ export async function handleAI(req, env, s, p, m, url, ctx) {
       return json(cfg); }
   }
   if (p === '/api/ai/chat' && m === 'POST') {
-    const wait = await limited(env, 'ai:' + s.user_id, 60, DAY); if (wait) return err(429, 'Je hebt vandaag het maximum aantal vragen aan Vantis AI bereikt. Morgen kun je weer verder.');
+    const cap = [60, 60, 80, 120, 300, 100000][tierRank(s.plan)] || 60; const wait = await limited(env, 'ai:' + s.user_id, cap, DAY); if (wait) return err(429, 'Je hebt vandaag het maximum aantal vragen aan Vantis AI bereikt. Morgen kun je weer verder.');
     await bump(env, 'ai:' + s.user_id, DAY);
     const b = await readJSON(req, 64 * 1024); const en = b.lang === 'en';
     const msgs = (Array.isArray(b.messages) ? b.messages : []).filter(x => x && (x.role === 'user' || x.role === 'assistant') && typeof x.content === 'string').slice(-10).map(x => ({ role: x.role, content: x.content.slice(0, 2000) }));

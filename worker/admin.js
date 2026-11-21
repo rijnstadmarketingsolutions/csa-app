@@ -49,7 +49,8 @@ export async function adminApi(req, env, s, p, m, url) {
   const um = p.match(/^\/api\/admin\/users\/([\w-]+)$/);
   if (um && m === 'PUT') { const b = await readJSON(req); const t = await env.DB.prepare('SELECT id,role,plan FROM users WHERE id=?').bind(um[1]).first(); if (!t) return err(404, 'Gebruiker niet gevonden.');
     const me = actorRank(env, s);
-    if (b.plan != null) { if (!['free', 'plus', 'pro', 'elite'].includes(b.plan)) return err(400, 'Onbekend abonnement.'); await env.DB.prepare('UPDATE users SET plan=? WHERE id=?').bind(b.plan, t.id).run(); }
+    if (b.plan != null) { if (!['free', 'plus', 'pro', 'elite', 'ultimate', 'black'].includes(b.plan)) return err(400, 'Onbekend abonnement.');
+      if (b.plan === 'black' && !roleRank(b.role !== undefined ? b.role : t.role)) return err(400, 'Vantis Black is alleen voor personeel. Geef eerst een staff-rol.'); await env.DB.prepare('UPDATE users SET plan=? WHERE id=?').bind(b.plan, t.id).run(); }
     if (b.role !== undefined) { const r = b.role || null; if (r && !ROLES[r]) return err(400, 'Onbekende rol.');
       if (me <= roleRank(t.role) && t.id !== s.user_id) return err(403, 'Je kunt de rol van iemand met een gelijke of hogere rol niet wijzigen.');
       if (r && me <= roleRank(r)) return err(403, `Alleen iemand met een hogere rol dan ${ROLES[r].n} kan deze rol geven.`);

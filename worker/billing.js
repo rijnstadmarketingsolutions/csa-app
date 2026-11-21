@@ -4,8 +4,9 @@ import { json, err, enc, hex, safeEqual } from './lib.js';
 const PRICES = env => ({
   'plus-month': env.STRIPE_PRICE_PLUS || env.STRIPE_PRICE_ID, 'plus-year': env.STRIPE_PRICE_PLUS_YEAR || env.STRIPE_PRICE_ID_YEAR,
   'pro-month': env.STRIPE_PRICE_PRO || env.STRIPE_PRICE_ID_PRO, 'pro-year': env.STRIPE_PRICE_PRO_YEAR,
-  'elite-month': env.STRIPE_PRICE_ELITE, 'elite-year': env.STRIPE_PRICE_ELITE_YEAR });
-const LABELS = { 'plus-month': '€ 4,99 per maand', 'plus-year': '€ 49 per jaar', 'pro-month': '€ 12,99 per maand', 'pro-year': '€ 129 per jaar', 'elite-month': '€ 29,99 per maand', 'elite-year': '€ 299 per jaar' };
+  'elite-month': env.STRIPE_PRICE_ELITE, 'elite-year': env.STRIPE_PRICE_ELITE_YEAR,
+  'ultimate-month': env.STRIPE_PRICE_ULTIMATE, 'ultimate-year': env.STRIPE_PRICE_ULTIMATE_YEAR });
+const LABELS = { 'plus-month': '€ 4,99 per maand', 'plus-year': '€ 49 per jaar', 'pro-month': '€ 12,99 per maand', 'pro-year': '€ 129 per jaar', 'elite-month': '€ 29,99 per maand', 'elite-year': '€ 299 per jaar', 'ultimate-month': '€ 59,99 per maand', 'ultimate-year': '€ 599 per jaar' };
 export const stripeReady = env => !!env.STRIPE_SECRET_KEY && Object.values(PRICES(env)).some(Boolean);
 export function plans(env) {
   const P = PRICES(env); const L = [];
@@ -13,7 +14,7 @@ export function plans(env) {
   return { ready: stripeReady(env), trialDays: +(env.TRIAL_DAYS || 7), plans: L };
 }
 const PRICE = (env, id) => PRICES(env)[id];
-const tierOf = t => ['plus', 'pro', 'elite'].includes(t) ? t : 'plus';
+const tierOf = t => ['plus', 'pro', 'elite', 'ultimate'].includes(t) ? t : 'plus';
 async function stripe(env, path, params) {
   const body = new URLSearchParams(); for (const [k, v] of Object.entries(params)) if (v != null) body.append(k, String(v));
   const r = await fetch('https://api.stripe.com/v1' + path, { method: 'POST', body, headers: { authorization: 'Bearer ' + env.STRIPE_SECRET_KEY, 'content-type': 'application/x-www-form-urlencoded' } });

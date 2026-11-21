@@ -89,7 +89,7 @@ export const kvPutStmt = (env, key, val) => env.DB.prepare('INSERT INTO kv(key,v
 export const kvPut = (env, key, val) => kvPutStmt(env, key, val).run();
 
 /* abonnementen: Gratis < Plus < Pro < Elite ('premium' is de oude naam van Plus) */
-export const TIERS = { free: 0, premium: 1, plus: 1, pro: 2, elite: 3 };
+export const TIERS = { free: 0, premium: 1, plus: 1, pro: 2, elite: 3, ultimate: 4, black: 5 }; // black = Vantis Black, alleen voor personeel
 export const tierRank = p => TIERS[p] ?? 0;
 
 /* gebruikersnamen: 3-20 tekens, kleine letters, cijfers, punt of liggend streepje */

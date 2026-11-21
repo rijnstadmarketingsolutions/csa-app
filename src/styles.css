@@ -1232,3 +1232,9 @@ a.acnext:hover b{text-decoration:underline}
 @media (max-width:900px){#aiwrap{right:14px;bottom:calc(78px + env(safe-area-inset-bottom))}.aifab{height:44px;padding:0 14px 0 12px}
   .aip{right:0;bottom:0;width:100vw;height:calc(100dvh - 0px);border-radius:0;border:0}}
 body:has(#login:not(.hidden)) #aiwrap{display:none}
+.plans.plans5{padding-top:12px;grid-template-columns:repeat(5,minmax(0,1fr))}@media (max-width:1400px){.plans.plans5{grid-template-columns:repeat(3,minmax(0,1fr))}}@media (max-width:900px){.plans.plans5{grid-template-columns:repeat(2,minmax(0,1fr))}}@media (max-width:600px){.plans.plans5{grid-template-columns:1fr}}
+.plans5 .pprice small{display:block;font-size:13px;font-weight:500;color:var(--ink2);margin-top:2px;letter-spacing:0}
+.blackcard{display:grid;grid-template-columns:minmax(200px,1fr) 2fr auto;gap:18px;align-items:center;margin-top:16px;padding:22px 24px;border-radius:16px;background:radial-gradient(120% 140% at 0% 0%,#1d1d20,#050506 60%);border:1px solid rgba(255,255,255,.14);color:#F4F4F5;box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
+.blackcard .bkmark{font-weight:900;letter-spacing:.32em;font-size:15px;background:linear-gradient(90deg,#fff,#9a9aa3 40%,#fff 60%,#77777f);-webkit-background-clip:text;background-clip:text;color:transparent}
+.blackcard p{margin:6px 0 0;font-size:13px;color:#a8a8b0}.blackcard ul{display:flex;flex-wrap:wrap;gap:6px 16px;margin:0;padding:0;list-style:none;font-size:13px;color:#d6d6db}.blackcard li{display:flex;align-items:center;gap:6px}.blackcard li svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2}
+.blackcard.cur{border-color:rgba(255,255,255,.4)}@media (max-width:900px){.blackcard{grid-template-columns:1fr}}
