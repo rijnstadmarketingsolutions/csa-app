@@ -205,6 +205,12 @@ const stripDisc = t => t.split('\n').filter(l => !/(not (personal )?financial ad
 
 /* ---------- API ---------- */
 export async function handleAI(req, env, s, p, m, url, ctx) {
+  if (p === '/api/ai/selftest' && m === 'POST') { // GitHub-workflow: controleert of het taalmodel werkt (sleutel = SHA-256 van de bot-token)
+    const k = req.headers.get('x-setup-key') || ''; const h = env.DISCORD_BOT_TOKEN ? [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(env.DISCORD_BOT_TOKEN)))].map(b => b.toString(16).padStart(2, '0')).join('') : null;
+    if (!h || k !== h) return err(403, 'Geen toegang.'); const st = await kv(env, ['tickers', 'names', 'candles', 'xquotes', 'stocks', 'fx']); const rk = await ranking(env, st).catch(() => ({ list: [] }));
+    const ctxt = 'Oefenportefeuille: vrij saldo € 9.000; posities: AAPL (aandeel/stock): waarde € 500; VVV (crypto, Venice Token): waarde € 300.\nRanglijst Vantis-model:\n' + (rk.list || []).slice(0, 6).map(f => '- ' + fmtF(f, true)).join('\n');
+    const out = []; for (const [en, q] of [[true, 'Which stock should I buy now?'], [false, 'welke crypto heb ik en wat zou je kopen?']]) { const t0 = Date.now(); let r = null, e = null; try { r = await llm(env, systemPrompt(en, ctxt), [{ role: 'user', content: q }]); } catch (x) { e = x.message; } out.push({ q, ms: Date.now() - t0, engine: r?.engine, text: r?.text, error: e }); }
+    return json({ out }); }
   if (!p.startsWith('/api/ai')) return null;
   if (p === '/api/ai/forecast' && m === 'GET') { const sym = String(url.searchParams.get('sym') || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12); const st = await kv(env, ['tickers', 'names', 'candles', 'xquotes', 'stocks', 'fx']); const f = await forecast(env, sym, st); return f ? json(f) : err(404, 'Te weinig koershistorie voor een voorspelling.'); }
   if (!s) return err(401, 'Log in om Vantis AI te gebruiken.');

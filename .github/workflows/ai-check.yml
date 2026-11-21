@@ -1,0 +1,12 @@
+name: AI controleren
+on: workflow_dispatch
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Taalmodel testen
+        env:
+          T: ${{ secrets.DISCORD_BOT_TOKEN }}
+        run: |
+          K=$(printf '%s' "$T" | sha256sum | cut -d' ' -f1)
+          curl -s -X POST -H "x-setup-key: $K" https://vantis.rijnstadmarketing.workers.dev/api/ai/selftest | python3 -c "import sys,json;d=json.load(sys.stdin);[print('\n==',o['q'],o['ms'],'ms',o.get('engine'),o.get('error'),'\n',o.get('text')) for o in d.get('out',[])] if 'out' in d else print(d)"
