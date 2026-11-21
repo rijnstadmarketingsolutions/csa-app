@@ -87,3 +87,7 @@ export async function readJSON(request, max = 64 * 1024) {
 export async function kvGet(env, key) { const r = await env.DB.prepare('SELECT val,ts FROM kv WHERE key=?').bind(key).first(); return r ? { val: JSON.parse(r.val), ts: r.ts } : null; }
 export const kvPutStmt = (env, key, val) => env.DB.prepare('INSERT INTO kv(key,val,ts) VALUES(?,?,?) ON CONFLICT(key) DO UPDATE SET val=excluded.val, ts=excluded.ts').bind(key, JSON.stringify(val), Date.now());
 export const kvPut = (env, key, val) => kvPutStmt(env, key, val).run();
+
+/* abonnementen: Gratis < Plus < Pro < Elite ('premium' is de oude naam van Plus) */
+export const TIERS = { free: 0, premium: 1, plus: 1, pro: 2, elite: 3 };
+export const tierRank = p => TIERS[p] ?? 0;

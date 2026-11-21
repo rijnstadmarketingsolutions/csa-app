@@ -44,7 +44,7 @@ export async function adminApi(req, env, s, p, m, url) {
     const r = await env.DB.prepare('SELECT u.id,u.email,u.name,u.plan,u.created,u.last_seen,(SELECT COUNT(*) FROM paper_trades t WHERE t.user_id=u.id) trades,(SELECT COUNT(*) FROM push_subs ps WHERE ps.user_id=u.id) devices FROM users u WHERE lower(u.email) LIKE ? OR lower(u.name) LIKE ? ORDER BY u.created DESC LIMIT 100').bind(q, q).all();
     return json({ users: r.results }); }
   const um = p.match(/^\/api\/admin\/users\/([\w-]+)$/);
-  if (um && m === 'PUT') { const b = await readJSON(req); if (!['free', 'premium', 'pro'].includes(b.plan)) return err(400, 'Onbekend abonnement.'); await env.DB.prepare('UPDATE users SET plan=? WHERE id=?').bind(b.plan, um[1]).run(); return json({ ok: true }); }
+  if (um && m === 'PUT') { const b = await readJSON(req); if (!['free', 'plus', 'pro', 'elite'].includes(b.plan)) return err(400, 'Onbekend abonnement.'); await env.DB.prepare('UPDATE users SET plan=? WHERE id=?').bind(b.plan, um[1]).run(); return json({ ok: true }); }
   if (p === '/api/admin/brand' && m === 'GET') { const r = await env.DB.prepare("SELECT key,val FROM kv WHERE key='brand' OR key LIKE 'brand:%'").all(); return json({ default: BRAND_DEFAULT, brands: r.results.map(x => ({ host: x.key === 'brand' ? '' : x.key.slice(6), ...JSON.parse(x.val) })) }); }
   if (p === '/api/admin/brand' && m === 'PUT') { const b = await readJSON(req, 256 * 1024); const host = cleanHost(b.host); const key = host ? 'brand:' + host : 'brand';
     if (b.remove) { await env.DB.prepare('DELETE FROM kv WHERE key=?').bind(key).run(); return json({ ok: true }); }

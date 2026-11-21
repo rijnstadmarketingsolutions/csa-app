@@ -151,3 +151,36 @@ Pages.vrienden={
 /* terugkeer na Discord-koppeling */
 {const q=new URLSearchParams(location.search).get('discord');if(q){const M={ok:['success','Discord gekoppeld','Je bent lid van de Vantis-server en krijgt je meldingen nu ook als privébericht.'],cancelled:['info','Koppelen geannuleerd','Je kunt Discord later alsnog koppelen bij Instellingen.'],expired:['error','Koppelen duurde te lang','Probeer het opnieuw bij Instellingen → Discord.'],error:['error','Discord koppelen is niet gelukt','Probeer het opnieuw. Lukt het niet, laat het ons weten.']};
   const m=M[q]||M.error;history.replaceState(null,'',location.pathname+location.hash);setTimeout(()=>UI.toast({kind:m[0],title:m[1],body:m[2]}),1200)}}
+
+/* ---------- abonnementen: Gratis, Plus, Pro, Elite ---------- */
+const TIERN={free:'Gratis',premium:'Plus',plus:'Plus',pro:'Pro',elite:'Elite'};
+const tierRank=p=>({premium:1,plus:1,pro:2,elite:3})[p]||0;
+const tierKey=p=>p==='premium'?'plus':(TIERN[p]?p:'free');
+const enforced=()=>!!(((Api.h&&Api.h.features)||Api.features||{}).premiumEnforced);
+const canTier=n=>!!(Api.user&&Api.user.admin)||!enforced()||tierRank(Api.user&&Api.user.plan)>=n;
+const tierWall=(n,title,body)=>dlg(`<h2>${esc(title)}</h2><p class="muted">${esc(body)}</p><div class="row" style="display:flex;gap:8px;margin-top:14px"><a class="btn" href="#premium" id="twgo">Bekijk ${TIERN[['free','plus','pro','elite'][n]]}</a><button class="btn ghost" id="twno">Sluiten</button></div>`,c=>{$('#twno',c).onclick=closeOverlay;$('#twgo',c).onclick=closeOverlay});
+Object.assign(PLANF,{
+  free:['Live koersen, grafieken en nieuws','Oefenhandel met € 10.000','Vrienden, chat en crypto sturen','Koersalerts in de app','De Vantis-community op Discord'],
+  plus:['Alles van Gratis','De volledige Vantis Academy: alle leerpaden en lessen','Pushmeldingen 24/7 en meldingen via Discord','Ochtendbriefing, nieuws op trefwoord en weekoverzicht per e-mail','Plus-rol in de Discord-server'],
+  pro:['Alles van Plus','Certificaten bij afgeronde leerpaden','Indicator-alerts (zoals RSI) en eigen scanners','Volledige Impact, Event Radar en Marktdata','Track record, backtest en "Wat als"','Pro-kanalen in Discord'],
+  elite:['Alles van Pro','Elke maand een live sessie in Discord','Elite-kanaal in Discord','Vroege toegang tot nieuwe functies','Voorrang bij support']});
+Pages.premium.html=()=>`<div class="phead"><div><h1>Abonnementen</h1><p>Leer traden met de Vantis Academy vanaf Plus, haal certificaten met Pro en krijg persoonlijke begeleiding met Elite. Probeer een betaald abonnement eerst een week gratis; je kunt altijd opzeggen.</p></div></div><div id="prbody">${waitBox()}</div>
+  <p class="disc">Abonnementen lopen via Stripe. Opzeggen kan op elk moment via "Abonnement beheren". Vantis geeft geen financieel advies.</p>`;
+Pages.premium.title=()=>'Abonnementen';
+Pages.premium.live=function(el,arg,kind){if(kind!=='calc'||!PRF.plans)return;const P=PRF.plans;const cur=tierKey(Api.user&&Api.user.plan);const per=PRF.period;
+  const plan=t=>(P.plans||[]).find(x=>x.tier===t&&x.period===per)||(P.plans||[]).find(x=>x.tier===t&&x.period==='month');
+  const card=(t,hl)=>{const pl=plan(t);const lab=t==='free'?'€ 0':(pl&&pl.label)||'';const m=lab.match(/^(€\s?[\d.,]+)\s*(.*)$/);const price=m?`${esc(m[1])}<small>${esc(m[2]||'altijd gratis')}</small>`:esc(lab);return `<div class="plan ${hl?'hl':''} ${cur===t?'cur':''}">${hl?'<span class="pbadge">Meest gekozen</span>':''}<h3>${TIERN[t]}</h3><div class="pprice">${price}</div><ul>${PLANF[t].map(f=>`<li>${ico('check')}${esc(f)}</li>`).join('')}</ul>
+    ${cur===t?`<div class="tag up" style="justify-self:start">Je huidige abonnement</div>${t!=='free'?'<button class="btn ghost" id="prportal">Abonnement beheren</button>':''}`:t==='free'?'':P.ready&&pl&&pl.available?`<button class="btn ${hl?'':'ghost'}" data-buy="${pl.id}">${P.trialDays&&cur==='free'?`Probeer ${P.trialDays} dagen gratis`:'Kies '+TIERN[t]}</button>`:'<button class="btn ghost" disabled>Binnenkort beschikbaar</button>'}</div>`};
+  $('#prbody',el).innerHTML=`<div class="seg" style="margin-bottom:16px"><button data-per="month" class="${per==='month'?'on':''}">Per maand</button><button data-per="year" class="${per==='year'?'on':''}">Per jaar</button></div>
+    <div class="plans plans4">${card('free')}${card('plus',true)}${card('pro')}${card('elite')}</div>
+    ${!P.ready?`<p class="note" style="margin-top:12px">Betalen wordt nog gekoppeld. Tot die tijd kun je alles gebruiken.</p>`:''}`};
+{const i=NAV.findIndex(n=>n[0]==='premium');if(i>=0)NAV[i]=['premium','Abonnementen','gem']}
+
+/* Academy vanaf Plus, certificaten vanaf Pro */
+{const lh=Pages.leren.html;Pages.leren.html=function(arg){if(!canTier(1))return this.wallHTML();let h=lh.call(this,arg);
+    if(!canTier(2))h=h.replace(/Download je certificaat als afbeelding\./g,'Certificaten zitten in Pro.');return h};
+  Pages.leren.wallHTML=function(){return `<div class="phead"><div><h1>Vantis Academy</h1><p>Leer stap voor stap traden: van je eerste aankoop tot risicobeheer, grafieken lezen en macro. De Academy zit in Plus, Pro en Elite.</p></div></div>
+    <div class="card acwall"><div><h2>Ontgrendel de Academy met Plus</h2><p class="muted">${AC_PATHS.length} leerpaden met ${AC_PATHS.reduce((a,p)=>a+p.L.length,0)} lessen, oefeningen met echte koersen en opdrachten in de app. Met Pro haal je ook certificaten.</p><a class="btn" href="#premium">Bekijk Plus</a></div></div>
+    <div class="acwgrid">${AC_PATHS.map(p=>`<div class="card acwp"><span class="acwl">${ico('lock')}${esc(p.lvl||'')}</span><h3>${esc(p.t)}</h3><p class="muted">${esc(p.d||'')}</p><small class="faint">${p.L.length} lessen</small></div>`).join('')}</div>`};
+  const lm=Pages.leren.mount;Pages.leren.mount=function(el,arg){if(!canTier(1))return;return lm.call(this,el,arg)}}
+{const oc=acCert;acCert=function(p){if(!canTier(2))return tierWall(2,'Certificaten zitten in Pro','Je hebt dit leerpad afgerond. Met Pro download je er een certificaat van, en krijg je ook indicator-alerts, eigen scanners en de volledige marktdata.');return oc(p)}}

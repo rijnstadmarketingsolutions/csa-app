@@ -1,6 +1,6 @@
 // Vantis worker — API, statische app en 24/7 scanner (cron)
 import { json, err, readJSON, hashPassword, verifyPassword, b32enc, rand, totpCheck, newSession, sessionFrom, sessionByToken, sha256, seal, open,
-  limited, bump, clearAttempts, kvGet, kvPutStmt, randToken, DAY, HOUR, MIN } from './lib.js';
+  limited, bump, clearAttempts, kvGet, kvPutStmt, randToken, tierRank, DAY, HOUR, MIN } from './lib.js';
 import { vapidKeys, sendPush } from './push.js';
 import { indFor, IND_KINDS, NOVAL, refreshMarket, lookupPrice, lookupStock, usdPerEur, analyse, detect, backtest, budget, RADAR, STOCK_SYMS, ALERT_KINDS, quote, alertHit, alertText, buildBriefing, FEED_CANDIDATES, parseRSS, getText } from './market.js';
 import { checkout, portal, webhook, stripeReady, plans } from './billing.js';
@@ -8,7 +8,7 @@ import { adminApi, isAdmin } from './admin.js';
 import { handlePaper, paperCron, paperNeed, tradeStats } from './paper.js';
 import { handleSocial } from './social.js';
 import { newsKw, weekly, mailApi, mailReady } from './notify.js';
-import { dcReady, dcApi, dcCallback, dcInteractions, dcSend, dcFormat, dcPublic, briefingEmbed, dcDaily } from './discord.js';
+import { dcEnv, dcReady, dcApi, dcCallback, dcInteractions, dcSend, dcFormat, dcPublic, briefingEmbed, dcDaily } from './discord.js';
 
 const VERSION = '2.1.0';
 const NATIVE_ORIGINS = ['capacitor://localhost', 'http://localhost', 'https://localhost', 'ionic://localhost'];
@@ -21,7 +21,7 @@ function cors(req, res) {
   h.set('access-control-allow-headers', 'authorization, content-type'); h.set('access-control-allow-methods', 'GET, POST, PUT, DELETE, OPTIONS'); h.set('access-control-max-age', '86400');
   return new Response(res.body, { status: res.status, headers: h });
 }
-const premiumOnly = (env, s) => env.PREMIUM_ENFORCED === 'true' && s.plan !== 'premium';
+const premiumOnly = (env, s) => env.PREMIUM_ENFORCED === 'true' && tierRank(s.plan) < 1;
 const ip = req => req.headers.get('cf-connecting-ip') || 'local';
 const userOut = (s, env) => ({ email: s.email, name: s.name, username: s.username || null, plan: s.plan, totp: !!s.totp_on, admin: env ? isAdmin(env, s) : false });
 
@@ -58,7 +58,7 @@ async function api(req, env, ctx, url) {
       if (url.searchParams.get('probefeeds')) { const bf = budget(8); probe.feeds = {}; for (const [n, u] of FEED_CANDIDATES) { try { probe.feeds[n] = parseRSS(await getText(u, bf), n).length + ' artikelen'; } catch (e) { probe.feeds[n] = 'fout: ' + e.message; } } }
       if (url.searchParams.get('probestock')) { const ps = await loadState(env, ['fx', 'tickers']); const b2 = budget(12); const fx = await usdPerEur(env, b2, ps); for (const sy of url.searchParams.get('probestock').toUpperCase().split(',').slice(0, 3)) { const r = await lookupStock(env, sy, b2, fx); probe['S:' + sy] = r.p ? { p: r.p, native: r.native, cur: r.cur, src: r.src, tried: r.tried } : { p: null, tried: r.tried }; } probe.fx = fx; }
       const xq = await loadState(env, ['xquotes']); return json({ probe, xquotes: Object.fromEntries(Object.entries(xq.xquotes || {}).map(([k, v]) => [k, v.p ? { p: v.p, src: v.src, age: Date.now() - v.u } : { miss: v.tried }])), version: VERSION, now: Date.now(), scanstart: st.scanstart || null, scan: st.scanstatus || null, prices: st.tickers ? { src: st.tickers.src || 'Bitvavo', n: (st.tickers.list || []).length, age: Date.now() - st.tickers.t, sample: Object.fromEntries(['BTC', 'ETH', 'SOL', 'XRP'].map(s => [s, (st.tickers.list || []).find(x => x.s === s)?.p ?? null])) } : null }); }
-    return json({ ok: true, version: VERSION, lastScan: st.marketTs || null, prices: st.tickers ? { src: st.tickers.src || 'Bitvavo', n: (st.tickers.list || []).length, t: st.tickers.t } : null, scanOk: st.scanstatus ? Object.fromEntries(Object.entries(st.scanstatus).filter(([, v]) => v && typeof v === 'object' && 'ok' in v).map(([k, v]) => [k, v.ok])) : null, data: { extra: st.extra ? { global: !!st.extra.global, fng: !!(st.extra.fng && st.extra.fng.length), trending: !!(st.extra.trending && st.extra.trending.length), errors: [st.extra.globalErr, st.extra.trendErr, st.extra.fngErr].filter(Boolean) } : null, news: st.news ? { items: (st.news.items || []).length, sources: st.news.sources || {} } : null }, features: { accounts: true, push: true, stripe: stripeReady(env), finnhub: !!env.FINNHUB_KEY, ai: false, premiumEnforced: env.PREMIUM_ENFORCED === 'true' , discord: dcReady(env), discordInvite: env.DISCORD_INVITE || null, mail: mailReady(env)} }); }
+    return json({ ok: true, version: VERSION, lastScan: st.marketTs || null, prices: st.tickers ? { src: st.tickers.src || 'Bitvavo', n: (st.tickers.list || []).length, t: st.tickers.t } : null, scanOk: st.scanstatus ? Object.fromEntries(Object.entries(st.scanstatus).filter(([, v]) => v && typeof v === 'object' && 'ok' in v).map(([k, v]) => [k, v.ok])) : null, data: { extra: st.extra ? { global: !!st.extra.global, fng: !!(st.extra.fng && st.extra.fng.length), trending: !!(st.extra.trending && st.extra.trending.length), errors: [st.extra.globalErr, st.extra.trendErr, st.extra.fngErr].filter(Boolean) } : null, news: st.news ? { items: (st.news.items || []).length, sources: st.news.sources || {} } : null }, features: { accounts: true, push: true, stripe: stripeReady(env), finnhub: !!env.FINNHUB_KEY, ai: false, premiumEnforced: env.PREMIUM_ENFORCED === 'true' , discord: dcReady(env), discordInvite: (await dcEnv(env)).DISCORD_INVITE || null, mail: mailReady(env)} }); }
 
   /* ---------- account ---------- */
   if (p === '/api/auth/register' && m === 'POST') {
@@ -250,7 +250,7 @@ async function dispatch(env, fresh, b, state, extra = {}) {
   const subsRows = (await env.DB.prepare('SELECT s.endpoint,s.user_id,s.p256dh,s.auth,p.settings,p.watch,p.rem,u.plan FROM push_subs s JOIN users u ON u.id=s.user_id LEFT JOIN prefs p ON p.user_id=s.user_id').all()).results;
   const subsBy = {}; for (const r of subsRows) (subsBy[r.user_id] = subsBy[r.user_id] || []).push(r);
   if (dcReady(env)) { const D = (await env.DB.prepare('SELECT d.user_id,p.settings,p.watch,p.rem,u.plan FROM dc_links d JOIN users u ON u.id=d.user_id LEFT JOIN prefs p ON p.user_id=d.user_id').all()).results; for (const r of D) if (!subsBy[r.user_id]) subsBy[r.user_id] = [{ ...r, endpoint: null }]; }
-  if (env.DISCORD_WEBHOOK_URL) { const big = fresh.filter(e => e.score >= 85).sort((x, y) => y.score - x.score).slice(0, 2); if (big.length && b.take()) await dcPublic(env, dcFormat(big.map(e => ({ cat: 'impact', title: e.title, body: `Impact ${e.score}/100 · ${e.body}`, url: e.s ? '/app#asset-' + e.s.toLowerCase() : '/app#impact' })))).catch(() => null); }
+  { const big = fresh.filter(e => e.score >= 85).sort((x, y) => y.score - x.score).slice(0, 2); if (big.length && b.take()) await dcPublic(env, dcFormat(big.map(e => ({ cat: 'impact', title: e.title, body: `Impact ${e.score}/100 · ${e.body}`, url: e.s ? '/app#asset-' + e.s.toLowerCase() : '/app#impact' })))).catch(() => null); }
   const out = {}; // user_id -> [{key,title,body,url,tag,cat,score,force}]
   const add = (uid, msg) => (out[uid] = out[uid] || []).push(msg);
   for (const [uid, L] of Object.entries(extra)) for (const msg of L) add(uid, msg);
@@ -266,7 +266,7 @@ async function dispatch(env, fresh, b, state, extra = {}) {
   const sentRows = (await env.DB.prepare('SELECT user_id,key FROM sent WHERE t>?').bind(now - 3 * HOUR).all()).results; const sent = new Set(sentRows.map(r => r.user_id + '|' + r.key));
   const radarDue = []; for (const e of RADAR) for (const off of [1440, 60, 15]) { const at = e.t - off * MIN; if (now >= at && now < at + 6 * MIN) radarDue.push({ e, off }); }
   for (const [uid, subs] of Object.entries(subsBy)) {
-    const r = subs[0]; if (env.PREMIUM_ENFORCED === 'true' && r.plan !== 'premium') continue;
+    const r = subs[0]; if (env.PREMIUM_ENFORCED === 'true' && tierRank(r.plan) < 1) continue;
     const st = { ...DEFAULT_SETTINGS, ...JSON.parse(r.settings || '{}') }; const watch = JSON.parse(r.watch || '[]'); const rem = JSON.parse(r.rem || '{}'); const cats = st.cats || {};
     for (const { e, off } of radarDue) if ((rem[e.id] || []).includes(off)) add(uid, { key: `rem:${e.id}:${off}`, title: `Over ${off >= 60 ? off / 60 + ' uur' : off + ' minuten'}: ${e.title}`, body: new Date(e.t).toLocaleString('nl-NL', { timeZone: 'Europe/Amsterdam', weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }), url: '/app#radar', tag: 'rem-' + e.id, cat: 'reminder', force: true });
     if (st.notify !== false && !inQuiet(st)) for (const e of fresh.slice().sort((x, y) => y.score - x.score)) {
@@ -296,7 +296,7 @@ async function morning(env) {
   const br = buildBriefing(st, ev, analyse(st)); await kvPutStmt(env, 'briefing', br).run();
   const rows = (await env.DB.prepare('SELECT s.endpoint,s.user_id,s.p256dh,s.auth,p.settings,u.plan FROM push_subs s JOIN users u ON u.id=s.user_id LEFT JOIN prefs p ON p.user_id=s.user_id').all()).results;
   const b = budget(45); const ops = []; const logged = new Set(); const now = Date.now();
-  for (const r of rows) { const st2 = { ...DEFAULT_SETTINGS, ...JSON.parse(r.settings || '{}') }; if (st2.briefing === false) continue; if (env.PREMIUM_ENFORCED === 'true' && r.plan !== 'premium') continue;
+  for (const r of rows) { const st2 = { ...DEFAULT_SETTINGS, ...JSON.parse(r.settings || '{}') }; if (st2.briefing === false) continue; if (env.PREMIUM_ENFORCED === 'true' && tierRank(r.plan) < 1) continue;
     if (!logged.has(r.user_id)) { logged.add(r.user_id); ops.push(env.DB.prepare('INSERT OR IGNORE INTO notif(id,user_id,title,body,url,cat,score,t) VALUES(?,?,?,?,?,?,?,?)').bind('brief:' + br.day, r.user_id, 'Ochtendbriefing · ' + br.day, br.headline, '/app#briefing', 'briefing', null, now)); }
     if (!b.take()) continue; const res = await sendPush(env, r, { title: 'Vantis ochtendbriefing', body: br.headline, url: '/app#briefing', tag: 'briefing' }).catch(() => 'fail');
     if (res === 'gone') ops.push(env.DB.prepare('DELETE FROM push_subs WHERE endpoint=?').bind(r.endpoint)); }

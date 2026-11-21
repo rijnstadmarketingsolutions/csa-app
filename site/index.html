@@ -140,7 +140,7 @@ h2.big{font-family:var(--wide);font-stretch:115%;font-variation-settings:"wdth" 
 .feat p{margin:0;font-size:15.5px;color:var(--muted);line-height:1.5}
 
 /* prijzen */
-.plans{margin-top:48px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border:1px solid var(--hair);border-radius:18px;overflow:hidden;background:rgba(10,10,12,.72);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.plans{margin-top:48px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border:1px solid var(--hair);border-radius:18px;overflow:hidden;background:rgba(10,10,12,.72);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
 .plan{padding:30px 28px 32px;display:flex;flex-direction:column;gap:18px}
 .plan+.plan{border-left:1px solid var(--hair)}
 .plan.hl{background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.02));box-shadow:inset 0 1px 0 rgba(255,255,255,.12)}
@@ -317,12 +317,13 @@ h2.big{font-family:var(--wide);font-stretch:115%;font-variation-settings:"wdth" 
 
 <section class="sect" id="l-prijzen">
   <div class="wrap">
-    <h2 class="big">Begin gratis</h2>
-    <p class="intro">De basis en de hele Academy zijn gratis. Premium en Pro voegen meldingen toe die ook werken als de app dicht is, en meer gereedschap voor wie actief handelt.</p>
+    <h2 class="big">Kies je abonnement</h2>
+    <p class="intro">Met een gratis account volg je de markt. De Vantis Academy zit in Plus, certificaten haal je met Pro en met Elite krijg je persoonlijke begeleiding. Elk betaald abonnement kun je eerst een week gratis proberen.</p>
     <div class="plans" id="lplans">
       <div class="plan"><h3>Gratis</h3><div class="price"><b>€ 0</b>Altijd gratis</div><ul data-tier="free"></ul><a class="btn sec" href="/app?start=register">Gratis account maken</a></div>
-      <div class="plan hl"><h3>Premium</h3><div class="price" data-price="premium"><b>Proefweek</b>De eerste 7 dagen gratis</div><ul data-tier="premium"></ul><a class="btn pri" href="/app?start=register">Probeer Premium</a></div>
-      <div class="plan"><h3>Pro</h3><div class="price" data-price="pro"><b>Proefweek</b>De eerste 7 dagen gratis</div><ul data-tier="pro"></ul><a class="btn sec" href="/app?start=register">Probeer Pro</a></div>
+      <div class="plan hl"><h3>Plus</h3><div class="price" data-price="plus"><b>€ 4,99</b>per maand, eerste 7 dagen gratis</div><ul data-tier="plus"></ul><a class="btn pri" href="/app?start=register">Probeer Plus</a></div>
+      <div class="plan"><h3>Pro</h3><div class="price" data-price="pro"><b>€ 12,99</b>per maand, eerste 7 dagen gratis</div><ul data-tier="pro"></ul><a class="btn sec" href="/app?start=register">Probeer Pro</a></div>
+      <div class="plan"><h3>Elite</h3><div class="price" data-price="elite"><b>€ 29,99</b>per maand, eerste 7 dagen gratis</div><ul data-tier="elite"></ul><a class="btn sec" href="/app?start=register">Probeer Elite</a></div>
     </div>
     <p class="plannote">Abonnementen lopen via Stripe en zijn op elk moment op te zeggen.</p>
   </div>
@@ -338,7 +339,7 @@ h2.big{font-family:var(--wide);font-stretch:115%;font-variation-settings:"wdth" 
       <details><summary>Waar komen de gegevens vandaan?</summary><p>Koersen komen onder meer van Bitvavo en Kraken, marktcijfers van CoinGecko en CoinPaprika, en het nieuws van bronnen als CoinDesk, Cointelegraph, CNBC en de Financial Times. Bij elk inzicht staan de bron en het tijdstip.</p></details>
       <details><summary>Hoe is mijn account beveiligd?</summary><p>Inloggen gaat altijd met je wachtwoord en een code uit een authenticator-app, zoals Google of Microsoft Authenticator. Je gegevens worden versleuteld opgeslagen in de EU.</p></details>
       <details><summary>Werkt Vantis op mijn telefoon?</summary><p>Ja. Open Vantis in je browser en zet het op je beginscherm; dan krijg je ook pushmeldingen. Apps in de App Store en Play Store volgen later.</p></details>
-      <details><summary>Wat kost het?</summary><p>De basis en de Academy zijn gratis. Premium en Pro kun je eerst een week gratis proberen en daarna op elk moment opzeggen.</p></details>
+      <details><summary>Wat kost het?</summary><p>Een account is gratis. De Academy zit in Plus (€ 4,99 per maand), certificaten in Pro (€ 12,99) en persoonlijke begeleiding in Elite (€ 29,99). Elk abonnement kun je eerst een week gratis proberen en daarna op elk moment opzeggen.</p></details>
     </div>
   </div>
 </section>
@@ -346,7 +347,7 @@ h2.big{font-family:var(--wide);font-stretch:115%;font-variation-settings:"wdth" 
 <section class="end">
   <div class="wrap">
     <h2 class="big">Begin bij les één</h2>
-    <p class="intro">Maak gratis een account en volg je eerste les in vier minuten.</p>
+    <p class="intro">Maak een account, probeer Plus een week gratis en volg je eerste les in vier minuten.</p>
     <div class="cta" style="margin-top:28px"><a class="btn pri" href="/app?start=register">Gratis account maken</a><a class="btn sec" href="/app">Inloggen</a></div>
   </div>
 </section>
@@ -371,12 +372,13 @@ h2.big{font-family:var(--wide);font-stretch:115%;font-variation-settings:"wdth" 
   var pct=function(c){if(c==null)return '';var s=c>0?'+':c<0?'−':'';return s+nf(Math.abs(c),2,2)+'%'};
   var esc=function(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})};
   var CHK='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg>';
-  var PLANF={free:['Live koersen, grafieken en analyses','De volledige Vantis Academy','Koersalerts in de app','Ochtendbriefing en Event Radar'],
-    premium:['Alles van Gratis','Pushmeldingen, ook als de app dicht is','Discord-meldingen en weekoverzicht per e-mail','Indicator-alerts en nieuws op trefwoord','Volledige track record en marktdata'],
-    pro:['Alles van Premium','Onbeperkt eigen scanners met meldingen','Onbeperkt periodiek kopen en trailing stops','Persoonlijke widgetsleutel','Als eerste nieuwe functies']};
+  var PLANF={free:['Live koersen, grafieken en nieuws','Koersalerts in de app','Vrienden en chat','De Vantis-community op Discord'],
+    plus:['Alles van Gratis','De volledige Vantis Academy','Pushmeldingen en meldingen via Discord','Ochtendbriefing en weekoverzicht per e-mail'],
+    pro:['Alles van Plus','Certificaten bij afgeronde leerpaden','Indicator-alerts en eigen scanners','Volledige marktdata, track record en backtest'],
+    elite:['Alles van Pro','Elke maand een live sessie in Discord','Elite-kanaal in Discord','Vroege toegang en voorrang bij support']};
   document.querySelectorAll('[data-tier]').forEach(function(u){u.innerHTML=PLANF[u.dataset.tier].map(function(f){return '<li>'+CHK+'<span>'+esc(f)+'</span></li>'}).join('')});
   fetch('/api/billing/plans').then(function(r){return r.ok?r.json():null}).then(function(P){if(!P||!P.plans)return;
-    P.plans.forEach(function(p){if(!p.label||p.period!=='month')return;var el=document.querySelector('[data-price="'+p.tier+'"]');if(el)el.innerHTML='<b>'+esc(p.label)+'</b>'+(P.trialDays?'De eerste '+P.trialDays+' dagen gratis':'')})}).catch(function(){});
+    P.plans.forEach(function(p){if(!p.label||p.period!=='month')return;var el=document.querySelector('[data-price="'+p.tier+'"]');if(el)el.innerHTML='<b>'+esc(p.label.replace(/ per maand$/,''))+'</b>per maand'+(P.trialDays?', eerste '+P.trialDays+' dagen gratis':'')})}).catch(function(){});
   function ring(score){var r=22,c=2*Math.PI*r,f=Math.max(0,Math.min(100,score))/100;
     return '<svg viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="'+r+'" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="4"/><circle cx="26" cy="26" r="'+r+'" fill="none" stroke="url(#lgm)" stroke-width="4" stroke-linecap="round" stroke-dasharray="'+(c*f)+' '+c+'"/><defs><linearGradient id="lgm" x1="0" x2="1"><stop offset="0" stop-color="#fff"/><stop offset=".5" stop-color="#8b919a"/><stop offset="1" stop-color="#e9ebee"/></linearGradient></defs></svg><b>'+score+'</b>'}
   var NAMES={BTC:'Bitcoin',ETH:'Ethereum',SOL:'Solana',XRP:'XRP',ADA:'Cardano',DOGE:'Dogecoin'};

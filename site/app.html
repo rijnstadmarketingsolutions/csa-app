@@ -1199,6 +1199,11 @@ a.acnext:hover b{text-decoration:underline}
 .sdf .err:empty{display:none}
 @media (max-width:900px){#view:has(.soc.inchat) .phead{display:none}.soc.inchat .chat{height:calc(100vh - 200px);height:calc(100dvh - 200px);min-height:360px}}
 .skinopt .lockinfo svg{margin-top:2px}
+.plans.plans4{grid-template-columns:repeat(4,minmax(0,1fr))}@media (max-width:1200px){.plans.plans4{grid-template-columns:repeat(2,minmax(0,1fr))}}@media (max-width:700px){.plans.plans4{grid-template-columns:1fr}}
+.acwall{display:flex;align-items:center;gap:20px;padding:28px!important;margin-bottom:16px}.acwall h2{margin:0 0 6px}.acwall p{max-width:60ch;margin:0 0 14px}
+.acwgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}.acwp h3{margin:8px 0 6px;font-size:16px}.acwp p{font-size:13.5px;margin:0 0 8px}
+.acwl{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ink2)}.acwl svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2}
+.plans.plans4{padding-top:12px}.plans4 .pprice small{display:block;font-size:13px;font-weight:500;color:var(--ink2);margin-top:2px;letter-spacing:0}
 
 </style>
 </head>
@@ -2814,7 +2819,7 @@ Pages.instellingen={
   title:()=>'Instellingen',
   html(){const s=S.settings,u=LS.get('user',{});const sw=(id,on)=>`<label class="sw"><input type="checkbox" id="${id}" ${on?'checked':''}><span></span></label>`;
     const CATS=[['move','Ongebruikelijke koersbewegingen'],['sudden','Plotselinge bewegingen (15 min)'],['volume','Volumepieken'],['breakout','Technische doorbraken'],['market','Marktbrede bewegingen en sentiment'],['macro','Macro: Fed, ECB, CPI, banen, herinneringen'],['etf','ETF-instroom en -uitstroom'],['regulation','Regelgeving'],['security','Beveiligingsincidenten'],['earnings','Bedrijfsresultaten'],['geo','Geopolitiek'],['watchnews','Nieuws over je watchlist'],['whale','Grote crypto-transacties']];
-    const acct=Api.authed?`<div class="set"><div><b>${esc(Api.user?.name||u.name||'')}</b><p>${esc(Api.user?.email||u.email||'')} · <span class="tag ${Api.user?.plan==='premium'?'navy':''}">${Api.user?.plan==='premium'?'Premium':'Gratis'}</span></p></div><button class="btn ghost sm" id="logout">Uitloggen</button></div>
+    const acct=Api.authed?`<div class="set"><div><b>${esc(Api.user?.name||u.name||'')}</b><p>${esc(Api.user?.email||u.email||'')} · <span class="tag ${Api.user?.plan&&Api.user.plan!=='free'?'navy':''}">${TIERN[Api.user?.plan||'free']||'Gratis'}</span></p></div><button class="btn ghost sm" id="logout">Uitloggen</button></div>
       <div class="set"><div><b>Tweestapsverificatie</b><p>Actief via authenticator-app, met back-upcodes voor als je je telefoon kwijt bent.</p></div><span class="tag up">Aan</span></div>
       <div class="set"><div><b>Account verwijderen</b><p>Wist je account, voorkeuren, portefeuilles en meldingen definitief.</p></div><button class="btn ghost sm" id="delacc">Verwijderen</button></div>`
       :`<div class="set"><div><b>${Api.on?'Niet ingelogd':'Demomodus'}</b><p>${Api.on?'Log in of maak een account om je voorkeuren, portefeuille en pushmeldingen op al je apparaten te gebruiken.':'De Vantis-server is niet bereikbaar, bijvoorbeeld omdat je het bestand lokaal opent. Alles wordt alleen in deze browser bewaard.'}</p></div><button class="btn sm" id="logout">${Api.on?'Inloggen':'Opnieuw starten'}</button></div>`;
@@ -2832,7 +2837,7 @@ Pages.instellingen={
       <p class="note">Ontdubbeld: per asset en type maximaal één melding per 3 uur. Je voorkeuren gelden ook voor de pushmeldingen van de server${Api.authed?' en worden gesynchroniseerd tussen je apparaten':''}.</p>
       <button class="btn ghost sm" id="testn">Testmelding sturen</button></div></div>
     <div class="grid" style="align-content:start">
-    <div class="card"><div class="chead"><h2>Abonnement</h2><a class="lnk" href="#premium">Bekijken →</a></div><p class="note" style="margin:0">${Api.user?.plan==='premium'?'Je hebt Premium.':'Je gebruikt Vantis gratis.'}</p></div>
+    <div class="card"><div class="chead"><h2>Abonnement</h2><a class="lnk" href="#premium">Bekijken</a></div><p class="note" style="margin:0">${Api.user?.plan&&Api.user.plan!=='free'?'Je hebt '+(TIERN[Api.user.plan]||'een abonnement')+'.':'Je gebruikt Vantis gratis.'}</p></div>
     <div class="card"><div class="chead"><h2>Databronnen</h2><span class="src">Live status</span></div><div id="srcs"></div>
       <details style="margin-top:12px"><summary class="lnk" style="cursor:pointer">Eigen Finnhub-sleutel gebruiken (optioneel)</summary><div class="field" style="margin-top:10px"><div style="display:flex;gap:8px"><input class="inp" id="fhk" type="password" value="${esc(s.fhKey)}" placeholder="Gratis via finnhub.io" autocomplete="off"><button class="btn" id="fhsave">Opslaan</button></div><p class="note">Alleen nodig als de Vantis-server geen aandelendata levert. Wordt alleen in deze browser bewaard.</p></div></details></div>
     <div class="card"><div class="chead"><h2>Weergave</h2></div><div class="set"><div><b>Ervaring</b><p>Beginner: uitleg bij begrippen (tik op <span class="gi" style="pointer-events:none">i</span>). Pro: geen uitleg, extra cijfers.</p></div><div class="seg" id="s_mode"><button data-m="beginner" class="${s.mode!=='pro'?'on':''}">Beginner</button><button data-m="pro" class="${s.mode==='pro'?'on':''}">Pro</button></div></div><div class="set"><div><b>Rondleiding</b><p>Kies opnieuw wat je volgt en hoe vaak je meldingen krijgt.</p></div><button class="btn ghost sm" id="s_tour">Opnieuw starten</button></div><div class="set"><div><b>Donkere modus</b><p>Licht is de standaard; donker is prettiger 's avonds.</p></div>${sw('s_dark',s.theme==='dark')}</div></div>
@@ -4907,6 +4912,39 @@ Pages.vrienden={
 /* terugkeer na Discord-koppeling */
 {const q=new URLSearchParams(location.search).get('discord');if(q){const M={ok:['success','Discord gekoppeld','Je bent lid van de Vantis-server en krijgt je meldingen nu ook als privébericht.'],cancelled:['info','Koppelen geannuleerd','Je kunt Discord later alsnog koppelen bij Instellingen.'],expired:['error','Koppelen duurde te lang','Probeer het opnieuw bij Instellingen → Discord.'],error:['error','Discord koppelen is niet gelukt','Probeer het opnieuw. Lukt het niet, laat het ons weten.']};
   const m=M[q]||M.error;history.replaceState(null,'',location.pathname+location.hash);setTimeout(()=>UI.toast({kind:m[0],title:m[1],body:m[2]}),1200)}}
+
+/* ---------- abonnementen: Gratis, Plus, Pro, Elite ---------- */
+const TIERN={free:'Gratis',premium:'Plus',plus:'Plus',pro:'Pro',elite:'Elite'};
+const tierRank=p=>({premium:1,plus:1,pro:2,elite:3})[p]||0;
+const tierKey=p=>p==='premium'?'plus':(TIERN[p]?p:'free');
+const enforced=()=>!!(((Api.h&&Api.h.features)||Api.features||{}).premiumEnforced);
+const canTier=n=>!!(Api.user&&Api.user.admin)||!enforced()||tierRank(Api.user&&Api.user.plan)>=n;
+const tierWall=(n,title,body)=>dlg(`<h2>${esc(title)}</h2><p class="muted">${esc(body)}</p><div class="row" style="display:flex;gap:8px;margin-top:14px"><a class="btn" href="#premium" id="twgo">Bekijk ${TIERN[['free','plus','pro','elite'][n]]}</a><button class="btn ghost" id="twno">Sluiten</button></div>`,c=>{$('#twno',c).onclick=closeOverlay;$('#twgo',c).onclick=closeOverlay});
+Object.assign(PLANF,{
+  free:['Live koersen, grafieken en nieuws','Oefenhandel met € 10.000','Vrienden, chat en crypto sturen','Koersalerts in de app','De Vantis-community op Discord'],
+  plus:['Alles van Gratis','De volledige Vantis Academy: alle leerpaden en lessen','Pushmeldingen 24/7 en meldingen via Discord','Ochtendbriefing, nieuws op trefwoord en weekoverzicht per e-mail','Plus-rol in de Discord-server'],
+  pro:['Alles van Plus','Certificaten bij afgeronde leerpaden','Indicator-alerts (zoals RSI) en eigen scanners','Volledige Impact, Event Radar en Marktdata','Track record, backtest en "Wat als"','Pro-kanalen in Discord'],
+  elite:['Alles van Pro','Elke maand een live sessie in Discord','Elite-kanaal in Discord','Vroege toegang tot nieuwe functies','Voorrang bij support']});
+Pages.premium.html=()=>`<div class="phead"><div><h1>Abonnementen</h1><p>Leer traden met de Vantis Academy vanaf Plus, haal certificaten met Pro en krijg persoonlijke begeleiding met Elite. Probeer een betaald abonnement eerst een week gratis; je kunt altijd opzeggen.</p></div></div><div id="prbody">${waitBox()}</div>
+  <p class="disc">Abonnementen lopen via Stripe. Opzeggen kan op elk moment via "Abonnement beheren". Vantis geeft geen financieel advies.</p>`;
+Pages.premium.title=()=>'Abonnementen';
+Pages.premium.live=function(el,arg,kind){if(kind!=='calc'||!PRF.plans)return;const P=PRF.plans;const cur=tierKey(Api.user&&Api.user.plan);const per=PRF.period;
+  const plan=t=>(P.plans||[]).find(x=>x.tier===t&&x.period===per)||(P.plans||[]).find(x=>x.tier===t&&x.period==='month');
+  const card=(t,hl)=>{const pl=plan(t);const lab=t==='free'?'€ 0':(pl&&pl.label)||'';const m=lab.match(/^(€\s?[\d.,]+)\s*(.*)$/);const price=m?`${esc(m[1])}<small>${esc(m[2]||'altijd gratis')}</small>`:esc(lab);return `<div class="plan ${hl?'hl':''} ${cur===t?'cur':''}">${hl?'<span class="pbadge">Meest gekozen</span>':''}<h3>${TIERN[t]}</h3><div class="pprice">${price}</div><ul>${PLANF[t].map(f=>`<li>${ico('check')}${esc(f)}</li>`).join('')}</ul>
+    ${cur===t?`<div class="tag up" style="justify-self:start">Je huidige abonnement</div>${t!=='free'?'<button class="btn ghost" id="prportal">Abonnement beheren</button>':''}`:t==='free'?'':P.ready&&pl&&pl.available?`<button class="btn ${hl?'':'ghost'}" data-buy="${pl.id}">${P.trialDays&&cur==='free'?`Probeer ${P.trialDays} dagen gratis`:'Kies '+TIERN[t]}</button>`:'<button class="btn ghost" disabled>Binnenkort beschikbaar</button>'}</div>`};
+  $('#prbody',el).innerHTML=`<div class="seg" style="margin-bottom:16px"><button data-per="month" class="${per==='month'?'on':''}">Per maand</button><button data-per="year" class="${per==='year'?'on':''}">Per jaar</button></div>
+    <div class="plans plans4">${card('free')}${card('plus',true)}${card('pro')}${card('elite')}</div>
+    ${!P.ready?`<p class="note" style="margin-top:12px">Betalen wordt nog gekoppeld. Tot die tijd kun je alles gebruiken.</p>`:''}`};
+{const i=NAV.findIndex(n=>n[0]==='premium');if(i>=0)NAV[i]=['premium','Abonnementen','gem']}
+
+/* Academy vanaf Plus, certificaten vanaf Pro */
+{const lh=Pages.leren.html;Pages.leren.html=function(arg){if(!canTier(1))return this.wallHTML();let h=lh.call(this,arg);
+    if(!canTier(2))h=h.replace(/Download je certificaat als afbeelding\./g,'Certificaten zitten in Pro.');return h};
+  Pages.leren.wallHTML=function(){return `<div class="phead"><div><h1>Vantis Academy</h1><p>Leer stap voor stap traden: van je eerste aankoop tot risicobeheer, grafieken lezen en macro. De Academy zit in Plus, Pro en Elite.</p></div></div>
+    <div class="card acwall"><div><h2>Ontgrendel de Academy met Plus</h2><p class="muted">${AC_PATHS.length} leerpaden met ${AC_PATHS.reduce((a,p)=>a+p.L.length,0)} lessen, oefeningen met echte koersen en opdrachten in de app. Met Pro haal je ook certificaten.</p><a class="btn" href="#premium">Bekijk Plus</a></div></div>
+    <div class="acwgrid">${AC_PATHS.map(p=>`<div class="card acwp"><span class="acwl">${ico('lock')}${esc(p.lvl||'')}</span><h3>${esc(p.t)}</h3><p class="muted">${esc(p.d||'')}</p><small class="faint">${p.L.length} lessen</small></div>`).join('')}</div>`};
+  const lm=Pages.leren.mount;Pages.leren.mount=function(el,arg){if(!canTier(1))return;return lm.call(this,el,arg)}}
+{const oc=acCert;acCert=function(p){if(!canTier(2))return tierWall(2,'Certificaten zitten in Pro','Je hebt dit leerpad afgerond. Met Pro download je er een certificaat van, en krijg je ook indicator-alerts, eigen scanners en de volledige marktdata.');return oc(p)}}
 
 }
 </script>

@@ -1,15 +1,19 @@
 // Stripe premium-abonnement: Checkout, klantportaal en webhook (zonder SDK)
 import { json, err, enc, hex, safeEqual } from './lib.js';
 
-export const stripeReady = env => !!(env.STRIPE_SECRET_KEY && env.STRIPE_PRICE_ID);
+const PRICES = env => ({
+  'plus-month': env.STRIPE_PRICE_PLUS || env.STRIPE_PRICE_ID, 'plus-year': env.STRIPE_PRICE_PLUS_YEAR || env.STRIPE_PRICE_ID_YEAR,
+  'pro-month': env.STRIPE_PRICE_PRO || env.STRIPE_PRICE_ID_PRO, 'pro-year': env.STRIPE_PRICE_PRO_YEAR,
+  'elite-month': env.STRIPE_PRICE_ELITE, 'elite-year': env.STRIPE_PRICE_ELITE_YEAR });
+const LABELS = { 'plus-month': '€ 4,99 per maand', 'plus-year': '€ 49 per jaar', 'pro-month': '€ 12,99 per maand', 'pro-year': '€ 129 per jaar', 'elite-month': '€ 29,99 per maand', 'elite-year': '€ 299 per jaar' };
+export const stripeReady = env => !!env.STRIPE_SECRET_KEY && Object.values(PRICES(env)).some(Boolean);
 export function plans(env) {
-  const L = [];
-  if (env.STRIPE_PRICE_ID) L.push({ id: 'premium-month', tier: 'premium', period: 'month', label: env.PREMIUM_PRICE_LABEL || null });
-  if (env.STRIPE_PRICE_ID_YEAR) L.push({ id: 'premium-year', tier: 'premium', period: 'year', label: env.PREMIUM_YEAR_LABEL || null });
-  if (env.STRIPE_PRICE_ID_PRO) L.push({ id: 'pro-month', tier: 'pro', period: 'month', label: env.PRO_PRICE_LABEL || null });
+  const P = PRICES(env); const L = [];
+  for (const id of Object.keys(LABELS)) { const [tier, period] = id.split('-'); L.push({ id, tier, period, label: env['LABEL_' + id.replace('-', '_').toUpperCase()] || LABELS[id], available: !!P[id] }); }
   return { ready: stripeReady(env), trialDays: +(env.TRIAL_DAYS || 7), plans: L };
 }
-const PRICE = (env, id) => ({ 'premium-month': env.STRIPE_PRICE_ID, 'premium-year': env.STRIPE_PRICE_ID_YEAR, 'pro-month': env.STRIPE_PRICE_ID_PRO })[id];
+const PRICE = (env, id) => PRICES(env)[id];
+const tierOf = t => ['plus', 'pro', 'elite'].includes(t) ? t : 'plus';
 async function stripe(env, path, params) {
   const body = new URLSearchParams(); for (const [k, v] of Object.entries(params)) if (v != null) body.append(k, String(v));
   const r = await fetch('https://api.stripe.com/v1' + path, { method: 'POST', body, headers: { authorization: 'Bearer ' + env.STRIPE_SECRET_KEY, 'content-type': 'application/x-www-form-urlencoded' } });
@@ -17,8 +21,8 @@ async function stripe(env, path, params) {
 }
 export async function checkout(env, user, origin, body = {}) {
   if (!stripeReady(env)) return err(503, 'Betalen is nog niet gekoppeld (Stripe-sleutels ontbreken).');
-  const id = body.plan || 'premium-month'; const price = PRICE(env, id); if (!price) return err(400, 'Dit abonnement is niet beschikbaar.');
-  const tier = id.startsWith('pro') ? 'pro' : 'premium';
+  const id = body.plan || 'plus-month'; const price = PRICE(env, id); if (!price) return err(400, 'Dit abonnement is niet beschikbaar.');
+  const tier = tierOf(id.split('-')[0]);
   const u = await env.DB.prepare('SELECT trial_used FROM users WHERE id=?').bind(user.user_id).first(); const days = +(env.TRIAL_DAYS || 7); const trial = !u?.trial_used && days > 0;
   const s = await stripe(env, '/checkout/sessions', {
     mode: 'subscription', 'line_items[0][price]': price, 'line_items[0][quantity]': 1,
@@ -49,10 +53,10 @@ export async function webhook(env, request) {
   if (!v1s.some(v => safeEqual(v, expected))) return err(400, 'Ongeldige handtekening');
   const evt = JSON.parse(payload); const o = evt.data?.object || {};
   if (evt.type === 'checkout.session.completed' && o.client_reference_id) {
-    await env.DB.prepare("UPDATE users SET plan=?, stripe_customer=? WHERE id=?").bind(o.metadata?.tier === 'pro' ? 'pro' : 'premium', o.customer, o.client_reference_id).run();
+    await env.DB.prepare("UPDATE users SET plan=?, stripe_customer=? WHERE id=?").bind(tierOf(o.metadata?.tier), o.customer, o.client_reference_id).run();
   } else if (evt.type === 'customer.subscription.updated' || evt.type === 'customer.subscription.created') {
     const active = ['active', 'trialing', 'past_due'].includes(o.status);
-    await env.DB.prepare('UPDATE users SET plan=? WHERE stripe_customer=?').bind(active ? (o.metadata?.tier === 'pro' ? 'pro' : 'premium') : 'free', o.customer).run();
+    await env.DB.prepare('UPDATE users SET plan=? WHERE stripe_customer=?').bind(active ? tierOf(o.metadata?.tier) : 'free', o.customer).run();
   } else if (evt.type === 'customer.subscription.deleted') {
     await env.DB.prepare("UPDATE users SET plan='free' WHERE stripe_customer=?").bind(o.customer).run();
   }
