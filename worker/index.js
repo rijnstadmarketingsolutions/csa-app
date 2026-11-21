@@ -9,7 +9,7 @@ import { handlePaper, paperCron, paperNeed, tradeStats } from './paper.js';
 import { handleSocial } from './social.js';
 import { handleAI, aiCron } from './ai.js';
 import { newsKw, weekly, mailApi, mailReady } from './notify.js';
-import { dcEnv, dcReady, dcApi, dcCallback, dcInteractions, dcSend, dcFormat, dcPublic, briefingEmbed, dcDaily } from './discord.js';
+import { dcSetup, dcEnv, dcReady, dcApi, dcCallback, dcInteractions, dcSend, dcFormat, dcPublic, briefingEmbed, dcDaily } from './discord.js';
 
 const VERSION = '2.1.0';
 const NATIVE_ORIGINS = ['capacitor://localhost', 'http://localhost', 'https://localhost', 'ionic://localhost'];
@@ -168,6 +168,9 @@ async function api(req, env, ctx, url) {
   if (p === '/api/brand' || p.startsWith('/api/widget') || p.startsWith('/api/admin/')) { const r = await adminApi(req, env, s, p, m, url); if (r) return r; if (!s) return needAuth(); }
   if (p === '/api/discord/interactions' && m === 'POST') return dcInteractions(req, env, ctx);
   if (p === '/api/discord/callback' && m === 'GET') return dcCallback(req, env, url);
+  if (p === '/api/discord/resetup' && m === 'POST') { // aangeroepen door de GitHub-workflow; sleutel = SHA-256 van de bot-token
+    const k = req.headers.get('x-setup-key') || ''; const h = env.DISCORD_BOT_TOKEN ? [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(env.DISCORD_BOT_TOKEN)))].map(b => b.toString(16).padStart(2, '0')).join('') : null;
+    if (!h || k !== h) return err(403, 'Geen toegang.'); return json(await dcSetup(env, true)); }
   if (p.startsWith('/api/discord/')) { if (!s) return needAuth(); if (p === '/api/discord/setup' && !isAdmin(env, s)) return err(403, 'Alleen voor beheerders.'); const r = await dcApi(req, env, s, p, m, url); if (r) return r; }
   if (p.startsWith('/api/mail/')) { const r = await mailApi(req, env, s, p, m, url); if (r) return r; if (!s) return needAuth(); }
   if (p.startsWith('/api/paper') || p === '/api/quote' || p === '/api/board' || p === '/api/history') { if (!s && p !== '/api/quote' && p !== '/api/history') return needAuth();
