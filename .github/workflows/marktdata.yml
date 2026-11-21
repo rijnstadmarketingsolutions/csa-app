@@ -16,7 +16,7 @@ jobs:
     if: ${{ inputs.opruimen }}
     runs-on: ubuntu-latest
     steps:
-      - run: git push -q "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" --delete marktdata || true
+      - run: git init -q t && cd t && git push "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" --delete marktdata
   export:
     if: ${{ !inputs.opruimen }}
     runs-on: ubuntu-latest
