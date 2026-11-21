@@ -27,11 +27,13 @@ def fix_channel(cid, hooks):
     s, msgs = bot('GET', f'/channels/{cid}/messages?limit=100')
     if s != 200 or not msgs: return
     mine = [m for m in msgs if m['author']['id'] == me or (m.get('webhook_id') and m['webhook_id'] in hooks)]
+    print('  berichten van Vantis:', len(mine))
     if not mine: return
     tr = translate([clean(m) for m in mine]).get('items', [])
     for m, new in zip(mine, tr):
         old = clean(m)
-        if new == old: continue
+        if new == old:
+            print('  onvertaald:', json.dumps(old, ensure_ascii=False)[:600]); continue
         body = {k: v for k, v in new.items() if v or k == 'embeds'}
         if m.get('webhook_id'): st, _ = req('PATCH', f"{API}/webhooks/{m['webhook_id']}/{hooks[m['webhook_id']]}/messages/{m['id']}", body)
         else: st, _ = bot('PATCH', f"/channels/{cid}/messages/{m['id']}", body)
