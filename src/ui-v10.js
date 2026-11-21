@@ -126,11 +126,11 @@ async function acCert(p){const W=1600,H=1100,cv=document.createElement('canvas')
   const metal=(y0,y1)=>{const m=g.createLinearGradient(0,y0,W,y1);m.addColorStop(0,'#ffffff');m.addColorStop(.35,'#c9cdd3');m.addColorStop(.5,'#7f858e');m.addColorStop(.7,'#f1f2f4');m.addColorStop(1,'#9aa0a9');return m};
   try{const img=new Image();img.src='brand/vantis-full.svg';await img.decode();const w=520,h=w*img.height/img.width;g.drawImage(img,(W-w)/2,130,w,h)}catch(e){}
   const name=(Api.user&&Api.user.name)||'Vantis-gebruiker';const d=AC.done();const sc=p.L.map(id=>d[id]).filter(Boolean);const avg=sc.length?sc.reduce((a,x)=>a+(x.score/x.of),0)/sc.length*100:0;
-  g.textAlign='center';g.fillStyle='#9aa0a9';g.font='500 30px Inter, sans-serif';g.fillText('CERTIFICAAT VANTIS ACADEMY',W/2,370);
+  g.textAlign='center';g.fillStyle='#9aa0a9';g.font='500 30px Inter, sans-serif';g.fillText(S.settings.lang==='en'?'VANTIS ACADEMY CERTIFICATE':'CERTIFICAAT VANTIS ACADEMY',W/2,370);
   g.fillStyle=metal(400,520);g.font='700 84px "Inter Tight", Inter, sans-serif';g.fillText(p.t,W/2,480);
-  g.fillStyle='#c9cdd3';g.font='400 34px Inter, sans-serif';g.fillText('behaald door',W/2,580);g.fillStyle='#ffffff';g.font='600 64px "Inter Tight", Inter, sans-serif';g.fillText(name,W/2,660);
-  g.fillStyle='#9aa0a9';g.font='400 30px Inter, sans-serif';g.fillText(`${p.L.length} lessen afgerond · gemiddeld ${Math.round(avg)}% goed · niveau ${p.lvl.toLowerCase()}`,W/2,760);
-  g.fillText(new Date().toLocaleDateString('nl-NL',{day:'numeric',month:'long',year:'numeric'}),W/2,810);
+  g.fillStyle='#c9cdd3';g.font='400 34px Inter, sans-serif';g.fillText(S.settings.lang==='en'?'awarded to':'behaald door',W/2,580);g.fillStyle='#ffffff';g.font='600 64px "Inter Tight", Inter, sans-serif';g.fillText(name,W/2,660);
+  g.fillStyle='#9aa0a9';g.font='400 30px Inter, sans-serif';g.fillText(S.settings.lang==='en'?`${p.L.length} lessons completed · ${Math.round(avg)}% correct on average · level ${p.lvl.toLowerCase()}`:`${p.L.length} lessen afgerond · gemiddeld ${Math.round(avg)}% goed · niveau ${p.lvl.toLowerCase()}`,W/2,760);
+  g.fillText(new Date().toLocaleDateString(S.settings.lang==='en'?'en-GB':'nl-NL',{day:'numeric',month:'long',year:'numeric'}),W/2,810);
   g.strokeStyle='rgba(255,255,255,.2)';g.beginPath();g.moveTo(W/2-160,900);g.lineTo(W/2+160,900);g.stroke();g.fillStyle='#737985';g.font='400 24px Inter, sans-serif';g.fillText('Vantis · Crypto Intelligence',W/2,940);
   const a=AC.st();if(!a.cert[p.id]){a.cert[p.id]=Date.now();saveSettings();Badges.check()}
   cv.toBlob(b=>{const u=URL.createObjectURL(b);const l=document.createElement('a');l.href=u;l.download=`Vantis-certificaat-${p.id}.png`;document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(u),4000)},'image/png')}

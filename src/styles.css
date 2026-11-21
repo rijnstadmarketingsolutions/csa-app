@@ -1231,3 +1231,4 @@ a.acnext:hover b{text-decoration:underline}
 .aiasset .chead h2{display:flex;align-items:center;gap:8px}.aiasset .chead h2 svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8}.aiasset button.lnk{background:none;border:0;cursor:pointer;font:inherit;font-size:13px;font-weight:600}
 @media (max-width:900px){#aiwrap{right:14px;bottom:calc(78px + env(safe-area-inset-bottom))}.aifab{height:44px;padding:0 14px 0 12px}
   .aip{right:0;bottom:0;width:100vw;height:calc(100dvh - 0px);border-radius:0;border:0}}
+body:has(#login:not(.hidden)) #aiwrap{display:none}

@@ -65,3 +65,10 @@ setTimeout(aiRender,800);
   $('#aiaskasset',box).onclick=()=>{AI.open=true;AI.tab='chat';aiRender();aiAsk(S.settings.lang==='en'?`What will ${sym} do this week?`:`Wat doet ${sym} deze week?`)};
   fetch(API_BASE+'/api/ai/forecast?sym='+encodeURIComponent(sym)).then(r=>r.ok?r.json():null).then(f=>{const b=$('.aifbody',box);if(!b)return;if(!f){b.innerHTML='<p class="muted">Te weinig koershistorie voor een vooruitzicht.</p>';return}
     b.innerHTML=aiFc(f)+`<p class="note" style="margin:10px 0 0">Kans dat de koers over 7 dagen hoger staat, met de bandbreedte waarbinnen hij waarschijnlijk (80%) uitkomt. Getest op ${f.tested} eerdere signalen van ${esc(sym)}. Een model geeft kansen, geen zekerheden.</p>`}).catch(()=>{const b=$('.aifbody',box);if(b)b.innerHTML='<p class="muted">Vooruitzicht niet beschikbaar.</p>'})}}
+
+/* Engelse lesinhoud: de Academy-teksten zelf vertalen zodra het Engelse woordenboek binnen is */
+{let tries=0;const apply=()=>{const D=I18N.dict;if(!D){if(I18N.lang==='en'&&tries++<40)setTimeout(apply,250);return}const M=D.__acad;if(!M)return;
+  const tr=x=>typeof x==='string'?(M[x]??x):Array.isArray(x)?x.map(tr):x&&typeof x==='object'?Object.fromEntries(Object.entries(x).map(([k,v])=>[k,['id','w','L'].includes(k)?v:tr(v)])):x;
+  AC_PATHS.forEach((p,i)=>AC_PATHS[i]=tr(p));for(const k in AC_LESSONS)AC_LESSONS[k]=tr(AC_LESSONS[k]);AC_TERMS.splice(0,AC_TERMS.length,...tr(AC_TERMS));
+  LESSONS.forEach((l,i)=>LESSONS[i]=tr(l));if(UI.cur==='leren'||UI.cur==='overzicht')UI.route()};
+  if(I18N.lang==='en')apply()}
