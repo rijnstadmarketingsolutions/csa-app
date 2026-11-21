@@ -17,6 +17,9 @@
   "observability": { "enabled": true },
   "vars": {
     "PREMIUM_ENFORCED": "false",
-    "VAPID_SUBJECT": "mailto:info@rijnstadmarketing.nl"
+    "VAPID_SUBJECT": "mailto:info@rijnstadmarketing.nl",
+    "DISCORD_APP_ID": "1573694064694526023",
+    "DISCORD_PUBLIC_KEY": "1801f95279c829bcb00c6f4e7ed6fb3f379faffc0d7b60e3e7372051d6b6fdb9",
+    "DISCORD_GUILD_ID": "1573692320757321861"
   }
 }
