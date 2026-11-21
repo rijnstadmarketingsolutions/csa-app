@@ -204,6 +204,7 @@ export async function dcSetup(env, force) {
   await ch('ultimate-lounge', cUlt, 'Voor Ultimate-leden: 1-op-1 sessies plannen en als eerste nieuwe functies testen.', only(ultimate, black, team));
   await ch('Ultimate 1-op-1', cUlt, null, only(ultimate, black, team), 2);
   await ch('support', cHelp, 'Hulp nodig met de app? Stel je vraag hier. Deel nooit je wachtwoord of 2FA-code.');
+  { const r = await DC(env, 'PATCH', `/guilds/${gid}/channels`, [cInfo, cMarkt, cCom, cPlus, cPro, cElite, cUlt, cHelp].filter(Boolean).map((id, i) => ({ id, position: i }))); log.push('categorieën ' + r.status); }
   const ag = channels.find(c => c.type === 2 && c.name === 'Algemeen'); if (ag) await DC(env, 'PATCH', `/channels/${ag.id}`, { parent_id: cCom });
   for (const c of channels.filter(c => c.type === 4 && /^(tekstkanalen|spraakkanalen|text channels|voice channels)$/i.test(c.name))) await DC(env, 'DELETE', `/channels/${c.id}`);
   let hook = cfg.DISCORD_WEBHOOK_URL; if (!hook && markt) { const w = await DC(env, 'POST', `/channels/${markt}/webhooks`, { name: 'Vantis' }); if (w.ok) hook = `https://discord.com/api/webhooks/${w.data.id}/${w.data.token}`; }
