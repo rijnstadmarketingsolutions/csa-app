@@ -172,6 +172,8 @@ export async function dcEnv(env) {
 
 /* ---------- de server automatisch inrichten zodra de bot erin zit ---------- */
 const P = { VIEW: 1n << 10n, SEND: 1n << 11n, CONNECT: 1n << 20n, SPEAK: 1n << 21n, THREADS: 1n << 38n };
+/* Admin: alles beheren behalve 'Administrator', zodat Founder/Senior Partner eigen kanalen houden */
+const ADMIN_PERMS = String([1, 2, 4, 5, 7, 10, 11, 13, 14, 15, 16, 17, 18, 20, 21, 22, 23, 24, 27, 28, 29, 33, 34, 38, 40].reduce((a, b) => a | (1n << BigInt(b)), 0n));
 const s = n => n.toString();
 async function iconData(env) {
   try { const r = await env.ASSETS.fetch(new Request(origin(env) + '/icon-512.png')); if (!r.ok) return null; const b = new Uint8Array(await r.arrayBuffer()); let bin = ''; for (let i = 0; i < b.length; i += 0x8000) bin += String.fromCharCode(...b.subarray(i, i + 0x8000)); return 'data:image/png;base64,' + btoa(bin); } catch (e) { return null; }
@@ -190,7 +192,7 @@ export async function dcSetup(env, force) {
   const team = await role('Team', 0x2BB673, false);
   const role2 = async (name, color, perms, old) => { const ex = roles.find(r => r.name === name || (old && r.name === old)); if (ex) { if (ex.name !== name) { const r = await DC(env, 'PATCH', `/guilds/${gid}/roles/${ex.id}`, { name }); log.push('rol ' + ex.name + ' → ' + name + ' ' + r.status); } return ex.id; } const r = await DC(env, 'POST', `/guilds/${gid}/roles`, { name, color, hoist: true, mentionable: true, permissions: perms }); log.push('rol ' + name + ' ' + r.status); return r.data?.id; };
   const MOD = s((1n << 13n) | (1n << 40n) | (1n << 1n) | (1n << 22n) | (1n << 23n) | (1n << 34n)); // berichten beheren, time-out, kicken, dempen, verplaatsen, threads beheren
-  const staffIds = { founder: await role2('Founder', 0xE8C77A, '8'), senior_partner: await role2('Senior Partner', 0xD9DCE1, '8'), admin: await role2('Admin', 0xE5484D, '8'),
+  const staffIds = { founder: await role2('Founder', 0xE8C77A, '8'), senior_partner: await role2('Senior Partner', 0xD9DCE1, '8'), admin: await role2('Admin', 0xE5484D, ADMIN_PERMS),
     moderator: await role2('Moderator', 0x36C46F, MOD), coach: await role2('Coach', 0xB48CF2, '0'), analist: await role2('Analyst', 0x4DB6E5, '0', 'Analist'), support: await role2('Support', 0xF29B4B, '0') };
   const me = (await DC(env, 'GET', '/users/@me')).data;
   await orderRoles(env, gid, me.id, [staffIds.founder, staffIds.senior_partner, staffIds.admin, staffIds.moderator, staffIds.coach, staffIds.analist, staffIds.support, team, black, ultimate, elite, pro, plus, lid], log);
@@ -262,4 +264,45 @@ export async function dcOpportunities(env, R) {
     const r = await DC(env, 'POST', `/channels/${env.DISCORD_OPP_CHANNEL}/messages`, body); if (r.ok) { posted++; seen[f.sym] = now; }
   }
   await kvPutStmt(env, 'dcopp', seen).run(); return { posted, syms: picks.map(f => f.sym) };
+}
+
+/* ---------- staffkanalen, per niveau ----------
+   Staff (iedereen in het team) · Coaching & analysis (Coach, Analyst) · Moderation (Moderator+) · Management (Admin+) · Leadership (Founder, Senior Partner) */
+export async function dcStaffSetup(env) {
+  env = await dcEnv(env); if (!dcReady(env)) return { ok: false, error: 'geen bot-token' };
+  const row = await env.DB.prepare("SELECT val FROM kv WHERE key='dccfg'").first(); const cfg = row ? JSON.parse(row.val) : {}; const R = cfg.DISCORD_STAFF_ROLES || {}; const gid = cfg.DISCORD_GUILD_ID || env.DISCORD_GUILD_ID;
+  if (!gid || !R.founder) return { ok: false, error: 'Voer eerst de gewone Discord-inrichting uit.' };
+  const log = []; const s = b => String(b); const me = (await DC(env, 'GET', '/users/@me')).data;
+  const roles = (await DC(env, 'GET', `/guilds/${gid}/roles`)).data || []; const channels = (await DC(env, 'GET', `/guilds/${gid}/channels`)).data || [];
+  const adm = roles.find(r => r.id === R.admin); if (adm && adm.permissions !== ADMIN_PERMS) { const r = await DC(env, 'PATCH', `/guilds/${gid}/roles/${R.admin}`, { permissions: ADMIN_PERMS }); log.push('admin-rechten ' + r.status); }
+  const LEAD = [R.founder, R.senior_partner], MGMT = [...LEAD, R.admin], MODS = [...MGMT, R.moderator], COACH = [...MGMT, R.coach, R.analist], ALL = [...MODS, R.coach, R.analist, R.support];
+  const FULL = P.VIEW | P.SEND | P.CONNECT | P.SPEAK | P.THREADS;
+  const ov = (ids, readOnly = [], writers = ids) => [{ id: gid, type: 0, deny: s(P.VIEW), allow: '0' }, { id: me.id, type: 1, allow: s(P.VIEW | P.SEND), deny: '0' },
+    ...ids.filter(Boolean).map(id => readOnly.includes(id) && !writers.includes(id) ? { id, type: 0, allow: s(P.VIEW | P.CONNECT), deny: s(P.SEND | P.THREADS) } : { id, type: 0, allow: s(FULL), deny: '0' })];
+  const cat = async (name, o) => { const ex = channels.find(c => c.type === 4 && c.name.toLowerCase() === name.toLowerCase()); if (ex) { await DC(env, 'PATCH', `/channels/${ex.id}`, { permission_overwrites: o }); return ex.id; } const r = await DC(env, 'POST', `/guilds/${gid}/channels`, { name, type: 4, permission_overwrites: o }); log.push('categorie ' + name + ' ' + r.status); return r.data?.id; };
+  const ch = async (name, parent, topic, o, type = 0) => { const ex = channels.find(c => c.name === name && c.type === type); const body = { name, parent_id: parent, ...(type === 0 ? { topic } : {}), permission_overwrites: o };
+    if (ex) { await DC(env, 'PATCH', `/channels/${ex.id}`, body); return ex.id; } const r = await DC(env, 'POST', `/guilds/${gid}/channels`, { type, ...body }); log.push('kanaal ' + name + ' ' + r.status); return r.data?.id; };
+  const out = {};
+  const cStaff = await cat('Staff', ov(ALL));
+  out.announce = await ch('staff-announcements', cStaff, 'Announcements for the whole team. Only Founder, Senior Partner and Admin can post here.', ov(ALL, ALL, MGMT));
+  out.chat = await ch('staff-chat', cStaff, 'Day-to-day chat for the whole Vantis team.', ov(ALL));
+  out.support = await ch('support-queue', cStaff, 'Questions and problems from members that need follow-up. Note who picks it up.', ov(ALL));
+  out.bugs = await ch('bugs-and-feedback', cStaff, 'Bugs in the app and ideas from members, with steps to reproduce.', ov(ALL));
+  await ch('Staff meeting', cStaff, null, ov(ALL), 2);
+  const cCoach = await cat('Coaching & analysis', ov(COACH));
+  out.coaching = await ch('coaching', cCoach, 'Plan 1-on-1 sessions and the monthly Elite live session.', ov(COACH));
+  out.analysis = await ch('analysis-desk', cCoach, 'Prepare market analysis and content for Pro, Elite and Ultimate.', ov(COACH));
+  await ch('Coaching room', cCoach, null, ov(COACH), 2);
+  const cMod = await cat('Moderation', ov(MODS));
+  out.mod = await ch('mod-chat', cMod, 'Discuss reports, warnings and bans.', ov(MODS));
+  out.modlog = await ch('mod-log', cMod, 'Log of warnings, time-outs, kicks and bans: who, what and why.', ov(MODS));
+  const cMgmt = await cat('Management', ov(MGMT));
+  out.mgmt = await ch('management', cMgmt, 'Planning, figures and decisions for Admin and up.', ov(MGMT));
+  out.adminlog = await ch('admin-log', cMgmt, 'Changes to roles, plans and server settings.', ov(MGMT));
+  const cLead = await cat('Leadership', ov(LEAD));
+  out.lead = await ch('leadership', cLead, 'Founder and Senior Partner only: strategy, finance and partnerships.', ov(LEAD));
+  await ch('Leadership call', cLead, null, ov(LEAD), 2);
+  { const r = await DC(env, 'PATCH', `/guilds/${gid}/channels`, [cStaff, cCoach, cMod, cMgmt, cLead].filter(Boolean).map((id, i) => ({ id, position: 20 + i }))); log.push('volgorde staff ' + r.status); }
+  await kvPutStmt(env, 'dccfg', { ...cfg, DISCORD_STAFF_CH: out, staffV: 1 }).run(); CFG = null;
+  return { ok: true, log };
 }
