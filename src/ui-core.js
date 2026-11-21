@@ -159,15 +159,16 @@ const Auth={
     ins.forEach((inp,i)=>{inp.addEventListener('input',()=>{inp.value=inp.value.replace(/\D/g,'').slice(-1);if(inp.value&&ins[i+1])ins[i+1].focus();if(ins.every(x=>x.value))$('#step2').requestSubmit()});
       inp.addEventListener('keydown',e=>{if(e.key==='Backspace'&&!inp.value&&ins[i-1])ins[i-1].focus()});
       inp.addEventListener('paste',e=>{const t=(e.clipboardData.getData('text')||'').replace(/\D/g,'').slice(0,6);if(t.length){e.preventDefault();t.split('').forEach((c,k)=>{if(ins[k])ins[k].value=c});(ins[t.length]||ins[5]).focus();if(t.length===6)$('#step2').requestSubmit()}})});
-    $('#toreg').onclick=()=>{this.reg=!this.reg;$('#namef').classList.toggle('hidden',!this.reg);$('#s1title').textContent=this.reg?'Account aanmaken':'Inloggen';$('#s1btn').textContent=this.reg?'Account aanmaken':'Doorgaan';
+    $('#toreg').onclick=()=>{this.reg=!this.reg;$('#namef').classList.toggle('hidden',!this.reg);$('#unf').classList.toggle('hidden',!this.reg);$('#s1title').textContent=this.reg?'Account aanmaken':'Inloggen';$('#s1btn').textContent=this.reg?'Account aanmaken':'Doorgaan';
       $('#s1sub').textContent=this.reg?'Maak een gratis Vantis-account. Je beveiligt het direct met een authenticator-app.':'Log in op je Vantis-account. Daarna vragen we altijd een beveiligingscode.';$('#toreg').textContent=this.reg?'Ik heb al een account':'Account aanmaken';$('#regline').firstChild.textContent=this.reg?'':'Nog geen account? ';$('#lgpw').autocomplete=this.reg?'new-password':'current-password';$('#err1').textContent=''};
     $('#step1').onsubmit=async e=>{e.preventDefault();const m=$('#lgmail').value.trim(),p=$('#lgpw').value;
       if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(m)){$('#err1').textContent='Vul een geldig e-mailadres in.';return}
       if(p.length<(Api.on?8:6)){$('#err1').textContent=`Wachtwoord moet minimaal ${Api.on?8:6} tekens zijn.`;return}
+      if(this.reg&&Api.on){const u=$('#lguser').value.trim().toLowerCase().replace(/^@/,'');if(!/^[a-z0-9](?:[a-z0-9_.]{1,18})[a-z0-9]$/.test(u)){$('#err1').textContent='Kies een gebruikersnaam van 3 tot 20 tekens: kleine letters, cijfers, punt of liggend streepje.';$('#lguser').focus();return}}
       $('#err1').textContent='';
       if(!Api.on){LS.set('user',{email:m,name:m.split('@')[0].replace(/[._-]/g,' ').replace(/\b\w/g,c=>c.toUpperCase())});this.step2();return}
       const btn=$('#s1btn');btn.disabled=true;btn.textContent='Even geduld…';
-      try{const r=this.reg?await Api.call('/api/auth/register',{method:'POST',body:{email:m,password:p,name:$('#lgname').value.trim()}}):await Api.call('/api/auth/login',{method:'POST',body:{email:m,password:p}});
+      try{const r=this.reg?await Api.call('/api/auth/register',{method:'POST',body:{email:m,password:p,name:$('#lgname').value.trim(),username:$('#lguser').value.trim()}}):await Api.call('/api/auth/login',{method:'POST',body:{email:m,password:p}});
         this.pending=r.pending;if(r.setup)this.setup(r.setup);else this.step2()}
       catch(x){$('#err1').textContent=x.message}finally{btn.disabled=false;btn.textContent=this.reg?'Account aanmaken':'Doorgaan'}};
     $('#back1').onclick=()=>this.show('step1');

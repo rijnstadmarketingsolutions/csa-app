@@ -6,7 +6,7 @@ const call = async (p, m = 'GET', body, tok) => { const r = await fetch(B + p, {
 const ok = (c, msg) => { if (!c) { console.error('FOUT:', msg); process.exitCode = 1; } else console.log('ok  ', msg); };
 const email = `test${Date.now()}@voorbeeld.nl`;
 let r = await call('/api/auth/register', 'POST', { email, password: 'kort' }); ok(r.s === 400, 'te kort wachtwoord geweigerd');
-r = await call('/api/auth/register', 'POST', { email, password: 'GeheimWachtwoord1', name: 'Test' }); ok(r.s === 200 && r.j.setup?.secret, 'registratie geeft TOTP-instelling');
+r = await call('/api/auth/register', 'POST', { email, password: 'GeheimWachtwoord1', name: 'Test', username: 'test' + Date.now().toString(36) }); ok(r.s === 200 && r.j.setup?.secret, 'registratie geeft TOTP-instelling');
 const secret = r.j.setup.secret; let pending = r.j.pending;
 r = await call('/api/auth/verify', 'POST', { pending, code: '000000' }); ok(r.s === 401, 'foute code geweigerd');
 r = await call('/api/auth/verify', 'POST', { pending, code: await totp(secret), trust: true }); ok(r.s === 200 && r.j.token && r.j.backup?.length === 8, 'TOTP bevestigd, sessie + 8 back-upcodes');

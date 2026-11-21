@@ -1,8 +1,11 @@
 // Ronde 4/5: beheerpagina, white-label huisstijl en widgetgegevens.
-import { json, err, readJSON, kvPutStmt, DAY, HOUR } from './lib.js';
+import { json, err, readJSON, kvPutStmt, ROLES, roleRank, DAY, HOUR } from './lib.js';
+import { dcSyncUser } from './discord.js';
 import { quote } from './market.js';
 
-export const isAdmin = (env, s) => !!s && String(env.ADMIN_EMAILS || '').toLowerCase().split(/[\s,;]+/).filter(Boolean).includes(String(s.email || '').toLowerCase());
+const isOwner = (env, s) => !!s && String(env.ADMIN_EMAILS || '').toLowerCase().split(/[\s,;]+/).filter(Boolean).includes(String(s.email || '').toLowerCase());
+export const isAdmin = (env, s) => !!s && (isOwner(env, s) || roleRank(s.role) >= ROLES.admin.r);
+const actorRank = (env, s) => isOwner(env, s) ? 1000 : roleRank(s.role);
 const BRAND_DEFAULT = { name: 'Vantis', short: 'Vantis', tagline: 'Crypto Intelligence', navy: '#17243A', accent: '#17243A', logo: null, support: 'info@rijnstadmarketing.nl', footer: null };
 async function kv(env, keys) { const r = await env.DB.prepare(`SELECT key,val,ts FROM kv WHERE key IN (${keys.map(() => '?').join(',')})`).bind(...keys).all(); const o = {}; for (const x of r.results) { o[x.key] = JSON.parse(x.val); o[x.key + 'Ts'] = x.ts; } return o; }
 const cleanHost = h => String(h || '').toLowerCase().replace(/[^a-z0-9.-]/g, '').slice(0, 100);
@@ -41,10 +44,20 @@ export async function adminApi(req, env, s, p, m, url) {
       signups: perDay.results.map(r => [r.d * DAY, r.n]), scan: st.scanstatus || null, mail: st.mailstatus || null, prices: st.tickers ? { src: st.tickers.src, n: st.tickers.list.length, t: st.tickers.t } : null, unlocks: st.unlocks ? { n: st.unlocks.events.length, t: st.unlocks.t } : null,
       config: { stripe: !!env.STRIPE_SECRET_KEY, discord: !!(env.DISCORD_BOT_TOKEN && env.DISCORD_APP_ID), mail: !!(env.RESEND_API_KEY && env.MAIL_FROM), finnhub: !!env.FINNHUB_KEY, premiumEnforced: env.PREMIUM_ENFORCED === 'true' } }); }
   if (p === '/api/admin/users' && m === 'GET') { const q = '%' + String(url.searchParams.get('q') || '').toLowerCase().replace(/[%_]/g, '') + '%';
-    const r = await env.DB.prepare('SELECT u.id,u.email,u.name,u.plan,u.created,u.last_seen,(SELECT COUNT(*) FROM paper_trades t WHERE t.user_id=u.id) trades,(SELECT COUNT(*) FROM push_subs ps WHERE ps.user_id=u.id) devices FROM users u WHERE lower(u.email) LIKE ? OR lower(u.name) LIKE ? ORDER BY u.created DESC LIMIT 100').bind(q, q).all();
+    const r = await env.DB.prepare('SELECT u.id,u.email,u.name,u.username,u.role,u.plan,u.created,u.last_seen,(SELECT COUNT(*) FROM paper_trades t WHERE t.user_id=u.id) trades,(SELECT COUNT(*) FROM push_subs ps WHERE ps.user_id=u.id) devices FROM users u WHERE lower(u.email) LIKE ? OR lower(u.name) LIKE ? OR lower(COALESCE(u.username,\'\')) LIKE ? ORDER BY u.created DESC LIMIT 100').bind(q, q, q).all();
     return json({ users: r.results }); }
   const um = p.match(/^\/api\/admin\/users\/([\w-]+)$/);
-  if (um && m === 'PUT') { const b = await readJSON(req); if (!['free', 'plus', 'pro', 'elite'].includes(b.plan)) return err(400, 'Onbekend abonnement.'); await env.DB.prepare('UPDATE users SET plan=? WHERE id=?').bind(b.plan, um[1]).run(); return json({ ok: true }); }
+  if (um && m === 'PUT') { const b = await readJSON(req); const t = await env.DB.prepare('SELECT id,role,plan FROM users WHERE id=?').bind(um[1]).first(); if (!t) return err(404, 'Gebruiker niet gevonden.');
+    const me = actorRank(env, s);
+    if (b.plan != null) { if (!['free', 'plus', 'pro', 'elite'].includes(b.plan)) return err(400, 'Onbekend abonnement.'); await env.DB.prepare('UPDATE users SET plan=? WHERE id=?').bind(b.plan, t.id).run(); }
+    if (b.role !== undefined) { const r = b.role || null; if (r && !ROLES[r]) return err(400, 'Onbekende rol.');
+      if (me <= roleRank(t.role) && t.id !== s.user_id) return err(403, 'Je kunt de rol van iemand met een gelijke of hogere rol niet wijzigen.');
+      if (r && me <= roleRank(r)) return err(403, `Alleen iemand met een hogere rol dan ${ROLES[r].n} kan deze rol geven.`);
+      if (t.id === s.user_id && me < 1000 && roleRank(r) < roleRank(t.role)) { /* jezelf omlaag zetten mag */ }
+      await env.DB.prepare('UPDATE users SET role=? WHERE id=?').bind(r, t.id).run(); }
+    await dcSyncUser(env, t.id).catch(() => null);
+    return json({ ok: true }); }
+  if (p === '/api/admin/roles' && m === 'GET') { const me = actorRank(env, s); return json({ roles: Object.entries(ROLES).map(([k, v]) => ({ id: k, name: v.n, rank: v.r, canGive: me > v.r })), me }); }
   if (p === '/api/admin/brand' && m === 'GET') { const r = await env.DB.prepare("SELECT key,val FROM kv WHERE key='brand' OR key LIKE 'brand:%'").all(); return json({ default: BRAND_DEFAULT, brands: r.results.map(x => ({ host: x.key === 'brand' ? '' : x.key.slice(6), ...JSON.parse(x.val) })) }); }
   if (p === '/api/admin/brand' && m === 'PUT') { const b = await readJSON(req, 256 * 1024); const host = cleanHost(b.host); const key = host ? 'brand:' + host : 'brand';
     if (b.remove) { await env.DB.prepare('DELETE FROM kv WHERE key=?').bind(key).run(); return json({ ok: true }); }

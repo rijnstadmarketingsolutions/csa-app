@@ -1,6 +1,6 @@
 // Vantis worker — API, statische app en 24/7 scanner (cron)
 import { json, err, readJSON, hashPassword, verifyPassword, b32enc, rand, totpCheck, newSession, sessionFrom, sessionByToken, sha256, seal, open,
-  limited, bump, clearAttempts, kvGet, kvPutStmt, randToken, tierRank, DAY, HOUR, MIN } from './lib.js';
+  limited, bump, clearAttempts, kvGet, kvPutStmt, randToken, tierRank, cleanUsername, usernameError, DAY, HOUR, MIN } from './lib.js';
 import { vapidKeys, sendPush } from './push.js';
 import { indFor, IND_KINDS, NOVAL, refreshMarket, lookupPrice, lookupStock, usdPerEur, analyse, detect, backtest, budget, RADAR, STOCK_SYMS, ALERT_KINDS, quote, alertHit, alertText, buildBriefing, FEED_CANDIDATES, parseRSS, getText } from './market.js';
 import { checkout, portal, webhook, stripeReady, plans } from './billing.js';
@@ -23,7 +23,7 @@ function cors(req, res) {
 }
 const premiumOnly = (env, s) => env.PREMIUM_ENFORCED === 'true' && tierRank(s.plan) < 1;
 const ip = req => req.headers.get('cf-connecting-ip') || 'local';
-const userOut = (s, env) => ({ email: s.email, name: s.name, username: s.username || null, plan: s.plan, totp: !!s.totp_on, admin: env ? isAdmin(env, s) : false });
+const userOut = (s, env) => ({ email: s.email, name: s.name, username: s.username || null, role: s.role || null, plan: s.plan, totp: !!s.totp_on, admin: env ? isAdmin(env, s) : false });
 
 async function loadState(env, keys) {
   const r = await env.DB.prepare(`SELECT key,val,ts FROM kv WHERE key IN (${keys.map(() => '?').join(',')})`).bind(...keys).all();
@@ -61,16 +61,18 @@ async function api(req, env, ctx, url) {
     return json({ ok: true, version: VERSION, lastScan: st.marketTs || null, prices: st.tickers ? { src: st.tickers.src || 'Bitvavo', n: (st.tickers.list || []).length, t: st.tickers.t } : null, scanOk: st.scanstatus ? Object.fromEntries(Object.entries(st.scanstatus).filter(([, v]) => v && typeof v === 'object' && 'ok' in v).map(([k, v]) => [k, v.ok])) : null, data: { extra: st.extra ? { global: !!st.extra.global, fng: !!(st.extra.fng && st.extra.fng.length), trending: !!(st.extra.trending && st.extra.trending.length), errors: [st.extra.globalErr, st.extra.trendErr, st.extra.fngErr].filter(Boolean) } : null, news: st.news ? { items: (st.news.items || []).length, sources: st.news.sources || {} } : null }, features: { accounts: true, push: true, stripe: stripeReady(env), finnhub: !!env.FINNHUB_KEY, ai: false, premiumEnforced: env.PREMIUM_ENFORCED === 'true' , discord: dcReady(env), discordInvite: (await dcEnv(env)).DISCORD_INVITE || null, mail: mailReady(env)} }); }
 
   /* ---------- account ---------- */
+  if (p === '/api/auth/username' && m === 'GET') { const u = cleanUsername(url.searchParams.get('u')); const e = await usernameError(env, u, null); return json({ ok: !e, error: e, username: u }); }
   if (p === '/api/auth/register' && m === 'POST') {
     const b = await readJSON(req); const email = String(b.email || '').trim().toLowerCase(); const pw = String(b.password || '');
     if (!EMAIL_RX.test(email)) return err(400, 'Vul een geldig e-mailadres in.');
     if (pw.length < 8) return err(400, 'Kies een wachtwoord van minimaal 8 tekens.');
+    const uname = cleanUsername(b.username); { const e = await usernameError(env, uname, null); if (e) return err(e.includes('in gebruik') ? 409 : 400, e); }
     const wait = await limited(env, 'reg:' + ip(req), 5, HOUR); if (wait) return err(429, 'Te veel registraties vanaf dit netwerk. Probeer het later opnieuw.');
     await bump(env, 'reg:' + ip(req), HOUR);
     const exists = await env.DB.prepare('SELECT id FROM users WHERE email=?').bind(email).first(); if (exists) return err(409, 'Er bestaat al een account met dit e-mailadres. Log in.');
     const id = crypto.randomUUID(); const secret = b32enc(rand(20));
     const name = String(b.name || email.split('@')[0]).slice(0, 60);
-    await env.DB.prepare('INSERT INTO users(id,email,name,pw,totp,created) VALUES(?,?,?,?,?,?)').bind(id, email, name, await hashPassword(pw), await seal(env, secret), Date.now()).run();
+    await env.DB.prepare('INSERT INTO users(id,email,name,pw,totp,created,username) VALUES(?,?,?,?,?,?,?)').bind(id, email, name, await hashPassword(pw), await seal(env, secret), Date.now(), uname).run();
     const pend = await newSession(env, id, 'pending', 20 * MIN);
     return json({ pending: pend.token, setup: { secret, uri: `otpauth://totp/Vantis:${encodeURIComponent(email)}?secret=${secret}&issuer=Vantis&digits=6&period=30` } });
   }

@@ -1,6 +1,6 @@
 // Discord: account koppelen (OAuth, met automatisch lid worden van de Vantis-server),
 // meldingen per DM, slash-commando's en berichten in het openbare marktkanaal.
-import { json, err, kvPutStmt, tierRank, DAY, MIN } from './lib.js';
+import { json, err, kvPutStmt, tierRank, ROLES, DAY, MIN } from './lib.js';
 import { quote } from './market.js';
 
 const API = 'https://discord.com/api/v10';
@@ -46,16 +46,22 @@ export const briefingEmbed = br => ({ embeds: [{ title: `☀️ Ochtendbriefing 
 
 /* rollen in de server: Lid voor iedereen die gekoppeld is, plus een rol per abonnement (Plus, Pro, Elite; opeenstapelend) */
 const ROLE_TIERS = env => [[env.DISCORD_ROLE_PLUS || env.DISCORD_ROLE_PREMIUM, 1], [env.DISCORD_ROLE_PRO, 2], [env.DISCORD_ROLE_ELITE, 3]].filter(([r]) => r);
-async function syncRoles(env, discordId, plan) {
+async function syncRoles(env, discordId, plan, role) {
   const g = env.DISCORD_GUILD_ID; if (!g) return;
   if (env.DISCORD_ROLE_MEMBER) await DC(env, 'PUT', `/guilds/${g}/members/${discordId}/roles/${env.DISCORD_ROLE_MEMBER}`);
-  const rank = tierRank(plan); for (const [role, need] of ROLE_TIERS(env)) await DC(env, rank >= need ? 'PUT' : 'DELETE', `/guilds/${g}/members/${discordId}/roles/${role}`);
+  const rank = tierRank(plan); for (const [r, need] of ROLE_TIERS(env)) await DC(env, rank >= need ? 'PUT' : 'DELETE', `/guilds/${g}/members/${discordId}/roles/${r}`);
+  const staff = env.DISCORD_STAFF_ROLES || {}; for (const [k, id] of Object.entries(staff)) if (id) await DC(env, k === role ? 'PUT' : 'DELETE', `/guilds/${g}/members/${discordId}/roles/${id}`);
+  if (env.DISCORD_ROLE_TEAM) await DC(env, role && ROLES[role] ? 'PUT' : 'DELETE', `/guilds/${g}/members/${discordId}/roles/${env.DISCORD_ROLE_TEAM}`);
+}
+export async function dcSyncUser(env, uid) {
+  if (!dcReady(env)) return; env = await dcEnv(env);
+  const r = await env.DB.prepare('SELECT d.discord_id,u.plan,u.role FROM dc_links d JOIN users u ON u.id=d.user_id WHERE d.user_id=?').bind(uid).first(); if (r) await syncRoles(env, r.discord_id, r.plan, r.role);
 }
 export async function dcDaily(env) {
   if (!dcReady(env)) return; await registerCommands(env).catch(() => null); await dcSetup(env).catch(() => null); env = await dcEnv(env);
-  if (!env.DISCORD_GUILD_ID || !ROLE_TIERS(env).length) return;
-  const L = (await env.DB.prepare('SELECT d.discord_id,u.plan FROM dc_links d JOIN users u ON u.id=d.user_id ORDER BY d.synced ASC LIMIT 40').all()).results;
-  for (const r of L) { await syncRoles(env, r.discord_id, r.plan); await env.DB.prepare('UPDATE dc_links SET synced=? WHERE discord_id=?').bind(Date.now(), r.discord_id).run(); }
+  if (!env.DISCORD_GUILD_ID) return;
+  const L = (await env.DB.prepare('SELECT d.discord_id,u.plan,u.role FROM dc_links d JOIN users u ON u.id=d.user_id ORDER BY d.synced ASC LIMIT 40').all()).results;
+  for (const r of L) { await syncRoles(env, r.discord_id, r.plan, r.role); await env.DB.prepare('UPDATE dc_links SET synced=? WHERE discord_id=?').bind(Date.now(), r.discord_id).run(); }
 }
 
 /* ---------- API voor de app ---------- */
@@ -92,8 +98,8 @@ export async function dcCallback(req, env, url) {
   const me = await fetch(API + '/users/@me', { headers: { authorization: 'Bearer ' + tr.access_token } }).then(r => r.json()).catch(() => ({})); if (!me.id) return back('error', st.o);
   const uname = me.global_name || me.username || null, now = Date.now();
   await env.DB.batch([env.DB.prepare('DELETE FROM dc_links WHERE user_id=? OR discord_id=?').bind(st.uid, me.id), env.DB.prepare('INSERT INTO dc_links(user_id,discord_id,username,created,synced) VALUES(?,?,?,?,?)').bind(st.uid, me.id, uname, now, now)]);
-  const user = await env.DB.prepare('SELECT name,plan FROM users WHERE id=?').bind(st.uid).first();
-  if (env.DISCORD_GUILD_ID) { await DC(env, 'PUT', `/guilds/${env.DISCORD_GUILD_ID}/members/${me.id}`, { access_token: tr.access_token, roles: env.DISCORD_ROLE_MEMBER ? [env.DISCORD_ROLE_MEMBER] : undefined }); await syncRoles(env, me.id, user?.plan); }
+  const user = await env.DB.prepare('SELECT name,plan,role FROM users WHERE id=?').bind(st.uid).first();
+  if (env.DISCORD_GUILD_ID) { await DC(env, 'PUT', `/guilds/${env.DISCORD_GUILD_ID}/members/${me.id}`, { access_token: tr.access_token, roles: env.DISCORD_ROLE_MEMBER ? [env.DISCORD_ROLE_MEMBER] : undefined }); await syncRoles(env, me.id, user?.plan, user?.role); }
   const link = { user_id: st.uid, discord_id: me.id, dm: null };
   await dcSend(env, link, { embeds: [{ title: `✅ Gekoppeld${user?.name ? ' aan ' + user.name : ''}`, description: 'Je krijgt hier voortaan je koersalerts, uitgevoerde orders, nieuws op trefwoord en de ochtendbriefing.\n\n' + HELP, color: COLOR.order }] });
   return back('ok', st.o);
@@ -170,7 +176,11 @@ export async function dcSetup(env, force) {
   const roles = (await DC(env, 'GET', `/guilds/${gid}/roles`)).data || []; const channels = (await DC(env, 'GET', `/guilds/${gid}/channels`)).data || [];
   const role = async (name, color, hoist) => { const ex = roles.find(r => r.name === name); if (ex) return ex.id; const r = await DC(env, 'POST', `/guilds/${gid}/roles`, { name, color, hoist, mentionable: false, permissions: '0' }); log.push('rol ' + name + ' ' + r.status); return r.data?.id; };
   const elite = await role('Elite', 0xD4AF5F, true), pro = await role('Pro', 0x4D8DF5, true), plus = await role('Plus', 0xC9CDD4, true), lid = await role('Lid', 0x8A93A3, false);
-  const team = await role('Team', 0x2BB673, true);
+  const team = await role('Team', 0x2BB673, false);
+  const role2 = async (name, color, perms) => { const ex = roles.find(r => r.name === name); if (ex) return ex.id; const r = await DC(env, 'POST', `/guilds/${gid}/roles`, { name, color, hoist: true, mentionable: true, permissions: perms }); log.push('rol ' + name + ' ' + r.status); return r.data?.id; };
+  const MOD = s((1n << 13n) | (1n << 40n) | (1n << 1n) | (1n << 22n) | (1n << 23n) | (1n << 34n)); // berichten beheren, time-out, kicken, dempen, verplaatsen, threads beheren
+  const staffIds = { founder: await role2('Founder', 0xE8C77A, '8'), senior_partner: await role2('Senior Partner', 0xD9DCE1, '8'), admin: await role2('Admin', 0xE5484D, '8'),
+    moderator: await role2('Moderator', 0x36C46F, MOD), coach: await role2('Coach', 0xB48CF2, '0'), analist: await role2('Analist', 0x4DB6E5, '0'), support: await role2('Support', 0xF29B4B, '0') };
   const me = (await DC(env, 'GET', '/users/@me')).data;
   const ro = [{ id: gid, type: 0, deny: s(P.SEND | P.THREADS), allow: s(P.VIEW) }, { id: me.id, type: 1, allow: s(P.VIEW | P.SEND), deny: '0' }, { id: team, type: 0, allow: s(P.SEND), deny: '0' }];
   const only = (...ids) => [{ id: gid, type: 0, deny: s(P.VIEW), allow: '0' }, { id: me.id, type: 1, allow: s(P.VIEW | P.SEND), deny: '0' }, ...ids.map(id => ({ id, type: 0, allow: s(P.VIEW | P.SEND | P.CONNECT | P.SPEAK), deny: '0' }))];
@@ -200,7 +210,7 @@ export async function dcSetup(env, force) {
   }
   const icon = await iconData(env);
   if (icon && !cfg.icon) { await DC(env, 'PATCH', `/guilds/${gid}`, { icon, system_channel_id: welkom || undefined }); await DC(env, 'PATCH', '/users/@me', { avatar: icon }); }
-  const out = { ...cfg, DISCORD_GUILD_ID: gid, DISCORD_ROLE_MEMBER: lid, DISCORD_ROLE_PLUS: plus, DISCORD_ROLE_PRO: pro, DISCORD_ROLE_ELITE: elite, DISCORD_ROLE_TEAM: team, DISCORD_WEBHOOK_URL: hook, DISCORD_INVITE: invite, posted: true, icon: !!icon || cfg.icon, done: true, t: Date.now() };
+  const out = { ...cfg, DISCORD_GUILD_ID: gid, DISCORD_ROLE_MEMBER: lid, DISCORD_ROLE_PLUS: plus, DISCORD_ROLE_PRO: pro, DISCORD_ROLE_ELITE: elite, DISCORD_ROLE_TEAM: team, DISCORD_STAFF_ROLES: staffIds, DISCORD_WEBHOOK_URL: hook, DISCORD_INVITE: invite, posted: true, icon: !!icon || cfg.icon, done: true, t: Date.now() };
   await kvPutStmt(env, 'dccfg', out).run(); CFG = null;
   return { ok: true, log, cfg: { ...out, DISCORD_WEBHOOK_URL: hook ? '(ingesteld)' : null } };
 }

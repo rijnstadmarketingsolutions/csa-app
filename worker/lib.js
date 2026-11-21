@@ -67,7 +67,7 @@ export async function sessionFrom(env, request, kind = 'full') {
   if (!token) return null; return sessionByToken(env, token, kind);
 }
 export async function sessionByToken(env, token, kind = 'full') {
-  const row = await env.DB.prepare('SELECT s.user_id,s.expires,s.kind,u.email,u.name,u.plan,u.totp_on,u.stripe_customer,u.last_seen,u.username FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token=?').bind(await sha256(token)).first();
+  const row = await env.DB.prepare('SELECT s.user_id,s.expires,s.kind,u.email,u.name,u.plan,u.totp_on,u.stripe_customer,u.last_seen,u.username,u.role FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token=?').bind(await sha256(token)).first();
   if (!row || row.expires < Date.now() || row.kind !== kind) return null; return { ...row, token };
 }
 /* ---------- simpele rate limit ---------- */
@@ -91,3 +91,18 @@ export const kvPut = (env, key, val) => kvPutStmt(env, key, val).run();
 /* abonnementen: Gratis < Plus < Pro < Elite ('premium' is de oude naam van Plus) */
 export const TIERS = { free: 0, premium: 1, plus: 1, pro: 2, elite: 3 };
 export const tierRank = p => TIERS[p] ?? 0;
+
+/* gebruikersnamen: 3-20 tekens, kleine letters, cijfers, punt of liggend streepje */
+export const UN_RESERVED = new Set(['admin', 'vantis', 'support', 'help', 'system', 'beheer', 'root', 'team', 'info', 'official', 'moderator', 'staff', 'security', 'founder', 'partner', 'ai', 'bot']);
+const UN_RX = /^[a-z0-9](?:[a-z0-9_.]{1,18})[a-z0-9]$/;
+export function cleanUsername(u) { return String(u || '').trim().toLowerCase().replace(/^@/, ''); }
+export async function usernameError(env, u, uid) {
+  if (!UN_RX.test(u) || u.includes('..')) return 'Gebruik 3 tot 20 tekens: kleine letters, cijfers, punt of liggend streepje, niet aan het begin of eind.';
+  if (UN_RESERVED.has(u)) return 'Deze gebruikersnaam is niet beschikbaar.';
+  const t = await env.DB.prepare('SELECT id FROM users WHERE username=?').bind(u).first(); if (t && t.id !== uid) return `@${u} is al in gebruik.`;
+  return null;
+}
+
+/* staff-rollen: hoger getal = meer rechten; beheerders vanaf 'admin' */
+export const ROLES = { founder: { n: 'Founder', r: 100 }, senior_partner: { n: 'Senior Partner', r: 90 }, admin: { n: 'Admin', r: 80 }, moderator: { n: 'Moderator', r: 40 }, coach: { n: 'Coach', r: 30 }, analist: { n: 'Analist', r: 30 }, support: { n: 'Support', r: 20 } };
+export const roleRank = r => (ROLES[r] && ROLES[r].r) || 0;

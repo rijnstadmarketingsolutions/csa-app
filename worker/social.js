@@ -1,5 +1,5 @@
 // Vrienden op gebruikersnaam, chat (versleuteld opgeslagen) en crypto sturen in de chat.
-import { json, err, readJSON, b64u, DAY, MIN } from './lib.js';
+import { json, err, readJSON, b64u, DAY, MIN, cleanUsername, usernameError } from './lib.js';
 import { sendPush } from './push.js';
 import { transferPaper, xpMany } from './paper.js';
 
@@ -19,7 +19,7 @@ function keyring(env) {
   };
 }
 
-async function userByName(env, u) { return u ? env.DB.prepare('SELECT id,username,name,plan FROM users WHERE username=?').bind(String(u).toLowerCase().replace(/^@/, '')).first() : null; }
+async function userByName(env, u) { return u ? env.DB.prepare('SELECT id,username,name,plan,role FROM users WHERE username=?').bind(String(u).toLowerCase().replace(/^@/, '')).first() : null; }
 async function rel(env, x, y) { const [a, b] = pair(x, y); return env.DB.prepare('SELECT * FROM friends WHERE a=? AND b=?').bind(a, b).first(); }
 const first = n => String(n || '').trim().split(/\s+/)[0] || null;
 
@@ -37,7 +37,7 @@ export async function handleSocial(req, env, s, p, m, url, ctx) {
   if (!p.startsWith('/api/social')) return null;
   if (!s) return err(401, 'Log eerst in.');
   const uid = s.user_id; const K = keyring(env);
-  const me = await env.DB.prepare('SELECT id,username,name FROM users WHERE id=?').bind(uid).first();
+  const me = await env.DB.prepare('SELECT id,username,name,role FROM users WHERE id=?').bind(uid).first();
   const later = fn => { if (ctx && ctx.waitUntil) ctx.waitUntil(fn()); else fn(); };
 
   if (p === '/api/social/unread' && m === 'GET') {
@@ -46,13 +46,13 @@ export async function handleSocial(req, env, s, p, m, url, ctx) {
   }
 
   if (p === '/api/social' && m === 'GET') {
-    const rows = (await env.DB.prepare(`SELECT f.*, u.id uid2, u.username, u.name FROM friends f JOIN users u ON u.id = CASE WHEN f.a=?1 THEN f.b ELSE f.a END WHERE f.a=?1 OR f.b=?1`).bind(uid).all()).results;
+    const rows = (await env.DB.prepare(`SELECT f.*, u.id uid2, u.username, u.name, u.role FROM friends f JOIN users u ON u.id = CASE WHEN f.a=?1 THEN f.b ELSE f.a END WHERE f.a=?1 OR f.b=?1`).bind(uid).all()).results;
     const unread = Object.fromEntries((await env.DB.prepare('SELECT sender, COUNT(*) n FROM messages WHERE recipient=? AND read=0 GROUP BY sender').bind(uid).all()).results.map(r => [r.sender, r.n]));
     const lastIds = (await env.DB.prepare('SELECT MAX(id) id FROM messages WHERE sender=?1 OR recipient=?1 GROUP BY conv').bind(uid).all()).results.map(r => r.id);
     const last = {}; if (lastIds.length) { const L = (await env.DB.prepare(`SELECT id,conv,sender,kind,body,data,t FROM messages WHERE id IN (${lastIds.map(() => '?').join(',')})`).bind(...lastIds).all()).results;
       for (const x of L) { const other = x.conv.split(':').find(v => v !== uid) || uid; last[other] = { t: x.t, mine: x.sender === uid, kind: x.kind, text: x.kind === 'text' ? (await K.open(x.body)).slice(0, 80) : null, data: x.data ? JSON.parse(x.data) : null }; } }
-    const out = { me: { username: me.username, name: first(me.name) }, friends: [], incoming: [], outgoing: [] }; const XP = await xpMany(env, rows.map(r => r.uid2));
-    for (const r of rows) { const o = { username: r.username, name: first(r.name), since: r.updated || r.created, xp: XP[r.uid2] || 0 };
+    const out = { me: { username: me.username, name: first(me.name), role: me.role || null }, friends: [], incoming: [], outgoing: [] }; const XP = await xpMany(env, rows.map(r => r.uid2));
+    for (const r of rows) { const o = { username: r.username, name: first(r.name), role: r.role || null, since: r.updated || r.created, xp: XP[r.uid2] || 0 };
       if (r.status === 'accepted') out.friends.push({ ...o, unread: unread[r.uid2] || 0, last: last[r.uid2] || null });
       else if (r.req === uid) out.outgoing.push(o); else out.incoming.push(o); }
     out.friends.sort((x, y) => ((y.last && y.last.t) || y.since || 0) - ((x.last && x.last.t) || x.since || 0));
@@ -60,18 +60,15 @@ export async function handleSocial(req, env, s, p, m, url, ctx) {
   }
 
   if (p === '/api/social/username' && m === 'POST') {
-    const b = await readJSON(req); const u = String(b.username || '').trim().toLowerCase().replace(/^@/, '');
-    if (!UN.test(u) || u.includes('..')) return err(400, 'Gebruik 3 tot 20 tekens: kleine letters, cijfers, punt of liggend streepje, niet aan het begin of eind.');
-    if (RESERVED.has(u)) return err(400, 'Deze gebruikersnaam is niet beschikbaar.');
-    const taken = await env.DB.prepare('SELECT id FROM users WHERE username=? AND id<>?').bind(u, uid).first(); if (taken) return err(409, `@${u} is al in gebruik.`);
+    const b = await readJSON(req); const u = cleanUsername(b.username); const e = await usernameError(env, u, uid); if (e) return err(e.includes('in gebruik') ? 409 : 400, e);
     await env.DB.prepare('UPDATE users SET username=? WHERE id=?').bind(u, uid).run(); return json({ ok: true, username: u });
   }
   if (!me.username) return err(400, 'Kies eerst een gebruikersnaam.');
 
   if (p === '/api/social/search' && m === 'GET') {
     const q = (url.searchParams.get('q') || '').trim().toLowerCase().replace(/^@/, '').replace(/[^a-z0-9_.]/g, ''); if (q.length < 2) return json({ results: [] });
-    const R = (await env.DB.prepare("SELECT id,username,name FROM users WHERE username LIKE ? AND id<>? ORDER BY length(username) LIMIT 8").bind(q + '%', uid).all()).results;
-    const out = []; for (const u of R) { const r = await rel(env, uid, u.id); out.push({ username: u.username, name: first(u.name), status: r ? (r.status === 'accepted' ? 'friend' : r.req === uid ? 'sent' : 'received') : null }); }
+    const R = (await env.DB.prepare("SELECT id,username,name,role FROM users WHERE username LIKE ? AND id<>? ORDER BY length(username) LIMIT 8").bind(q + '%', uid).all()).results;
+    const out = []; for (const u of R) { const r = await rel(env, uid, u.id); out.push({ username: u.username, name: first(u.name), role: u.role || null, status: r ? (r.status === 'accepted' ? 'friend' : r.req === uid ? 'sent' : 'received') : null }); }
     return json({ results: out });
   }
 
@@ -117,7 +114,7 @@ export async function handleSocial(req, env, s, p, m, url, ctx) {
       const msgs = []; for (const x of rows) msgs.push({ id: x.id, me: x.sender === uid, kind: x.kind, text: x.kind === 'text' || x.body ? await K.open(x.body) : '', data: x.data ? JSON.parse(x.data) : null, t: x.t, read: !!x.read });
       if (rows.some(x => x.recipient === uid && !x.read)) await env.DB.prepare('UPDATE messages SET read=1 WHERE conv=? AND recipient=? AND read=0').bind(c, uid).run();
       const fx = after ? null : (await xpMany(env, [t.id]))[t.id];
-      return json({ friend: { username: t.username, name: first(t.name), xp: fx }, messages: msgs, more: !after && rows.length === 40 });
+      return json({ friend: { username: t.username, name: first(t.name), role: t.role || null, xp: fx }, messages: msgs, more: !after && rows.length === 40 });
     }
     if (m === 'POST') {
       const b = await readJSON(req); const text = String(b.text || '').trim().slice(0, 1000); if (!text) return err(400, 'Leeg bericht.');
