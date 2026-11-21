@@ -88,8 +88,10 @@ async function llm(env, system, messages) {
     const j = await r.json(); if (!r.ok) throw new Error(j.error?.message || 'AI ' + r.status); return { text: (j.content || []).map(x => x.text || '').join(''), engine: 'claude' };
   }
   if (env.AI) {
-    const r = await env.AI.run(env.AI_MODEL_CF || '@cf/meta/llama-3.3-70b-instruct-fp8-fast', { messages: [{ role: 'system', content: system }, ...messages], max_tokens: 1000, temperature: .4 });
-    return { text: r.response || r.result?.response || '', engine: 'workers-ai' };
+    const pick = r => r?.response || r?.result?.response || r?.choices?.[0]?.message?.content || (r?.output || []).filter(o => o.type === 'message').flatMap(o => o.content || []).map(c => c.text || '').join('') || '';
+    for (const model of [env.AI_MODEL_CF || '@cf/openai/gpt-oss-120b', '@cf/meta/llama-3.3-70b-instruct-fp8-fast']) {
+      try { const r = await env.AI.run(model, { messages: [{ role: 'system', content: system }, ...messages], max_tokens: 1400, temperature: .3 }); const t = pick(r).trim(); if (t) return { text: t, engine: model }; } catch (e) { }
+    }
   }
   return null;
 }
@@ -97,14 +99,25 @@ async function llm(env, system, messages) {
 const fmtF = (f, en) => `${f.sym} (${f.name}, ${f.kind === 'stock' ? (en ? 'stock' : 'aandeel') : 'crypto'}): ${en ? 'price' : 'koers'} ${f.cur === 'USD' ? '$' : '€'}${f.price}, 24u ${f.ch24 != null ? r2(f.ch24) + '%' : '?'}; model-score ${f.score} (${f.label}); kans hoger over ${f.horizon} dagen ${f.pUp}%; verwachte bandbreedte ${f.range[0]}% tot ${f.range[1]}% (midden ${f.exp}%); historische trefkans van dit model op ${f.sym}: ${f.hitRate != null ? f.hitRate + '% over ' + f.tested + ' signalen' : 'te weinig data'}; betrouwbaarheid ${f.confidence}; RSI ${f.rsi}; trend ${f.trend}; 7d ${f.mom7}%, 30d ${f.mom30}%; dagelijkse beweeglijkheid ${f.volDay}%.`;
 
 function systemPrompt(en, ctx) {
-  return `${en ? 'You are Vantis AI, the market assistant inside the Vantis app. Always answer in English.' : 'Je bent Vantis AI, de marktassistent in de Vantis-app. Antwoord altijd in het Nederlands, informeel (je/jij), kort en duidelijk.'}
-${en ? 'Context' : 'Context'}:
-- Vantis users trade with practice money (oefengeld, € 10.000 start) until the official launch. Orders you propose are executed only on that practice portfolio, after the user taps confirm.
-- The "Vantis-model" numbers below are a statistical outlook (trend, momentum, RSI, volatility), tested on the asset's own history. They are probabilities, not certainties. Never claim to know the future; use the given probabilities and ranges, and mention the confidence when you give an outlook.
-- Use only the data below for prices and numbers. If data is missing, say so. Do not invent prices or news.
-- When the user asks what to buy, pick from the ranking below, explain in 1–2 lines why per pick (score, chance, trend, risk), suggest a sensible amount for a practice portfolio (max ~10–15% of the portfolio per position, keep cash), and propose orders.
-- To propose a practice order, add on its own line exactly: [[order side=buy sym=BTC eur=500]] (side buy or sell; for sell you may use all=1 instead of eur). Max 3 orders per answer. Only propose orders the portfolio can afford.
-- Keep answers under ~180 words unless the user asks for depth. Use short paragraphs or a few bullets. End advice-like answers with one short line that this is an educational model outlook, not personal financial advice.
+  if (en) return `You are Vantis AI, the market assistant in the Vantis app. Answer ONLY in English, informal and to the point.
+Rules:
+- Users trade with practice money (€10,000 to start) until the official launch. Orders you propose run only on that practice portfolio, after the user taps confirm.
+- The "Vantis model" figures below are statistical outlooks (trend, momentum, RSI, volatility) tested on each asset's own history: probabilities, not certainties. Never claim to know the future; quote the chance, the range and the model's hit rate.
+- Use only the data below for prices, holdings and news. If something is missing, say so. Never invent numbers.
+- The user's holdings are listed below with their type (crypto or stock). Answer questions about them from that list.
+- For "what should I buy": choose from the ranking, 1–2 lines per pick (score, chance, trend, risk), suggest a sensible practice amount (max ~10–15% of the portfolio per position, keep cash).
+- To propose a practice order, put on its own line exactly: [[order side=buy sym=AAPL eur=100]] (side buy or sell; for selling everything use all=1). Any coin or stock symbol from the data may be used. Max 3 orders.
+- Keep it under ~170 words unless asked for depth. Short paragraphs or a few bullets. Do not add a disclaimer; the app adds one.
+${ctx}`;
+  return `Je bent Vantis AI, de marktassistent in de Vantis-app. Antwoord ALLEEN in het Nederlands, informeel (je/jij, nooit u), kort en duidelijk.
+Regels:
+- Gebruikers handelen tot de officiële lancering met oefengeld (€ 10.000 om te beginnen). Orders die jij voorstelt, worden alleen op die oefenportefeuille uitgevoerd, nadat de gebruiker op bevestigen tikt.
+- De cijfers van het "Vantis-model" hieronder zijn statistische vooruitzichten (trend, momentum, RSI, beweeglijkheid), getest op de eigen historie van elke munt of elk aandeel: kansen, geen zekerheden. Beweer nooit dat je de toekomst weet; noem de kans, de bandbreedte en de trefkans van het model.
+- Gebruik alleen de gegevens hieronder voor koersen, bezit en nieuws. Ontbreekt iets, zeg dat dan. Verzin nooit getallen.
+- Het bezit van de gebruiker staat hieronder met het soort (crypto of aandeel). Beantwoord vragen daarover vanuit die lijst.
+- Bij "wat moet ik kopen": kies uit de ranglijst, 1–2 regels per keuze (score, kans, trend, risico), en stel een verstandig oefenbedrag voor (max. zo'n 10–15% van de portefeuille per positie, houd saldo vrij).
+- Een oefenorder stel je voor met op een eigen regel precies: [[order side=buy sym=AAPL eur=100]] (side buy of sell; alles verkopen met all=1). Elk symbool uit de gegevens mag. Max. 3 orders.
+- Houd het onder de ~170 woorden, tenzij om meer diepgang wordt gevraagd. Korte alinea's of een paar opsommingstekens. Zet er zelf geen disclaimer onder; dat doet de app.
 ${ctx}`;
 }
 
@@ -162,6 +175,34 @@ export async function aiCron(env, st) {
   return { users: due.length, trades };
 }
 
+/* ---------- vaste antwoorden zonder taalmodel: orders en portefeuille ---------- */
+const isStockSym = (st, s) => STOCK_ALL.includes(s) && !(st.tickers?.list || []).some(x => x.s === s);
+function knownSym(st, word) { const w = String(word || '').toUpperCase().replace(/[^A-Z0-9.]/g, ''); const known = new Set([...(st.tickers?.list || []).map(x => x.s), ...STOCK_ALL]); if (known.has(w)) return w; const a = ALIAS[String(word || '').toLowerCase()]; return a && known.has(a) ? a : null; }
+/* "koop 100 aan aapl", "koop maar voor €250 btc", "buy 50 of eth", "verkoop alle sol", "sell all btc", "koop er 100 van" (vorige suggestie) */
+function orderIntent(q, st, lastSym) {
+  const t = q.toLowerCase().replace(/€\s*/g, '').replace(/,(\d)/g, '.$1');
+  const side = /\b(verkoop|verkopen|sell)\b/.test(t) ? 'sell' : /\b(koop|kopen|buy|instappen)\b/.test(t) ? 'buy' : null; if (!side) return null;
+  if (/\b(welke|wat|which|what|should|moet ik|zou ik)\b/.test(t) && !/\d/.test(t) && !/\b(alle?s?|all)\b/.test(t)) return null; // dat is een vraag om advies
+  const all = side === 'sell' && /\b(alle|alles|all|everything)\b/.test(t);
+  const am = t.match(/(\d+(?:\.\d+)?)\s*(k\b)?\s*(euro|eur)?/); let eur = am ? +am[1] * (am[2] ? 1000 : 1) : null;
+  let sym = null; for (const w of t.split(/[^a-z0-9.&]+/)) { if (!w || /^\d/.test(w) || ['koop', 'kopen', 'buy', 'sell', 'verkoop', 'verkopen', 'maar', 'aan', 'van', 'voor', 'of', 'worth', 'euro', 'eur', 'alle', 'alles', 'all', 'mijn', 'my', 'er', 'dan', 'ok', 'oke', 'oké', 'graag', 'wel', 'in', 'the', 'some', 'wat', 'je', 'een', 'please', 'pls'].includes(w)) continue; const k = knownSym(st, w); if (k) { sym = k; break; } }
+  if (!sym) sym = lastSym || null; if (!sym || (!all && !(eur > 0))) return null;
+  return { side, sym, eur: all ? null : Math.round(eur * 100) / 100, all, kind: isStockSym(st, sym) ? 'stock' : 'crypto' };
+}
+const WANTS_PORTFOLIO = /(portefeuille|portfolio|wat\s+(voor\s+)?(crypto|aandelen|munten|posities)\s+heb\s+ik|welke\s+(crypto|aandelen|munten|posities)\s+heb\s+ik|mijn\s+(posities|bezit|holdings)|what\s+(crypto|stocks|coins)?\s*do\s+i\s+(own|have|hold)|my\s+(holdings|positions)|hoe\s+sta\s+ik\s+ervoor|how\s+am\s+i\s+doing)/i;
+function portfolioReply(en, P, st) {
+  const f = (n, d = 2) => Number(n).toLocaleString(en ? 'en-GB' : 'nl-NL', { minimumFractionDigits: d, maximumFractionDigits: d }); const eur = n => (en ? '€' : '€ ') + f(n); const pc = n => (n >= 0 ? '+' : '−') + f(Math.abs(n), 1) + '%';
+  const rows = Object.entries(P.holdings).map(([k, h]) => { const q = quote(st, k); let px = q ? q.p : null; if (q && q.cur === 'USD' && st.fx?.v) px = q.p / st.fx.v; const val = px ? px * h.qty : h.cost; return { k, kind: (h.k || 'crypto') === 'stock' ? 'stock' : 'crypto', val, cost: h.cost, ret: (val / h.cost - 1) * 100 }; }).sort((a, b) => b.val - a.val);
+  const total = P.cash + rows.reduce((s, r) => s + r.val, 0);
+  if (!rows.length) return en ? `You don't hold any positions yet. Your available balance is ${eur(P.cash)}. Ask me "what should I buy?" or tell me what to buy, for example "buy 100 of BTC".` : `Je hebt nog geen posities. Je vrije saldo is ${eur(P.cash)}. Vraag "wat moet ik kopen?" of zeg wat je wilt kopen, bijvoorbeeld "koop 100 aan BTC".`;
+  const part = kind => rows.filter(r => r.kind === kind).map(r => `• **${r.k}**: ${eur(r.val)} (${pc(r.ret)})`).join('\n');
+  const c = part('crypto'), s2 = part('stock');
+  return (en ? `Your practice portfolio is worth **${eur(total)}** (${pc((total / 10000 - 1) * 100)} since the start), with ${eur(P.cash)} available.` : `Je oefenportefeuille is **${eur(total)}** waard (${pc((total / 10000 - 1) * 100)} sinds de start), met ${eur(P.cash)} vrij saldo.`)
+    + (c ? `\n\n${en ? 'Crypto' : 'Crypto'}:\n${c}` : `\n\n${en ? 'No crypto right now.' : 'Je hebt nu geen crypto.'}`) + (s2 ? `\n\n${en ? 'Stocks' : 'Aandelen'}:\n${s2}` : '');
+}
+const DISC = { en: 'Educational model outlook, not personal financial advice.', nl: 'Educatief modelvooruitzicht, geen persoonlijk financieel advies.' };
+const stripDisc = t => t.split('\n').filter(l => !/(not (personal )?financial advice|geen (persoonlijk )?(financieel |beleggings)advies|educational model outlook|educatief modelvooruitzicht)/i.test(l)).join('\n').trim();
+
 /* ---------- API ---------- */
 export async function handleAI(req, env, s, p, m, url, ctx) {
   if (!p.startsWith('/api/ai')) return null;
@@ -179,14 +220,27 @@ export async function handleAI(req, env, s, p, m, url, ctx) {
   if (p === '/api/ai/chat' && m === 'POST') {
     const cap = [60, 60, 80, 120, 300, 100000][tierRank(s.plan)] || 60; const wait = await limited(env, 'ai:' + s.user_id, cap, DAY); if (wait) return err(429, 'Je hebt vandaag het maximum aantal vragen aan Vantis AI bereikt. Morgen kun je weer verder.');
     await bump(env, 'ai:' + s.user_id, DAY);
-    const b = await readJSON(req, 64 * 1024); const en = b.lang === 'en';
+    const b = await readJSON(req, 64 * 1024); let en = b.lang !== 'nl';
     const msgs = (Array.isArray(b.messages) ? b.messages : []).filter(x => x && (x.role === 'user' || x.role === 'assistant') && typeof x.content === 'string').slice(-10).map(x => ({ role: x.role, content: x.content.slice(0, 2000) }));
     if (!msgs.length || msgs[msgs.length - 1].role !== 'user') return err(400, 'Stel een vraag.');
-    const q = msgs[msgs.length - 1].content; const st = await kv(env, ['tickers', 'names', 'candles', 'xquotes', 'stocks', 'fx', 'extra', 'news', 'briefing']);
+    const q = msgs[msgs.length - 1].content;
+    { const w = q.toLowerCase().match(/[a-zà-ü']+/g) || []; const NL = new Set(['ik', 'je', 'jij', 'wat', 'welke', 'moet', 'heb', 'mijn', 'koop', 'kopen', 'verkoop', 'maar', 'aan', 'nu', 'het', 'een', 'de', 'van', 'voor', 'zou', 'nog', 'hoe', 'waarom', 'gaat', 'niet', 'ook', 'dat', 'deze', 'graag', 'oke', 'oké', 'nieuws', 'aandelen', 'munten', 'gebaseerd', 'op', 'er', 'wel', 'kun', 'kan', 'doen', 'stuk', 'welk']); const EN = new Set(['i', 'you', 'what', 'which', 'should', 'have', 'my', 'buy', 'sell', 'the', 'a', 'of', 'for', 'now', 'how', 'why', 'will', 'not', 'is', 'do', 'does', 'can', 'it', 'based', 'on', 'news', 'stocks', 'coins', 'some', 'please']);
+      const n = w.filter(x => NL.has(x)).length, e = w.filter(x => EN.has(x)).length; if (n > e) en = false; else if (e > n) en = true; }
+    const st = await kv(env, ['tickers', 'names', 'candles', 'xquotes', 'stocks', 'fx', 'extra', 'news', 'briefing']);
+    const P0 = await env.DB.prepare('SELECT cash,holdings FROM paper WHERE user_id=?').bind(s.user_id).first() || { cash: 10000, holdings: '{}' }; const PP = { cash: P0.cash, holdings: JSON.parse(P0.holdings || '{}') };
+    const lastSym = (Array.isArray(b.lastActions) && b.lastActions[0] && b.lastActions[0].sym) || symbolsIn(msgs.slice(0, -1).map(x => x.content).join(' '), st).slice(-1)[0] || null;
+    const oi = orderIntent(q, st, lastSym);
+    if (oi) { if (oi.side === 'sell' && !PP.holdings[oi.sym]) return json({ reply: en ? `You don't hold any ${oi.sym}, so there's nothing to sell.` : `Je hebt geen ${oi.sym}, dus er valt niets te verkopen.`, actions: [], forecasts: [], engine: 'vantis' });
+      if (oi.side === 'buy' && oi.eur > PP.cash) return json({ reply: en ? `You only have €${r2(PP.cash)} available, so ${oi.eur} won't fit. Try a smaller amount.` : `Je hebt maar € ${r2(PP.cash)} vrij saldo, dus ${oi.eur} past niet. Probeer een kleiner bedrag.`, actions: [], forecasts: [], engine: 'vantis' });
+      const f = await forecast(env, oi.sym, st, budget(4)).catch(() => null);
+      const what = oi.all ? (en ? `all your ${oi.sym}` : `al je ${oi.sym}`) : `€${en ? '' : ' '}${oi.eur} ${en ? 'of' : 'aan'} ${oi.sym}`;
+      return json({ reply: en ? `Ready: ${oi.side === 'buy' ? 'buy' : 'sell'} ${what} with practice money. Tap the button to confirm.` : `Klaar: ${oi.side === 'buy' ? 'koop' : 'verkoop'} ${what} met oefengeld. Tik op de knop om te bevestigen.`, actions: [oi], forecasts: f ? [f] : [], engine: 'vantis' }); }
+    if (WANTS_PORTFOLIO.test(q) && !/kopen|buy|verkopen|sell/i.test(q)) return json({ reply: portfolioReply(en, PP, st), actions: [], forecasts: [], engine: 'vantis' });
     const syms = symbolsIn(q, st); const bb = budget(10); const fs = []; for (const sy of syms) { const f = await forecast(env, sy, st, bb).catch(() => null); if (f) fs.push(f); }
-    const picks = WANTS_PICKS.test(q) || (/kopen|buy/i.test(q) && !syms.length) ? (await ranking(env, st)).list : null;
+    let picks = WANTS_PICKS.test(q) || (/kopen|buy/i.test(q) && !syms.length) ? (await ranking(env, st)).list : null;
+    if (picks) { const wantS = /\b(stocks?|aandel(en)?|shares?|equit)/i.test(q), wantC = /\b(crypto|coins?|munt(en)?|tokens?)\b/i.test(q); if (wantS !== wantC) { const f2 = picks.filter(f => (f.kind === 'stock') === wantS); if (f2.length) picks = f2; } }
     const P = await env.DB.prepare('SELECT cash,holdings FROM paper WHERE user_id=?').bind(s.user_id).first() || { cash: 10000, holdings: '{}' }; P.holdings = JSON.parse(P.holdings || '{}');
-    const pv = Object.entries(P.holdings).map(([k, h]) => { const qq = quote(st, k); const val = qq ? qq.p * h.qty : h.cost; return `${k}: € ${r2(val)} (inleg € ${r2(h.cost)}, ${r2((val / h.cost - 1) * 100)}%)`; });
+    const pv = Object.entries(P.holdings).map(([k, h]) => { const qq = quote(st, k); const val = qq ? qq.p * h.qty : h.cost; return `${k} (${(h.k || 'crypto') === 'stock' ? 'aandeel/stock' : 'crypto'}, ${st.names?.[k] || k}): waarde € ${r2(val)}, inleg € ${r2(h.cost)}, resultaat ${r2((val / h.cost - 1) * 100)}%`; });
     const fng = st.extra?.fng?.[0]; const news = (st.news?.items || []).filter(n => Date.now() - n.t < 36 * HOUR && (!syms.length || syms.some(sy => (n.title + ' ' + (n.body || '')).toUpperCase().includes(sy) || (st.names?.[sy] && (n.title || '').toLowerCase().includes(st.names[sy].toLowerCase()))))).slice(0, 5);
     const ctxt = [`Datum: ${new Date().toISOString().slice(0, 10)}.`,
       `Oefenportefeuille van de gebruiker: vrij saldo € ${r2(P.cash)}${pv.length ? '; posities: ' + pv.join('; ') : '; nog geen posities'}.`,
@@ -198,7 +252,8 @@ export async function handleAI(req, env, s, p, m, url, ctx) {
     const raw = out && out.text ? out.text : plainReply(en, fs, picks);
     const { text, acts } = parseOrders(raw, st, P);
     if (!acts.length && !out && picks && picks.length) for (const f of picks.slice(0, 2)) if (f.score >= 15 && f.pUp > 51) acts.push({ side: 'buy', sym: f.sym, eur: r2(Math.min(1000, P.cash * .1)), kind: f.kind });
-    return json({ reply: text, actions: acts, forecasts: fs.length ? fs : (picks || []).slice(0, 5), engine: out ? out.engine : 'model' });
+    const advice = fs.length || (picks && picks.length) || acts.length; const reply = stripDisc(text) + (advice ? '\n\n' + DISC[en ? 'en' : 'nl'] : '');
+    return json({ reply, actions: acts, forecasts: fs.length ? fs : (picks || []).slice(0, 5), engine: out ? out.engine : 'model' });
   }
   return null;
 }

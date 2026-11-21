@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <script>
@@ -8,15 +8,15 @@
 if((t&&t!=='null')||pwa||(h&&h.length>1&&h.indexOf('#l-')!==0)){location.replace('/app'+location.search+h)}}catch(e){}})();
 </script>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Vantis: leer traden en zie wat de markt beweegt</title>
-<meta name="description" content="Leer stap voor stap traden in crypto en aandelen met de Vantis Academy, en zie live wat de markt beweegt en waarom. Met lessen, oefeningen met echte koersen en handelen in één app.">
+<title>Vantis: learn to trade and see what moves the market</title>
+<meta name="description" content="Learn to trade crypto and stocks step by step with the Vantis Academy, and see live what moves the market and why. Lessons, practice with real prices and trading in one app.">
 <meta name="theme-color" content="#050505">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Vantis: leer traden, zie wat de markt beweegt">
-<meta property="og:description" content="Leer stap voor stap traden in crypto en aandelen, met live uitleg bij elke marktbeweging.">
+<meta property="og:title" content="Vantis: learn to trade, see what moves the market">
+<meta property="og:description" content="Learn to trade crypto and stocks step by step, with a live explanation of every market move.">
 <meta property="og:image" content="https://vantis.rijnstadmarketing.workers.dev/landing/og.png"><meta property="og:url" content="https://vantis.rijnstadmarketing.workers.dev/">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preload" href="landing/fonts/archivo-wdth.woff2" as="font" type="font/woff2" crossorigin>
@@ -195,18 +195,18 @@ h2.big{font-family:var(--wide);font-stretch:115%;font-variation-settings:"wdth" 
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}h1{background-position:0 0}}
 </style>
-</head>
+<link rel="alternate" hreflang="en" href="https://vantis.rijnstadmarketing.workers.dev/"><link rel="alternate" hreflang="nl" href="https://vantis.rijnstadmarketing.workers.dev/nl/"><link rel="alternate" hreflang="x-default" href="https://vantis.rijnstadmarketing.workers.dev/"></head>
 <body>
 <canvas id="bg" aria-hidden="true"></canvas>
 <div class="page">
-<a class="skip" href="#l-academy">Naar de inhoud</a>
+<a class="skip" href="#l-academy">Skip to content</a>
 <header class="top" id="top">
   <div class="wrap topin">
-    <a class="logo" href="/" aria-label="Vantis, naar het begin"><span class="mk"></span><span class="wd"></span></a>
-    <nav class="menu" aria-label="Pagina">
-      <a href="#l-academy">Academy</a><a href="#l-functies">Marktinzicht</a><a href="#l-handelen">Handelen</a><a href="#l-prijzen">Prijzen</a><a href="#l-vragen">Vragen</a>
+    <a class="logo" href="/" aria-label="Vantis, back to top"><span class="mk"></span><span class="wd"></span></a>
+    <nav class="menu" aria-label="Page">
+      <a href="#l-academy">Academy</a><a href="#l-functies">Market insight</a><a href="#l-handelen">Trading</a><a href="#l-prijzen">Pricing</a><a href="#l-vragen">FAQ</a>
     </nav>
-    <div class="acts"><a class="txtlink" href="/app">Inloggen</a><a class="btn pri sm" href="/app?start=register">Gratis account</a></div>
+    <div class="acts"><a class="txtlink lgsw" href="/nl/" hreflang="nl" lang="nl" aria-label="Nederlands">NL</a><a class="txtlink" href="/app">Log in</a><a class="btn pri sm" href="/app?start=register">Free account</a></div>
   </div>
 </header>
 
@@ -214,12 +214,12 @@ h2.big{font-family:var(--wide);font-stretch:115%;font-variation-settings:"wdth" 
 <section class="hero">
   <div class="wrap herog">
     <div>
-      <h1><span>Leer traden.</span><span>Begrijp de markt.</span></h1>
-      <p class="lead">Vantis leert je stap voor stap handelen in crypto en aandelen, en laat je live zien wat de markt beweegt: wat er gebeurt, waarom, en hoe zeker dat is.</p>
-      <div class="cta"><a class="btn pri" href="/app?start=register">Gratis account maken</a><a class="btn sec" href="/app">Inloggen</a></div>
+      <h1><span>Learn to trade.</span><span>Read the market.</span></h1>
+      <p class="lead">Vantis teaches you to trade crypto and stocks step by step, and shows you live what moves the market: what is happening, why, and how certain that is.</p>
+      <div class="cta"><a class="btn pri" href="/app?start=register">Create a free account</a><a class="btn sec" href="/app">Log in</a></div>
     </div>
     <aside class="live" aria-labelledby="livet" aria-live="polite">
-      <div class="livehd"><h2 id="livet">Nu in de markt</h2><span><i class="dot" aria-hidden="true"></i><span id="livets">live</span></span></div>
+      <div class="livehd"><h2 id="livet">In the market now</h2><span><i class="dot" aria-hidden="true"></i><span id="livets">live</span></span></div>
       <div class="prices" id="lprices">
         <div class="pr"><div class="skel" style="width:100%"></div></div><div class="pr"><div class="skel" style="width:100%"></div></div>
         <div class="pr"><div class="skel" style="width:100%"></div></div><div class="pr"><div class="skel" style="width:100%"></div></div>
@@ -227,37 +227,37 @@ h2.big{font-family:var(--wide);font-stretch:115%;font-variation-settings:"wdth" 
       </div>
       <div class="ev" id="lev" hidden></div>
       <div class="stats" id="lstats" hidden></div>
-      <p class="livenote">Rechtstreeks uit Vantis. Koersen in euro, verandering over 24 uur.</p>
+      <p class="livenote">Straight from Vantis. Prices in euros, change over 24 hours.</p>
     </aside>
   </div>
 </section>
 
 <div class="show">
   <div class="wrap">
-    <div class="frame"><picture><source media="(max-width:640px)" srcset="landing/telefoon-overzicht.webp" width="600" height="1298"><img src="landing/app-overzicht.webp" width="1800" height="1191" alt="Het Vantis-overzicht: marktstatus met sentiment, kerncijfers en wat er vandaag speelt, koerstegels en een koersgrafiek van Bitcoin" fetchpriority="high"></picture></div>
-    <div class="phone"><img src="landing/telefoon-les.webp" width="600" height="1308" alt="Een les uit de Vantis Academy op een telefoon" loading="lazy"></div>
+    <div class="frame"><picture><source media="(max-width:640px)" srcset="landing/telefoon-overzicht.webp" width="600" height="1298"><img src="landing/app-overzicht.webp" width="1800" height="1191" alt="The Vantis overview: market status with sentiment, key figures and what is happening today, price tiles and a Bitcoin price chart" fetchpriority="high"></picture></div>
+    <div class="phone"><img src="landing/telefoon-les.webp" width="600" height="1308" alt="A lesson from the Vantis Academy on a phone" loading="lazy"></div>
   </div>
 </div>
 
 <section class="sect acad" id="l-academy">
   <div class="wrap">
-    <h2 class="big">Leer traden, stap voor stap</h2>
-    <p class="intro">De Vantis Academy neemt je mee van je eerste aankoop tot risicobeheer, grafieken lezen en macro. Geen losse filmpjes, maar lessen die je meteen toepast op de echte markt, in dezelfde app waarin je handelt.</p>
+    <h2 class="big">Learn to trade, step by step</h2>
+    <p class="intro">The Vantis Academy takes you from your first purchase to risk management, reading charts and macro. Not a pile of loose videos, but lessons you apply straight away to the real market, in the same app you trade in.</p>
     <dl class="acfacts">
-      <div><dt>33 lessen in zes leerpaden</dt><dd>Van beginner tot expert, elk afgesloten met een quiz en uitleg bij ieder antwoord.</dd></div>
-      <div><dt>Oefenen met echte koersen</dt><dd>Lees grafieken van echte munten en test je inschatting in de grafiekuitdaging.</dd></div>
-      <div><dt>Opdrachten in de app</dt><dd>Elke les sluit aan op een stap in de app: je eerste koersalert, een stop-loss, je handelsplan.</dd></div>
-      <div><dt>Niveaus en certificaten</dt><dd>Verdien XP, stijg in niveau en ontvang een certificaat voor elk afgerond leerpad.</dd></div>
+      <div><dt>33 lessons in six learning paths</dt><dd>From beginner to expert, each ending with a quiz and an explanation for every answer.</dd></div>
+      <div><dt>Practise with real prices</dt><dd>Read charts of real coins and test your judgement in the chart challenge.</dd></div>
+      <div><dt>Tasks in the app</dt><dd>Every lesson links to a step in the app: your first price alert, a stop-loss, your trading plan.</dd></div>
+      <div><dt>Levels and certificates</dt><dd>Earn XP, level up and get a certificate for every learning path you complete.</dd></div>
     </dl>
-    <div class="shot wide"><img src="landing/academy-paden.webp" width="1600" height="1447" alt="De Vantis Academy: zes leerpaden van Starten met beleggen tot Voor gevorderden, met voortgang per pad" loading="lazy"></div>
+    <div class="shot wide"><img src="landing/academy-paden.webp" width="1600" height="1447" alt="The Vantis Academy: six learning paths from Getting started with investing to Advanced, with progress per path" loading="lazy"></div>
     <div class="acgrid">
-      <figure><div class="shot"><img src="landing/academy-les.webp" width="1100" height="1449" alt="Een les over trends met een grafiek van Bitcoin en het 20- en 50-daags gemiddelde" loading="lazy"></div>
-        <figcaption><b>Lessen met echte grafieken.</b> Bij de les over trends zie je de koers van Bitcoin met de gemiddelden waar het over gaat, live bijgewerkt.</figcaption></figure>
+      <figure><div class="shot"><img src="landing/academy-les.webp" width="1100" height="1449" alt="A lesson about trends with a Bitcoin chart and the 20- and 50-day averages" loading="lazy"></div>
+        <figcaption><b>Lessons with real charts.</b> In the lesson about trends you see the Bitcoin price with the averages it talks about, updated live.</figcaption></figure>
       <div class="acstack">
-        <figure><div class="shot"><img src="landing/academy-uitdaging.webp" width="1200" height="888" alt="De grafiekuitdaging: kies of de koers in de komende zeven dagen stijgt of daalt" loading="lazy"></div>
-          <figcaption><b>Grafiekuitdaging.</b> Zestig dagen van een echte munt, zonder naam of datum. Stijgt of daalt hij daarna? Achteraf zie je welke signalen er waren.</figcaption></figure>
-        <figure><div class="shot"><img src="landing/academy-rekenhulp.webp" width="1100" height="423" alt="Rekenhulp voor risico en rendement" loading="lazy"></div>
-          <figcaption><b>Rekenhulpen.</b> Positiegrootte, risico tegenover rendement, stop-afstand en kosten: reken het uit voordat je een order plaatst.</figcaption></figure>
+        <figure><div class="shot"><img src="landing/academy-uitdaging.webp" width="1200" height="888" alt="The chart challenge: choose whether the price rises or falls over the next seven days" loading="lazy"></div>
+          <figcaption><b>Chart challenge.</b> Sixty days of a real coin, without a name or date. Does it rise or fall next? Afterwards you see which signals were there.</figcaption></figure>
+        <figure><div class="shot"><img src="landing/academy-rekenhulp.webp" width="1100" height="423" alt="Calculator for risk and return" loading="lazy"></div>
+          <figcaption><b>Calculators.</b> Position size, risk versus reward, stop distance and costs: work it out before you place an order.</figcaption></figure>
       </div>
     </div>
   </div>
@@ -265,20 +265,20 @@ h2.big{font-family:var(--wide);font-stretch:115%;font-variation-settings:"wdth" 
 
 <section class="sect" id="l-functies">
   <div class="wrap">
-    <h2 class="big">Elke beweging, uitgelegd</h2>
-    <p class="intro">Een koersgrafiek laat zien dat er iets beweegt. Vantis zoekt uit waarom, en zegt het eerlijk als dat nog niet te zeggen is.</p>
+    <h2 class="big">Every move, explained</h2>
+    <p class="intro">A price chart shows that something is moving. Vantis finds out why, and says so honestly when it can't be told yet.</p>
     <div class="rows">
       <div class="row">
-        <div class="rt"><h3>Wat gebeurt er nu?</h3><p>Vantis leest nieuws uit elf bronnen, de economische kalender en de koersen van honderden munten en aandelen. Elke gebeurtenis krijgt een Impact Score van 0 tot 100: hoe groot de invloed op de markt kan zijn, berekend met een vaste methode die je kunt nalezen.</p></div>
-        <div><div class="shot"><img src="landing/impact.webp" width="1122" height="250" alt="Een gebeurtenis in de impact-feed met Impact Score" loading="lazy"></div></div>
+        <div class="rt"><h3>What is happening now?</h3><p>Vantis reads news from eleven sources, the economic calendar and the prices of hundreds of coins and stocks. Every event gets an Impact Score from 0 to 100: how big its influence on the market could be, calculated with a fixed method you can look up.</p></div>
+        <div><div class="shot"><img src="landing/impact.webp" width="1122" height="250" alt="An event in the impact feed with its Impact Score" loading="lazy"></div></div>
       </div>
       <div class="row flip">
-        <div class="rt"><h3>Waarom beweegt het?</h3><p>Bij een opvallende koersbeweging controleert Vantis acht mogelijke oorzaken tegen data en bronnen: nieuws, macrocijfers, handelsvolume, de hele markt en technische niveaus. Kan een oorzaak niet worden aangetoond, dan staat er dat die nog onbekend is.</p></div>
-        <div class="narrow"><div class="shot"><img src="landing/waarom-oorzaken.webp" width="892" height="538" alt="De meest waarschijnlijke oorzaken van een koersbeweging met hun aandeel in de verklaring" loading="lazy"></div></div>
+        <div class="rt"><h3>Why is it moving?</h3><p>When a price makes a notable move, Vantis checks eight possible causes against data and sources: news, macro figures, trading volume, the whole market and technical levels. If a cause can't be shown, it says the cause is still unknown.</p></div>
+        <div class="narrow"><div class="shot"><img src="landing/waarom-oorzaken.webp" width="892" height="538" alt="The most likely causes of a price move with their share of the explanation" loading="lazy"></div></div>
       </div>
       <div class="row wide">
-        <div class="rt"><h3>Wat betekent het voor mij?</h3><p>Je overzicht laat in één blik zien hoe de markt ervoor staat en wat er vandaag speelt. Volg je eigen munten en aandelen, stel koersalerts in en krijg elke ochtend om 08:00 een korte briefing.</p></div>
-        <div class="shot"><img src="landing/marktstatus.webp" width="1600" height="314" alt="Marktstatus: sentiment, marktbreedte, volume en wat er vandaag speelt" loading="lazy"></div>
+        <div class="rt"><h3>What does it mean for me?</h3><p>Your overview shows at a glance how the market is doing and what is happening today. Follow your own coins and stocks, set price alerts and get a short briefing every morning at 08:00.</p></div>
+        <div class="shot"><img src="landing/marktstatus.webp" width="1600" height="314" alt="Market status: sentiment, market breadth, volume and what is happening today" loading="lazy"></div>
       </div>
     </div>
   </div>
@@ -287,70 +287,70 @@ h2.big{font-family:var(--wide);font-stretch:115%;font-variation-settings:"wdth" 
 <section class="sect" id="l-handelen">
   <div class="wrap prac">
     <div>
-      <h2 class="big">Handel in crypto en aandelen</h2>
-      <p class="intro">Koop en verkoop rechtstreeks in Vantis, met de gereedschappen die je in de Academy leert gebruiken. Je plan, je order en je uitleg staan op één plek.</p>
+      <h2 class="big">Trade crypto and stocks</h2>
+      <p class="intro">Buy and sell directly in Vantis, with the tools the Academy teaches you to use. Your plan, your order and your notes are all in one place.</p>
       <dl class="facts">
-        <div><dt>Ordertypes</dt><dd>Markt, limiet, stop en trailing stop</dd></div>
-        <div><dt>Bescherming</dt><dd>Winstdoel en stop-loss direct bij je order</dd></div>
-        <div><dt>Periodiek kopen</dt><dd>Elke dag, week of maand automatisch bijkopen</dd></div>
-        <div><dt>Logboek</dt><dd>Schrijf op waarom je koopt of verkoopt, en kijk later terug</dd></div>
+        <div><dt>Order types</dt><dd>Market, limit, stop and trailing stop</dd></div>
+        <div><dt>Protection</dt><dd>Take-profit and stop-loss right on your order</dd></div>
+        <div><dt>Recurring buys</dt><dd>Buy automatically every day, week or month</dd></div>
+        <div><dt>Journal</dt><dd>Write down why you buy or sell, and look back later</dd></div>
       </dl>
     </div>
-    <div class="ticketwrap"><div class="shot"><img src="landing/orderticket.webp" width="676" height="1514" alt="Het orderticket: koop Bitcoin voor een bedrag in euro, met ordertype, kosten en totaal" loading="lazy"></div></div>
+    <div class="ticketwrap"><div class="shot"><img src="landing/orderticket.webp" width="676" height="1514" alt="The order ticket: buy Bitcoin for an amount in euros, with order type, costs and total" loading="lazy"></div></div>
   </div>
 </section>
 
 <section class="sect">
   <div class="wrap">
-    <h2 class="big">En verder</h2>
+    <h2 class="big">And more</h2>
     <div class="feat">
-      <div><h3>Event Radar</h3><p>Rentebesluiten van de Fed en ECB, inflatie- en banencijfers, met aftelklok en herinneringen.</p></div>
-      <div><h3>Ochtendbriefing</h3><p>Elke ochtend om 08:00 een kort marktoverzicht, ook als pushmelding.</p></div>
-      <div><h3>Meldingen</h3><p>Koersalerts, indicatoren als RSI en nieuws op trefwoord, via pushmelding of Discord.</p></div>
-      <div><h3>Opportunity Scanner</h3><p>Munten die nu opvallen door volume, momentum of een uitbraak, met eigen filters.</p></div>
-      <div><h3>Marktdata</h3><p>Sectoren, futures en funding, het Bitcoin-netwerk en komende token-unlocks.</p></div>
-      <div><h3>Vergelijken</h3><p>Twee munten of aandelen naast elkaar: rendement, risico en correlatie.</p></div>
-      <div><h3>Portefeuille</h3><p>Je bezit op één plek, met rendement en het nieuws dat erop van invloed is.</p></div>
-      <div><h3>Op elk scherm</h3><p>Telefoon, tablet en computer, in drie stijlen en in het Nederlands of Engels.</p></div>
+      <div><h3>Event Radar</h3><p>Fed and ECB rate decisions, inflation and jobs figures, with a countdown and reminders.</p></div>
+      <div><h3>Morning briefing</h3><p>A short market overview every morning at 08:00, also as a push notification.</p></div>
+      <div><h3>Notifications</h3><p>Price alerts, indicators such as RSI and keyword news, by push notification or Discord.</p></div>
+      <div><h3>Opportunity Scanner</h3><p>Coins standing out right now for volume, momentum or a breakout, with your own filters.</p></div>
+      <div><h3>Market data</h3><p>Sectors, futures and funding, the Bitcoin network and upcoming token unlocks.</p></div>
+      <div><h3>Compare</h3><p>Two coins or stocks side by side: return, risk and correlation.</p></div>
+      <div><h3>Portfolio</h3><p>Your holdings in one place, with returns and the news that affects them.</p></div>
+      <div><h3>On every screen</h3><p>Phone, tablet and computer, in several styles and in English or Dutch.</p></div>
     </div>
   </div>
 </section>
 
 <section class="sect" id="l-prijzen">
   <div class="wrap">
-    <h2 class="big">Kies je abonnement</h2>
-    <p class="intro">Met een gratis account volg je de markt. De Vantis Academy zit in Plus, certificaten haal je met Pro, met Elite krijg je live begeleiding en met Ultimate 1-op-1 coaching. Elk betaald abonnement kun je eerst een week gratis proberen.</p>
+    <h2 class="big">Choose your plan</h2>
+    <p class="intro">With a free account you follow the market. The Vantis Academy comes with Plus, certificates with Pro, Elite adds live guidance and Ultimate 1-on-1 coaching. You can try every paid plan free for a week first.</p>
     <div class="plans" id="lplans">
-      <div class="plan"><h3>Gratis</h3><div class="price"><b>€ 0</b>Altijd gratis</div><ul data-tier="free"></ul><a class="btn sec" href="/app?start=register">Gratis account maken</a></div>
-      <div class="plan"><h3>Plus</h3><div class="price" data-price="plus"><b>€ 4,99</b>per maand, eerste 7 dagen gratis</div><ul data-tier="plus"></ul><a class="btn sec" href="/app?start=register">Probeer Plus</a></div>
-      <div class="plan"><h3>Pro</h3><div class="price" data-price="pro"><b>€ 12,99</b>per maand, eerste 7 dagen gratis</div><ul data-tier="pro"></ul><a class="btn sec" href="/app?start=register">Probeer Pro</a></div>
-      <div class="plan hl"><span class="pop">Meest gekozen</span><h3>Elite</h3><div class="price" data-price="elite"><b>€ 29,99</b>per maand, eerste 7 dagen gratis</div><ul data-tier="elite"></ul><a class="btn pri" href="/app?start=register">Probeer Elite</a></div>
-      <div class="plan"><h3>Ultimate</h3><div class="price" data-price="ultimate"><b>€ 59,99</b>per maand, eerste 7 dagen gratis</div><ul data-tier="ultimate"></ul><a class="btn sec" href="/app?start=register">Probeer Ultimate</a></div>
+      <div class="plan"><h3>Free</h3><div class="price"><b>€0</b>Always free</div><ul data-tier="free"></ul><a class="btn sec" href="/app?start=register">Sign up free</a></div>
+      <div class="plan"><h3>Plus</h3><div class="price" data-price="plus"><b>€4.99</b>per month, first 7 days free</div><ul data-tier="plus"></ul><a class="btn sec" href="/app?start=register">Try Plus</a></div>
+      <div class="plan"><h3>Pro</h3><div class="price" data-price="pro"><b>€12.99</b>per month, first 7 days free</div><ul data-tier="pro"></ul><a class="btn sec" href="/app?start=register">Try Pro</a></div>
+      <div class="plan hl"><span class="pop">Most popular</span><h3>Elite</h3><div class="price" data-price="elite"><b>€29.99</b>per month, first 7 days free</div><ul data-tier="elite"></ul><a class="btn pri" href="/app?start=register">Try Elite</a></div>
+      <div class="plan"><h3>Ultimate</h3><div class="price" data-price="ultimate"><b>€59.99</b>per month, first 7 days free</div><ul data-tier="ultimate"></ul><a class="btn sec" href="/app?start=register">Try Ultimate</a></div>
     </div>
-    <p class="plannote">Abonnementen lopen via Stripe en zijn op elk moment op te zeggen.</p>
+    <p class="plannote">Plans are billed through Stripe and can be cancelled at any time.</p>
   </div>
 </section>
 
 <section class="sect" id="l-vragen">
   <div class="wrap">
-    <h2 class="big">Vragen</h2>
+    <h2 class="big">FAQ</h2>
     <div class="faq">
-      <details><summary>Ik heb nog nooit belegd. Is Vantis iets voor mij?</summary><p>Ja. De Vantis Academy begint bij de basis: wat een aandeel of een blockchain is, hoe je veilig handelt en wat het kost. Daarna leer je grafieken lezen, een handelsplan maken en je risico beperken, in je eigen tempo.</p></details>
-      <details><summary>Kan ik met Vantis echt handelen?</summary><p>Ja. Je koopt en verkoopt crypto en aandelen rechtstreeks in Vantis, met markt-, limiet-, stop- en trailing-orders en een winstdoel en stop-loss bij je order.</p></details>
-      <details><summary>Geeft Vantis beleggingsadvies?</summary><p>Nee. Vantis geeft marktinformatie, analyse en educatie, berekend uit openbare data met een vaste methode. Wat je ermee doet, beslis je zelf. Beleggen brengt risico's met zich mee; je kunt je inleg (gedeeltelijk) verliezen.</p></details>
-      <details><summary>Waar komen de gegevens vandaan?</summary><p>Koersen komen onder meer van Bitvavo en Kraken, marktcijfers van CoinGecko en CoinPaprika, en het nieuws van bronnen als CoinDesk, Cointelegraph, CNBC en de Financial Times. Bij elk inzicht staan de bron en het tijdstip.</p></details>
-      <details><summary>Hoe is mijn account beveiligd?</summary><p>Inloggen gaat altijd met je wachtwoord en een code uit een authenticator-app, zoals Google of Microsoft Authenticator. Je gegevens worden versleuteld opgeslagen in de EU.</p></details>
-      <details><summary>Werkt Vantis op mijn telefoon?</summary><p>Ja. Open Vantis in je browser en zet het op je beginscherm; dan krijg je ook pushmeldingen. Apps in de App Store en Play Store volgen later.</p></details>
-      <details><summary>Wat kost het?</summary><p>Een account is gratis. De Academy zit in Plus (€ 4,99 per maand), certificaten in Pro (€ 12,99), live begeleiding in Elite (€ 29,99) en 1-op-1 coaching in Ultimate (€ 59,99). Elk abonnement kun je eerst een week gratis proberen en daarna op elk moment opzeggen.</p></details>
+      <details><summary>I've never invested. Is Vantis for me?</summary><p>Yes. The Vantis Academy starts with the basics: what a stock or a blockchain is, how to trade safely and what it costs. Then you learn to read charts, make a trading plan and limit your risk, at your own pace.</p></details>
+      <details><summary>Can I actually trade with Vantis?</summary><p>Yes. You buy and sell crypto and stocks directly in Vantis, with market, limit, stop and trailing orders and a take-profit and stop-loss on your order.</p></details>
+      <details><summary>Does Vantis give investment advice?</summary><p>No. Vantis provides market information, analysis and education, calculated from public data with a fixed method. What you do with it is up to you. Investing involves risk; you can lose some or all of your money.</p></details>
+      <details><summary>Where does the data come from?</summary><p>Prices come from sources including Bitvavo and Kraken, market figures from CoinGecko and CoinPaprika, and news from sources such as CoinDesk, Cointelegraph, CNBC and the Financial Times. Every insight shows its source and time.</p></details>
+      <details><summary>How is my account secured?</summary><p>You always log in with your password and a code from an authenticator app, such as Google or Microsoft Authenticator. Your data is stored encrypted in the EU.</p></details>
+      <details><summary>Does Vantis work on my phone?</summary><p>Yes. Open Vantis in your browser and add it to your home screen; then you get push notifications too. Apps in the App Store and Play Store will follow later.</p></details>
+      <details><summary>What does it cost?</summary><p>An account is free. The Academy comes with Plus (€4.99 per month), certificates with Pro (€12.99), live guidance with Elite (€29.99) and 1-on-1 coaching with Ultimate (€59.99). You can try every plan free for a week and cancel any time after that.</p></details>
     </div>
   </div>
 </section>
 
 <section class="end">
   <div class="wrap">
-    <h2 class="big">Begin bij les één</h2>
-    <p class="intro">Maak een account, probeer Plus een week gratis en volg je eerste les in vier minuten.</p>
-    <div class="cta" style="margin-top:28px"><a class="btn pri" href="/app?start=register">Gratis account maken</a><a class="btn sec" href="/app">Inloggen</a></div>
+    <h2 class="big">Start with lesson one</h2>
+    <p class="intro">Create an account, try Plus free for a week and take your first lesson in four minutes.</p>
+    <div class="cta" style="margin-top:28px"><a class="btn pri" href="/app?start=register">Create a free account</a><a class="btn sec" href="/app">Log in</a></div>
   </div>
 </section>
 </main>
@@ -358,10 +358,10 @@ h2.big{font-family:var(--wide);font-stretch:115%;font-variation-settings:"wdth" 
 <footer class="foot">
   <div class="wrap footg">
     <div>
-      <p>Vantis geeft marktinformatie, analyse en educatie, geen financieel advies. Scores en scenario's zijn berekend uit openbare data en bieden geen garantie voor de koersontwikkeling. Beleggen brengt risico's met zich mee; je kunt je inleg (gedeeltelijk) verliezen.</p>
-      <p class="credit">Website door <a href="https://rijnstadmarketing.nl" rel="noopener">Rijnstad Marketing Solutions</a></p>
+      <p>Vantis provides market information, analysis and education, not financial advice. Scores and scenarios are calculated from public data and do not guarantee future prices. Investing involves risk; you can lose some or all of your money.</p>
+      <p class="credit">Website by <a href="https://rijnstadmarketing.nl" rel="noopener">Rijnstad Marketing Solutions</a></p>
     </div>
-    <nav aria-label="Onderaan"><a href="#l-academy">Academy</a><a href="/app">Inloggen</a><a href="/app?start=register">Account maken</a></nav>
+    <nav aria-label="Footer"><a href="#l-academy">Academy</a><a href="/app">Log in</a><a href="/app?start=register">Create account</a></nav>
   </div>
 </footer>
 </div>
@@ -369,19 +369,19 @@ h2.big{font-family:var(--wide);font-stretch:115%;font-variation-settings:"wdth" 
 <script>
 (function(){
   var $=function(s){return document.querySelector(s)};
-  var nf=function(v,min,max){return Number(v).toLocaleString('nl-NL',{minimumFractionDigits:min,maximumFractionDigits:max})};
+  var nf=function(v,min,max){return Number(v).toLocaleString('en-GB',{minimumFractionDigits:min,maximumFractionDigits:max})};
   var eur=function(p){return '€ '+(p>=100?nf(p,2,2):p>=1?nf(p,2,3):nf(p,4,5))};
   var pct=function(c){if(c==null)return '';var s=c>0?'+':c<0?'−':'';return s+nf(Math.abs(c),2,2)+'%'};
   var esc=function(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})};
   var CHK='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg>';
-  var PLANF={free:['Live koersen, grafieken en nieuws','Koersalerts in de app','Vrienden en chat','De Vantis-community op Discord'],
-    plus:['Alles van Gratis','De volledige Vantis Academy','Pushmeldingen en meldingen via Discord','Ochtendbriefing en weekoverzicht per e-mail'],
-    pro:['Alles van Plus','Certificaten bij afgeronde leerpaden','Indicator-alerts en eigen scanners','Volledige marktdata, track record en backtest'],
-    elite:['Alles van Pro','Elke maand een live sessie in Discord','Elite-kanaal in Discord','Vroege toegang en voorrang bij support'],
-    ultimate:['Alles van Elite','Elke maand een 1-op-1 sessie met een coach','Ultimate-lounge in Discord','Alle stijlen direct vrijgespeeld']};
+  var PLANF={free:['Live prices, charts and news','Price alerts in the app','Friends and chat','The Vantis community on Discord'],
+    plus:['Everything in Free','The full Vantis Academy','Push notifications and Discord notifications','Morning briefing and weekly summary by email'],
+    pro:['Everything in Plus','Certificates for completed learning paths','Indicator alerts and custom scanners','Full market data, track record and backtest'],
+    elite:['Everything in Pro','A live session in Discord every month','Elite channel in Discord','Early access and priority support'],
+    ultimate:['Everything in Elite','A 1-on-1 session with a coach every month','Ultimate lounge in Discord','All styles unlocked straight away']};
   document.querySelectorAll('[data-tier]').forEach(function(u){u.innerHTML=PLANF[u.dataset.tier].map(function(f){return '<li>'+CHK+'<span>'+esc(f)+'</span></li>'}).join('')});
   fetch('/api/billing/plans').then(function(r){return r.ok?r.json():null}).then(function(P){if(!P||!P.plans)return;
-    P.plans.forEach(function(p){if(!p.label||p.period!=='month')return;var el=document.querySelector('[data-price="'+p.tier+'"]');if(el)el.innerHTML='<b>'+esc(p.label.replace(/ per maand$/,''))+'</b>per maand'+(P.trialDays?', eerste '+P.trialDays+' dagen gratis':'')})}).catch(function(){});
+    P.plans.forEach(function(p){if(!p.label||p.period!=='month')return;var el=document.querySelector('[data-price="'+p.tier+'"]');if(el)el.innerHTML='<b>'+esc(p.label.replace(/ per maand$/,'').replace(/€\s?(\d+),(\d+)/,'€$1.$2'))+'</b>per month'+(P.trialDays?', first '+P.trialDays+' days free':'')})}).catch(function(){});
   function ring(score){var r=22,c=2*Math.PI*r,f=Math.max(0,Math.min(100,score))/100;
     return '<svg viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="'+r+'" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="4"/><circle cx="26" cy="26" r="'+r+'" fill="none" stroke="url(#lgm)" stroke-width="4" stroke-linecap="round" stroke-dasharray="'+(c*f)+' '+c+'"/><defs><linearGradient id="lgm" x1="0" x2="1"><stop offset="0" stop-color="#fff"/><stop offset=".5" stop-color="#8b919a"/><stop offset="1" stop-color="#e9ebee"/></linearGradient></defs></svg><b>'+score+'</b>'}
   var NAMES={BTC:'Bitcoin',ETH:'Ethereum',SOL:'Solana',XRP:'XRP',ADA:'Cardano',DOGE:'Dogecoin'};
@@ -391,13 +391,13 @@ h2.big{font-family:var(--wide);font-stretch:115%;font-variation-settings:"wdth" 
       $('#lprices').innerHTML=d.prices.map(function(x){var cl=x.ch>0?'up':x.ch<0?'down':'';return '<div class="pr"><b title="'+esc(NAMES[x.s]||x.s)+'">'+esc(x.s)+'</b><span class="p">'+eur(x.p)+'</span><span class="c '+cl+'">'+pct(x.ch)+'</span></div>'}).join('');
       var b=d.prices.filter(function(x){return x.s==='BTC'})[0];if(b)BTC=b.p;
       var e=d.events&&d.events[0];var ev=$('#lev');
-      if(e){ev.hidden=false;ev.innerHTML='<div class="ring">'+ring(e.score)+'</div><div><small>Belangrijkste gebeurtenis, Impact Score '+e.score+' van 100</small><strong>'+esc(e.title)+'</strong>'+(e.what?'<p>'+esc(e.what)+'</p>':'')+'</div>'}else ev.hidden=true;
-      var st=[];if(d.breadth!=null)st.push(['Stijgers in de top '+d.n,Math.round(d.breadth*100)+'%']);
-      if(d.fng)st.push(['Fear & Greed',d.fng.v+' van 100']);
-      if(d.global&&d.global.btcDom)st.push(['Bitcoin-dominantie',nf(d.global.btcDom,1,1)+'%']);
+      if(e){ev.hidden=false;ev.innerHTML='<div class="ring">'+ring(e.score)+'</div><div><small>Top event, Impact Score '+e.score+' out of 100</small><strong>'+esc(e.title)+'</strong>'+(e.what?'<p>'+esc(e.what)+'</p>':'')+'</div>'}else ev.hidden=true;
+      var st=[];if(d.breadth!=null)st.push(['Risers in the top '+d.n,Math.round(d.breadth*100)+'%']);
+      if(d.fng)st.push(['Fear & Greed',d.fng.v+'/100']);
+      if(d.global&&d.global.btcDom)st.push(['Bitcoin dominance',nf(d.global.btcDom,1,1)+'%']);
       var s=$('#lstats');if(st.length){s.hidden=false;s.innerHTML=st.slice(0,3).map(function(x){return '<div>'+esc(x[0])+'<b>'+esc(x[1])+'</b></div>'}).join('')}
-      $('#livets').textContent='bijgewerkt '+new Date(d.t).toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'});
-    }).catch(function(){var l=$('.live');if(l){$('#lprices').innerHTML='<p style="margin:6px 0;color:var(--muted);font-size:14px">De live koersen laden even niet. In de app zie je ze wel.</p>'}})}
+      $('#livets').textContent='updated '+new Date(d.t).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+    }).catch(function(){var l=$('.live');if(l){$('#lprices').innerHTML='<p style="margin:6px 0;color:var(--muted);font-size:14px">Live prices are not loading right now. You can see them in the app.</p>'}})}
   load();setInterval(function(){if(!document.hidden)load()},60000);
   var top=$('#top');var on=function(){top.classList.toggle('scrolled',scrollY>8)};addEventListener('scroll',on,{passive:true});on();
 

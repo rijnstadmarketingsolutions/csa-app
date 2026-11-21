@@ -1243,3 +1243,13 @@ body:has(#login:not(.hidden)) #aiwrap{display:none}
 .plans5 .pbadge{top:-11px;z-index:2;border-radius:999px;background:var(--metal,var(--navy));color:var(--accentInk,#fff);box-shadow:0 4px 14px rgba(0,0,0,.35)}
 .plans5 .plan.hl{border:1px solid var(--hair,var(--navy));box-shadow:0 0 0 1px var(--hair,var(--navy)),0 18px 44px var(--glow,rgba(0,0,0,.25))}
 .plans5 .pbadge{top:16px;right:16px;left:auto}
+/* keuzelijsten leesbaar in elke stijl */
+:root{color-scheme:light}
+:root:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=classic-dark],[data-theme=dark]){color-scheme:dark}
+select option,select optgroup{background-color:var(--bg,#fff);color:var(--ink,#111)}
+:root:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=classic-dark],[data-theme=dark]) select option{background-color:#141417;color:#ECECEE}
+:root:is([data-skin=luxlight],[data-skin=arctic],[data-skin=classic-light]) select option{background-color:#fff;color:#141417}
+select option:disabled{color:#8a8a92}
+html.i18nwait body{visibility:hidden}
+.lgtop{position:absolute;top:16px;right:20px;display:flex;align-items:center;gap:10px;z-index:3}.lgtop .lgback{position:static}
+.lglang{display:inline-flex;border:1px solid var(--line2);border-radius:999px;padding:2px}.lglang button{border:0;background:none;color:var(--ink2);font:600 12px/1 inherit;padding:6px 10px;border-radius:999px;cursor:pointer}.lglang button.on{background:var(--bg3);color:var(--ink)}

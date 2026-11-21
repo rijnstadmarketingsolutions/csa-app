@@ -1,7 +1,7 @@
 /* =====================================================================
    v7 — Engelse versie (23): vertaallaag over de hele interface
    ===================================================================== */
-const I18N={lang:S.settings.lang||'nl',dict:null,obs:null,
+const I18N={lang:S.settings.lang||'en',dict:null,obs:null,
   NUM:/[−+\-]?(?:€|\$)?\s?\d[\d.,]*(?:\s?(?:%|×|x\b|k\b|mln\b|mld\b))?/g,
   norm(t){return t.replace(/\s+/g,' ').trim()},
   key(t){const nums=[];const k=this.norm(t).replace(this.NUM,m=>{nums.push(m);return '{}'});return [k,nums]},
@@ -22,8 +22,8 @@ const I18N={lang:S.settings.lang||'nl',dict:null,obs:null,
   walk(root){if(!this.dict)return;const W=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let n;const L=[];while((n=W.nextNode()))L.push(n);
     for(const t of L){if(this.skip(t.parentElement))continue;const v=t.nodeValue;if(!v.trim())continue;this.node(t)}
     const E=root.querySelectorAll?root.querySelectorAll('[placeholder],[aria-label],[title]'):[];for(const e of [root,...E]){if(!e.getAttribute)continue;for(const a of ['placeholder','aria-label','title']){const v=e.getAttribute(a);if(v){let m=this.doneA.get(e);if(!m)this.doneA.set(e,m={});if(m[a]===v)continue;const r=this.units(this.tr(v));m[a]=r;if(r!==v)e.setAttribute(a,r)}}}},
-  async start(){if(this.lang!=='en')return;document.documentElement.lang='en';try{this.dict=window.VANTIS_EN||await (await fetch('i18n/en.json',{cache:'no-cache'})).json()}catch(e){return}
-    this.walk(document.body);document.title=this.tr(document.title);let busy=false;
+  async start(){const R=document.documentElement;if(this.lang!=='en'){R.lang='nl';R.classList.remove('i18nwait');return}R.lang='en';try{this.dict=window.VANTIS_EN||await (await fetch('i18n/en.json',{cache:'no-cache'})).json()}catch(e){R.classList.remove('i18nwait');return}
+    this.walk(document.body);document.title=this.tr(document.title);R.classList.remove('i18nwait');let busy=false;
     this.obs=new MutationObserver(ms=>{if(busy)return;busy=true;try{for(const m of ms){if(m.type==='characterData'){const t=m.target;if(!this.skip(t.parentElement)){this.node(t)}}else for(const n of m.addedNodes){if(n.nodeType===3){if(!this.skip(n.parentElement)){this.node(n)}}else if(n.nodeType===1)this.walk(n)}}}finally{busy=false}});
     this.obs.observe(document.body,{subtree:true,childList:true,characterData:true})},
   set(l){S.settings.lang=l;saveSettings();location.reload()}

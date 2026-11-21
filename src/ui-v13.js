@@ -4,7 +4,7 @@
 IC.spark='<path d="M12 3l1.8 4.9L19 9.7l-5.2 1.8L12 16.5l-1.8-5-5.2-1.8 5.2-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>';
 IC.robot='<rect x="4" y="8" width="16" height="11" rx="3"/><path d="M12 4v4M9 13h.01M15 13h.01M9.5 16.5h5"/>';
 const AI={open:false,tab:'chat',busy:false,msgs:LS.get('aichat',[]),auto:null,
-  lang(){return S.settings.lang==='en'?'en':'nl'},
+  lang(){return (S.settings.lang||'en')==='en'?'en':'nl'},
   save(){this.msgs=this.msgs.slice(-24);LS.set('aichat',this.msgs)}};
 const aiMd=t=>esc(t).replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>').replace(/^[•\-*] (.+)$/gm,'<li>$1</li>').replace(/(<li>[\s\S]*?<\/li>)(?!\s*<li>)/g,'<ul>$1</ul>').replace(/<\/ul>\s*<ul>/g,'').replace(/\n{2,}/g,'</p><p>').replace(/\n/g,'<br>');
 const aiFc=f=>{const c=f.score>=12?'up':f.score<=-12?'down':'';const pos=Math.max(0,Math.min(100,(f.score+100)/2));
@@ -36,7 +36,7 @@ function aiRender(){let w=$('#aiwrap');if(!w){document.body.insertAdjacentHTML('
 async function aiLoadAuto(){if(!Api.authed){AI.auto={on:false,risk:'normaal',universe:'alles',max:1000,every:4,log:[]};}else try{AI.auto=await Api.call('/api/ai/autopilot')}catch(e){AI.auto={on:false,risk:'normaal',universe:'alles',max:1000,every:4,log:[]}}if(AI.open&&AI.tab==='auto')$('#aipb').innerHTML=aiAutoHTML()}
 async function aiAsk(q){if(AI.busy||!q.trim())return;if(!Api.authed){UI.toast({title:'Log in om Vantis AI te gebruiken'});return}
   AI.msgs.push({role:'user',content:q.trim()});AI.busy=true;AI.save();aiRender();const m=$('#aimsgs');m.insertAdjacentHTML('beforeend','<div class="aim aitype" id="aityping"><span></span><span></span><span></span></div>');m.scrollTop=m.scrollHeight;
-  try{const r=await Api.call('/api/ai/chat',{method:'POST',body:{lang:AI.lang(),messages:AI.msgs.map(x=>({role:x.role,content:x.content}))}});AI.msgs.push({role:'assistant',content:r.reply,fc:r.forecasts||[],acts:r.actions||[]})}
+  try{const r=await Api.call('/api/ai/chat',{method:'POST',body:{lang:AI.lang(),lastActions:(AI.msgs.slice().reverse().find(x=>x.role==='assistant'&&x.acts&&x.acts.length)||{}).acts||[],messages:AI.msgs.map(x=>({role:x.role,content:x.content}))}});AI.msgs.push({role:'assistant',content:r.reply,fc:r.forecasts||[],acts:r.actions||[]})}
   catch(e){AI.msgs.push({role:'assistant',content:e.message||'Er ging iets mis. Probeer het opnieuw.'})}
   AI.busy=false;AI.save();aiRender()}
 function aiBind(w){
@@ -62,7 +62,7 @@ setTimeout(aiRender,800);
 /* Vantis-model op de pagina van een munt of aandeel */
 {const am=Pages.asset.mount;Pages.asset.mount=function(el,arg){am&&am.call(this,el,arg);const sym=String(arg||'').toUpperCase();if(!sym)return;
   const host=$('.card',el);if(!host)return;const box=document.createElement('div');box.className='card aiasset';box.innerHTML=`<div class="chead"><h2>${ico('spark')}Vantis-model</h2><button class="lnk" id="aiaskasset">Vraag Vantis AI</button></div><div class="aifbody"><p class="muted">Vooruitzicht berekenen…</p></div>`;host.insertAdjacentElement('afterend',box);
-  $('#aiaskasset',box).onclick=()=>{AI.open=true;AI.tab='chat';aiRender();aiAsk(S.settings.lang==='en'?`What will ${sym} do this week?`:`Wat doet ${sym} deze week?`)};
+  $('#aiaskasset',box).onclick=()=>{AI.open=true;AI.tab='chat';aiRender();aiAsk((S.settings.lang||'en')==='en'?`What will ${sym} do this week?`:`Wat doet ${sym} deze week?`)};
   fetch(API_BASE+'/api/ai/forecast?sym='+encodeURIComponent(sym)).then(r=>r.ok?r.json():null).then(f=>{const b=$('.aifbody',box);if(!b)return;if(!f){b.innerHTML='<p class="muted">Te weinig koershistorie voor een vooruitzicht.</p>';return}
     b.innerHTML=aiFc(f)+`<p class="note" style="margin:10px 0 0">Kans dat de koers over 7 dagen hoger staat, met de bandbreedte waarbinnen hij waarschijnlijk (80%) uitkomt. Getest op ${f.tested} eerdere signalen van ${esc(sym)}. Een model geeft kansen, geen zekerheden.</p>`}).catch(()=>{const b=$('.aifbody',box);if(b)b.innerHTML='<p class="muted">Vooruitzicht niet beschikbaar.</p>'})}}
 
@@ -72,3 +72,7 @@ setTimeout(aiRender,800);
   AC_PATHS.forEach((p,i)=>AC_PATHS[i]=tr(p));for(const k in AC_LESSONS)AC_LESSONS[k]=tr(AC_LESSONS[k]);AC_TERMS.splice(0,AC_TERMS.length,...tr(AC_TERMS));
   LESSONS.forEach((l,i)=>LESSONS[i]=tr(l));if(UI.cur==='leren'||UI.cur==='overzicht')UI.route()};
   if(I18N.lang==='en')apply()}
+
+/* taalkeuze op het inlogscherm */
+{const w=document.querySelector('.lglang');if(w){const cur=I18N.lang==='nl'?'nl':'en';w.querySelectorAll('[data-lglang]').forEach(b=>{b.classList.toggle('on',b.dataset.lglang===cur);b.setAttribute('aria-pressed',b.dataset.lglang===cur)});
+  w.addEventListener('click',e=>{const b=e.target.closest('[data-lglang]');if(b&&b.dataset.lglang!==cur)I18N.set(b.dataset.lglang)})}}

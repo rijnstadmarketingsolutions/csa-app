@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Vantis</title>
+<script>try{var R0=document.documentElement,st0=JSON.parse(localStorage.getItem("vantis.settings")||"{}"),lq=(location.search.match(/[?&]lang=(en|nl)/)||[])[1];if(lq&&st0.lang!==lq){st0.lang=lq;localStorage.setItem("vantis.settings",JSON.stringify(st0))}if(st0.lang!=="nl"){R0.classList.add("i18nwait");setTimeout(function(){R0.classList.remove("i18nwait")},2500)}else R0.lang="nl"}catch(e){}</script>
 <script>try{var v=localStorage.getItem("vantis.skin"),k=(v&&JSON.parse(v))||"luxdark",R=document.documentElement;R.dataset.skin=k;if(["luxdark","oled","navygold","emerald","bordeaux","noirblue","noirgreen"].indexOf(k)>=0)R.dataset.theme="dark";else if(["luxlight","arctic"].indexOf(k)>=0)R.dataset.theme="light"}catch(e){document.documentElement.dataset.skin="luxdark";document.documentElement.dataset.theme="dark"}</script>
 <meta name="description" content="Vantis: Crypto Intelligence voor crypto en aandelen.">
 <meta name="theme-color" content="#050505">
@@ -1264,6 +1265,16 @@ body:has(#login:not(.hidden)) #aiwrap{display:none}
 .plans5 .pbadge{top:-11px;z-index:2;border-radius:999px;background:var(--metal,var(--navy));color:var(--accentInk,#fff);box-shadow:0 4px 14px rgba(0,0,0,.35)}
 .plans5 .plan.hl{border:1px solid var(--hair,var(--navy));box-shadow:0 0 0 1px var(--hair,var(--navy)),0 18px 44px var(--glow,rgba(0,0,0,.25))}
 .plans5 .pbadge{top:16px;right:16px;left:auto}
+/* keuzelijsten leesbaar in elke stijl */
+:root{color-scheme:light}
+:root:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=classic-dark],[data-theme=dark]){color-scheme:dark}
+select option,select optgroup{background-color:var(--bg,#fff);color:var(--ink,#111)}
+:root:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=classic-dark],[data-theme=dark]) select option{background-color:#141417;color:#ECECEE}
+:root:is([data-skin=luxlight],[data-skin=arctic],[data-skin=classic-light]) select option{background-color:#fff;color:#141417}
+select option:disabled{color:#8a8a92}
+html.i18nwait body{visibility:hidden}
+.lgtop{position:absolute;top:16px;right:20px;display:flex;align-items:center;gap:10px;z-index:3}.lgtop .lgback{position:static}
+.lglang{display:inline-flex;border:1px solid var(--line2);border-radius:999px;padding:2px}.lglang button{border:0;background:none;color:var(--ink2);font:600 12px/1 inherit;padding:6px 10px;border-radius:999px;cursor:pointer}.lglang button.on{background:var(--bg3);color:var(--ink)}
 
 </style>
 </head>
@@ -1285,7 +1296,7 @@ body:has(#login:not(.hidden)) #aiwrap{display:none}
     </ul>
   </section>
   <section class="lg-r">
-    <a class="lgback" href="/">Naar de website</a>
+    <div class="lgtop"><span class="lglang" data-noi18n><button type="button" data-lglang="en">EN</button><button type="button" data-lglang="nl">NL</button></span><a class="lgback" href="/">Naar de website</a></div>
     <form class="lg-box" id="step1" autocomplete="on">
       <div class="logo msh" data-logo style="width:52px;height:52px;margin-bottom:18px"></div>
       <h2 id="s1title">Inloggen</h2>
@@ -2902,7 +2913,7 @@ Pages.instellingen={
     <div class="card"><div class="chead"><h2>Abonnement</h2><a class="lnk" href="#premium">Bekijken</a></div><p class="note" style="margin:0">${Api.user?.plan&&Api.user.plan!=='free'?'Je hebt '+(TIERN[Api.user.plan]||'een abonnement')+'.':'Je gebruikt Vantis gratis.'}</p></div>
     <div class="card"><div class="chead"><h2>Databronnen</h2><span class="src">Live status</span></div><div id="srcs"></div>
       <details style="margin-top:12px"><summary class="lnk" style="cursor:pointer">Eigen Finnhub-sleutel gebruiken (optioneel)</summary><div class="field" style="margin-top:10px"><div style="display:flex;gap:8px"><input class="inp" id="fhk" type="password" value="${esc(s.fhKey)}" placeholder="Gratis via finnhub.io" autocomplete="off"><button class="btn" id="fhsave">Opslaan</button></div><p class="note">Alleen nodig als de Vantis-server geen aandelendata levert. Wordt alleen in deze browser bewaard.</p></div></details></div>
-    <div class="card"><div class="chead"><h2>Weergave</h2></div><div class="set"><div><b>Ervaring</b><p>Beginner: uitleg bij begrippen (tik op <span class="gi" style="pointer-events:none">i</span>). Pro: geen uitleg, extra cijfers.</p></div><div class="seg" id="s_mode"><button data-m="beginner" class="${s.mode!=='pro'?'on':''}">Beginner</button><button data-m="pro" class="${s.mode==='pro'?'on':''}">Pro</button></div></div><div class="set"><div><b>Rondleiding</b><p>Kies opnieuw wat je volgt en hoe vaak je meldingen krijgt.</p></div><button class="btn ghost sm" id="s_tour">Opnieuw starten</button></div><div class="set"><div><b>Donkere modus</b><p>Licht is de standaard; donker is prettiger 's avonds.</p></div>${sw('s_dark',s.theme==='dark')}</div></div>
+    <div class="card"><div class="chead"><h2>Weergave</h2></div><div class="set"><div><b>Ervaring</b><p>Beginner: uitleg bij begrippen (tik op <span class="gi" style="pointer-events:none">i</span>). Pro: geen uitleg, extra cijfers.</p></div><div class="seg" id="s_mode"><button data-m="beginner" class="${s.mode!=='pro'?'on':''}">Beginner</button><button data-m="pro" class="${s.mode==='pro'?'on':''}">Pro</button></div></div><div class="set"><div><b>Rondleiding</b><p>Kies opnieuw wat je volgt en hoe vaak je meldingen krijgt.</p></div><button class="btn ghost sm" id="s_tour">Opnieuw starten</button></div></div>
     <div class="card"><div class="chead"><h2>Vantis op je telefoon</h2></div><p class="note" style="margin:0"><b>iPhone:</b> open Vantis in Safari → Deel → <i>Zet op beginscherm</i>.<br><b>Android:</b> open Vantis in Chrome → ⋮ → <i>Toevoegen aan startscherm</i>.<br>De versies voor de App Store en Google Play zijn voorbereid en volgen zodra de store-accounts er zijn.</p></div>
     <div class="card"><div class="chead"><h2>Koppelingen</h2><span class="lockbadge">Vergunning nodig</span></div>
       ${[['Bankrekening koppelen','Saldo en stortingen via een gelicenseerde partner.'],['Beleggen in Vantis','Kopen en verkopen in de app. Vereist een MiCA-vergunning (AFM) of een gelicenseerde partner.'],['Autopilot','Belegt automatisch binnen jouw risicoprofiel. Vereist een vergunning voor vermogensbeheer.']].map(([t,d])=>`<div class="set lock"><div><b>${t}</b><p>${d}</p></div><span class="tag warn">Later</span></div>`).join('')}</div>
@@ -2924,7 +2935,7 @@ Pages.instellingen={
     $$('[data-cat]',el).forEach(c=>c.onchange=()=>{s.cats[c.dataset.cat]=c.checked;saveSettings()});
     $('#testn',el).onclick=async()=>{if(Api.authed&&Push.supported()&&await Push.state().catch(()=>false)){try{await Api.call('/api/push/test',{method:'POST',body:{}});UI.toast({title:'Testmelding verstuurd',body:'Je ziet hem zo als systeemmelding.'})}catch(x){UI.toast({title:'Niet gelukt',body:x.message})}}
       else Alerts.push({id:'test:'+Date.now(),cat:'market',score:72,force:true,title:'Testmelding: zo ziet een Vantis-melding eruit',body:'Wat er gebeurde, waarom het belangrijk is, welke assets geraakt worden en hoe betrouwbaar de bron is.',href:'#impact'})};
-    $('#s_dark',el).onchange=e=>setTheme(e.target.checked?'dark':'light');
+    if($('#s_dark',el))$('#s_dark',el).onchange=e=>setTheme(e.target.checked?'dark':'light');
     $('#fhsave',el).onclick=()=>{s.fhKey=$('#fhk',el).value.trim();saveSettings();S.src.fh.st=s.fhKey?'wait':'off';S.src.fh.msg=s.fhKey?'Verbinden…':'Niet gekoppeld';UI.toast({title:s.fhKey?'Sleutel opgeslagen, aandelendata laden…':'Sleutel verwijderd'});if(s.fhKey){loadStocks();loadFHNews().then(recalc);loadEarnings()}this.live(el,null,'calc')};
   },
   live(el){const st={ok:['live','Actief'],warn:['warn','Beperkt'],wait:['warn','Laden'],err:['off','Fout'],off:['','Niet gekoppeld']};
@@ -4183,7 +4194,7 @@ setTimeout(applyBrand,50);
 /* =====================================================================
    v7 — Engelse versie (23): vertaallaag over de hele interface
    ===================================================================== */
-const I18N={lang:S.settings.lang||'nl',dict:null,obs:null,
+const I18N={lang:S.settings.lang||'en',dict:null,obs:null,
   NUM:/[−+\-]?(?:€|\$)?\s?\d[\d.,]*(?:\s?(?:%|×|x\b|k\b|mln\b|mld\b))?/g,
   norm(t){return t.replace(/\s+/g,' ').trim()},
   key(t){const nums=[];const k=this.norm(t).replace(this.NUM,m=>{nums.push(m);return '{}'});return [k,nums]},
@@ -4204,8 +4215,8 @@ const I18N={lang:S.settings.lang||'nl',dict:null,obs:null,
   walk(root){if(!this.dict)return;const W=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let n;const L=[];while((n=W.nextNode()))L.push(n);
     for(const t of L){if(this.skip(t.parentElement))continue;const v=t.nodeValue;if(!v.trim())continue;this.node(t)}
     const E=root.querySelectorAll?root.querySelectorAll('[placeholder],[aria-label],[title]'):[];for(const e of [root,...E]){if(!e.getAttribute)continue;for(const a of ['placeholder','aria-label','title']){const v=e.getAttribute(a);if(v){let m=this.doneA.get(e);if(!m)this.doneA.set(e,m={});if(m[a]===v)continue;const r=this.units(this.tr(v));m[a]=r;if(r!==v)e.setAttribute(a,r)}}}},
-  async start(){if(this.lang!=='en')return;document.documentElement.lang='en';try{this.dict=window.VANTIS_EN||await (await fetch('i18n/en.json',{cache:'no-cache'})).json()}catch(e){return}
-    this.walk(document.body);document.title=this.tr(document.title);let busy=false;
+  async start(){const R=document.documentElement;if(this.lang!=='en'){R.lang='nl';R.classList.remove('i18nwait');return}R.lang='en';try{this.dict=window.VANTIS_EN||await (await fetch('i18n/en.json',{cache:'no-cache'})).json()}catch(e){R.classList.remove('i18nwait');return}
+    this.walk(document.body);document.title=this.tr(document.title);R.classList.remove('i18nwait');let busy=false;
     this.obs=new MutationObserver(ms=>{if(busy)return;busy=true;try{for(const m of ms){if(m.type==='characterData'){const t=m.target;if(!this.skip(t.parentElement)){this.node(t)}}else for(const n of m.addedNodes){if(n.nodeType===3){if(!this.skip(n.parentElement)){this.node(n)}}else if(n.nodeType===1)this.walk(n)}}}finally{busy=false}});
     this.obs.observe(document.body,{subtree:true,childList:true,characterData:true})},
   set(l){S.settings.lang=l;saveSettings();location.reload()}
@@ -4697,11 +4708,11 @@ async function acCert(p){const W=1600,H=1100,cv=document.createElement('canvas')
   const metal=(y0,y1)=>{const m=g.createLinearGradient(0,y0,W,y1);m.addColorStop(0,'#ffffff');m.addColorStop(.35,'#c9cdd3');m.addColorStop(.5,'#7f858e');m.addColorStop(.7,'#f1f2f4');m.addColorStop(1,'#9aa0a9');return m};
   try{const img=new Image();img.src='brand/vantis-full.svg';await img.decode();const w=520,h=w*img.height/img.width;g.drawImage(img,(W-w)/2,130,w,h)}catch(e){}
   const name=(Api.user&&Api.user.name)||'Vantis-gebruiker';const d=AC.done();const sc=p.L.map(id=>d[id]).filter(Boolean);const avg=sc.length?sc.reduce((a,x)=>a+(x.score/x.of),0)/sc.length*100:0;
-  g.textAlign='center';g.fillStyle='#9aa0a9';g.font='500 30px Inter, sans-serif';g.fillText(S.settings.lang==='en'?'VANTIS ACADEMY CERTIFICATE':'CERTIFICAAT VANTIS ACADEMY',W/2,370);
+  g.textAlign='center';g.fillStyle='#9aa0a9';g.font='500 30px Inter, sans-serif';g.fillText((S.settings.lang||'en')==='en'?'VANTIS ACADEMY CERTIFICATE':'CERTIFICAAT VANTIS ACADEMY',W/2,370);
   g.fillStyle=metal(400,520);g.font='700 84px "Inter Tight", Inter, sans-serif';g.fillText(p.t,W/2,480);
-  g.fillStyle='#c9cdd3';g.font='400 34px Inter, sans-serif';g.fillText(S.settings.lang==='en'?'awarded to':'behaald door',W/2,580);g.fillStyle='#ffffff';g.font='600 64px "Inter Tight", Inter, sans-serif';g.fillText(name,W/2,660);
-  g.fillStyle='#9aa0a9';g.font='400 30px Inter, sans-serif';g.fillText(S.settings.lang==='en'?`${p.L.length} lessons completed · ${Math.round(avg)}% correct on average · level ${p.lvl.toLowerCase()}`:`${p.L.length} lessen afgerond · gemiddeld ${Math.round(avg)}% goed · niveau ${p.lvl.toLowerCase()}`,W/2,760);
-  g.fillText(new Date().toLocaleDateString(S.settings.lang==='en'?'en-GB':'nl-NL',{day:'numeric',month:'long',year:'numeric'}),W/2,810);
+  g.fillStyle='#c9cdd3';g.font='400 34px Inter, sans-serif';g.fillText((S.settings.lang||'en')==='en'?'awarded to':'behaald door',W/2,580);g.fillStyle='#ffffff';g.font='600 64px "Inter Tight", Inter, sans-serif';g.fillText(name,W/2,660);
+  g.fillStyle='#9aa0a9';g.font='400 30px Inter, sans-serif';g.fillText((S.settings.lang||'en')==='en'?`${p.L.length} lessons completed · ${Math.round(avg)}% correct on average · level ${p.lvl.toLowerCase()}`:`${p.L.length} lessen afgerond · gemiddeld ${Math.round(avg)}% goed · niveau ${p.lvl.toLowerCase()}`,W/2,760);
+  g.fillText(new Date().toLocaleDateString((S.settings.lang||'en')==='en'?'en-GB':'nl-NL',{day:'numeric',month:'long',year:'numeric'}),W/2,810);
   g.strokeStyle='rgba(255,255,255,.2)';g.beginPath();g.moveTo(W/2-160,900);g.lineTo(W/2+160,900);g.stroke();g.fillStyle='#737985';g.font='400 24px Inter, sans-serif';g.fillText('Vantis · Crypto Intelligence',W/2,940);
   const a=AC.st();if(!a.cert[p.id]){a.cert[p.id]=Date.now();saveSettings();Badges.check()}
   cv.toBlob(b=>{const u=URL.createObjectURL(b);const l=document.createElement('a');l.href=u;l.download=`Vantis-certificaat-${p.id}.png`;document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(u),4000)},'image/png')}
@@ -5033,7 +5044,7 @@ function roleSelect(u){const R=(ADM.roles||[]);const can=id=>!id||(R.find(x=>x.i
 IC.spark='<path d="M12 3l1.8 4.9L19 9.7l-5.2 1.8L12 16.5l-1.8-5-5.2-1.8 5.2-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>';
 IC.robot='<rect x="4" y="8" width="16" height="11" rx="3"/><path d="M12 4v4M9 13h.01M15 13h.01M9.5 16.5h5"/>';
 const AI={open:false,tab:'chat',busy:false,msgs:LS.get('aichat',[]),auto:null,
-  lang(){return S.settings.lang==='en'?'en':'nl'},
+  lang(){return (S.settings.lang||'en')==='en'?'en':'nl'},
   save(){this.msgs=this.msgs.slice(-24);LS.set('aichat',this.msgs)}};
 const aiMd=t=>esc(t).replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>').replace(/^[•\-*] (.+)$/gm,'<li>$1</li>').replace(/(<li>[\s\S]*?<\/li>)(?!\s*<li>)/g,'<ul>$1</ul>').replace(/<\/ul>\s*<ul>/g,'').replace(/\n{2,}/g,'</p><p>').replace(/\n/g,'<br>');
 const aiFc=f=>{const c=f.score>=12?'up':f.score<=-12?'down':'';const pos=Math.max(0,Math.min(100,(f.score+100)/2));
@@ -5065,7 +5076,7 @@ function aiRender(){let w=$('#aiwrap');if(!w){document.body.insertAdjacentHTML('
 async function aiLoadAuto(){if(!Api.authed){AI.auto={on:false,risk:'normaal',universe:'alles',max:1000,every:4,log:[]};}else try{AI.auto=await Api.call('/api/ai/autopilot')}catch(e){AI.auto={on:false,risk:'normaal',universe:'alles',max:1000,every:4,log:[]}}if(AI.open&&AI.tab==='auto')$('#aipb').innerHTML=aiAutoHTML()}
 async function aiAsk(q){if(AI.busy||!q.trim())return;if(!Api.authed){UI.toast({title:'Log in om Vantis AI te gebruiken'});return}
   AI.msgs.push({role:'user',content:q.trim()});AI.busy=true;AI.save();aiRender();const m=$('#aimsgs');m.insertAdjacentHTML('beforeend','<div class="aim aitype" id="aityping"><span></span><span></span><span></span></div>');m.scrollTop=m.scrollHeight;
-  try{const r=await Api.call('/api/ai/chat',{method:'POST',body:{lang:AI.lang(),messages:AI.msgs.map(x=>({role:x.role,content:x.content}))}});AI.msgs.push({role:'assistant',content:r.reply,fc:r.forecasts||[],acts:r.actions||[]})}
+  try{const r=await Api.call('/api/ai/chat',{method:'POST',body:{lang:AI.lang(),lastActions:(AI.msgs.slice().reverse().find(x=>x.role==='assistant'&&x.acts&&x.acts.length)||{}).acts||[],messages:AI.msgs.map(x=>({role:x.role,content:x.content}))}});AI.msgs.push({role:'assistant',content:r.reply,fc:r.forecasts||[],acts:r.actions||[]})}
   catch(e){AI.msgs.push({role:'assistant',content:e.message||'Er ging iets mis. Probeer het opnieuw.'})}
   AI.busy=false;AI.save();aiRender()}
 function aiBind(w){
@@ -5091,7 +5102,7 @@ setTimeout(aiRender,800);
 /* Vantis-model op de pagina van een munt of aandeel */
 {const am=Pages.asset.mount;Pages.asset.mount=function(el,arg){am&&am.call(this,el,arg);const sym=String(arg||'').toUpperCase();if(!sym)return;
   const host=$('.card',el);if(!host)return;const box=document.createElement('div');box.className='card aiasset';box.innerHTML=`<div class="chead"><h2>${ico('spark')}Vantis-model</h2><button class="lnk" id="aiaskasset">Vraag Vantis AI</button></div><div class="aifbody"><p class="muted">Vooruitzicht berekenen…</p></div>`;host.insertAdjacentElement('afterend',box);
-  $('#aiaskasset',box).onclick=()=>{AI.open=true;AI.tab='chat';aiRender();aiAsk(S.settings.lang==='en'?`What will ${sym} do this week?`:`Wat doet ${sym} deze week?`)};
+  $('#aiaskasset',box).onclick=()=>{AI.open=true;AI.tab='chat';aiRender();aiAsk((S.settings.lang||'en')==='en'?`What will ${sym} do this week?`:`Wat doet ${sym} deze week?`)};
   fetch(API_BASE+'/api/ai/forecast?sym='+encodeURIComponent(sym)).then(r=>r.ok?r.json():null).then(f=>{const b=$('.aifbody',box);if(!b)return;if(!f){b.innerHTML='<p class="muted">Te weinig koershistorie voor een vooruitzicht.</p>';return}
     b.innerHTML=aiFc(f)+`<p class="note" style="margin:10px 0 0">Kans dat de koers over 7 dagen hoger staat, met de bandbreedte waarbinnen hij waarschijnlijk (80%) uitkomt. Getest op ${f.tested} eerdere signalen van ${esc(sym)}. Een model geeft kansen, geen zekerheden.</p>`}).catch(()=>{const b=$('.aifbody',box);if(b)b.innerHTML='<p class="muted">Vooruitzicht niet beschikbaar.</p>'})}}
 
@@ -5101,6 +5112,10 @@ setTimeout(aiRender,800);
   AC_PATHS.forEach((p,i)=>AC_PATHS[i]=tr(p));for(const k in AC_LESSONS)AC_LESSONS[k]=tr(AC_LESSONS[k]);AC_TERMS.splice(0,AC_TERMS.length,...tr(AC_TERMS));
   LESSONS.forEach((l,i)=>LESSONS[i]=tr(l));if(UI.cur==='leren'||UI.cur==='overzicht')UI.route()};
   if(I18N.lang==='en')apply()}
+
+/* taalkeuze op het inlogscherm */
+{const w=document.querySelector('.lglang');if(w){const cur=I18N.lang==='nl'?'nl':'en';w.querySelectorAll('[data-lglang]').forEach(b=>{b.classList.toggle('on',b.dataset.lglang===cur);b.setAttribute('aria-pressed',b.dataset.lglang===cur)});
+  w.addEventListener('click',e=>{const b=e.target.closest('[data-lglang]');if(b&&b.dataset.lglang!==cur)I18N.set(b.dataset.lglang)})}}
 
 }
 </script>

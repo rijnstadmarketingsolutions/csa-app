@@ -9,7 +9,14 @@ jobs:
           T: ${{ secrets.DISCORD_BOT_TOKEN }}
         run: |
           K=$(printf '%s' "$T" | sha256sum | cut -d' ' -f1)
-          curl -s -X POST -H "x-setup-key: $K" https://vantis.rijnstadmarketing.workers.dev/api/discord/resetup | python3 -c "import sys,json;d=json.load(sys.stdin);print(d.get('ok'),d.get('error'),d.get('log'))"
+          curl -s -X POST -H "x-setup-key: $K" https://vantis.rijnstadmarketing.workers.dev/api/discord/resetup | python3 -c "import sys,json;d=json.load(sys.stdin);print(d.get('ok'),d.get('error'),d.get('log'),d.get('commands'))"
+      - uses: actions/checkout@v4
+      - name: Oude botberichten naar het Engels
+        env:
+          T: ${{ secrets.DISCORD_BOT_TOKEN }}
+        run: |
+          export K=$(printf '%s' "$T" | sha256sum | cut -d' ' -f1)
+          python3 scripts/dc_translate.py
       - name: Rollen en kanalen tonen
         env:
           T: ${{ secrets.DISCORD_BOT_TOKEN }}

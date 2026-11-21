@@ -9,7 +9,8 @@ import { handlePaper, paperCron, paperNeed, tradeStats } from './paper.js';
 import { handleSocial } from './social.js';
 import { handleAI, aiCron } from './ai.js';
 import { newsKw, weekly, mailApi, mailReady } from './notify.js';
-import { dcSetup, dcEnv, dcReady, dcApi, dcCallback, dcInteractions, dcSend, dcFormat, dcPublic, briefingEmbed, dcDaily } from './discord.js';
+import { loadDict, langOf, tx, enPayload } from './i18n.js';
+import { registerCommands, dcSetup, dcEnv, dcReady, dcApi, dcCallback, dcInteractions, dcSend, dcFormat, dcPublic, briefingEmbed, dcDaily } from './discord.js';
 
 const VERSION = '2.1.0';
 const NATIVE_ORIGINS = ['capacitor://localhost', 'http://localhost', 'https://localhost', 'ionic://localhost'];
@@ -170,7 +171,12 @@ async function api(req, env, ctx, url) {
   if (p === '/api/discord/callback' && m === 'GET') return dcCallback(req, env, url);
   if (p === '/api/discord/resetup' && m === 'POST') { // aangeroepen door de GitHub-workflow; sleutel = SHA-256 van de bot-token
     const k = req.headers.get('x-setup-key') || ''; const h = env.DISCORD_BOT_TOKEN ? [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(env.DISCORD_BOT_TOKEN)))].map(b => b.toString(16).padStart(2, '0')).join('') : null;
-    if (!h || k !== h) return err(403, 'Geen toegang.'); return json(await dcSetup(env, true)); }
+    if (!h || k !== h) return err(403, 'Geen toegang.'); const cmds = await registerCommands(env, true).catch(e => ({ error: e.message })); return json({ ...(await dcSetup(env, true)), commands: cmds }); }
+  if (p === '/api/discord/translate' && m === 'POST') { // GitHub-workflow: oude Nederlandse botberichten naar het Engels vertalen
+    const k = req.headers.get('x-setup-key') || ''; const h = env.DISCORD_BOT_TOKEN ? [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(env.DISCORD_BOT_TOKEN)))].map(b => b.toString(16).padStart(2, '0')).join('') : null;
+    if (!h || k !== h) return err(403, 'Geen toegang.'); await loadDict(env); const b = await readJSON(req, 512 * 1024);
+    const links = b.wantLinks ? (await env.DB.prepare('SELECT d.discord_id,d.dm,p.settings FROM dc_links d LEFT JOIN prefs p ON p.user_id=d.user_id').all()).results.map(r => ({ id: r.discord_id, dm: r.dm, lang: langOf(r.settings) })) : undefined;
+    return json({ items: (b.items || []).map(x => enPayload(x)), links }); }
   if (p.startsWith('/api/discord/')) { if (!s) return needAuth(); if (p === '/api/discord/setup' && !isAdmin(env, s)) return err(403, 'Alleen voor beheerders.'); const r = await dcApi(req, env, s, p, m, url); if (r) return r; }
   if (p.startsWith('/api/mail/')) { const r = await mailApi(req, env, s, p, m, url); if (r) return r; if (!s) return needAuth(); }
   if (p.startsWith('/api/paper') || p === '/api/quote' || p === '/api/board' || p === '/api/history') { if (!s && p !== '/api/quote' && p !== '/api/history') return needAuth();
@@ -255,7 +261,7 @@ function amsLocal(t) { const p = new Intl.DateTimeFormat('en-US', { timeZone: 'E
 function localHM(tz = 'Europe/Amsterdam') { const p = new Intl.DateTimeFormat('nl-NL', { timeZone: tz, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date()); return +p.find(x => x.type === 'hour').value * 60 + +p.find(x => x.type === 'minute').value; }
 function inQuiet(st) { if (!st.quiet) return false; const m = localHM(); const [fh, fm] = (st.quietFrom || '23:00').split(':').map(Number), [th, tm] = (st.quietTo || '07:00').split(':').map(Number); const f = fh * 60 + fm, t = th * 60 + tm; return f < t ? (m >= f && m < t) : (m >= f || m < t); }
 async function dispatch(env, fresh, b, state, extra = {}) {
-  const now = Date.now(); const ops = []; const gone = new Set();
+  await loadDict(env); const now = Date.now(); const ops = []; const gone = new Set();
   const subsRows = (await env.DB.prepare('SELECT s.endpoint,s.user_id,s.p256dh,s.auth,p.settings,p.watch,p.rem,u.plan FROM push_subs s JOIN users u ON u.id=s.user_id LEFT JOIN prefs p ON p.user_id=s.user_id').all()).results;
   const subsBy = {}; for (const r of subsRows) (subsBy[r.user_id] = subsBy[r.user_id] || []).push(r);
   if (dcReady(env)) { const D = (await env.DB.prepare('SELECT d.user_id,p.settings,p.watch,p.rem,u.plan FROM dc_links d JOIN users u ON u.id=d.user_id LEFT JOIN prefs p ON p.user_id=d.user_id').all()).results; for (const r of D) if (!subsBy[r.user_id]) subsBy[r.user_id] = [{ ...r, endpoint: null }]; }
@@ -288,12 +294,12 @@ async function dispatch(env, fresh, b, state, extra = {}) {
   // 3. versturen + loggen in het meldingencentrum (push, en Discord als gekoppeld)
   const dc = dcReady(env) && Object.keys(out).length ? Object.fromEntries((await env.DB.prepare('SELECT d.*,p.settings FROM dc_links d LEFT JOIN prefs p ON p.user_id=d.user_id').all()).results.map(r => [r.user_id, r])) : {};
   for (const [uid, msgs] of Object.entries(out)) {
-    if (dc[uid] && b.take()) { const ds = JSON.parse(dc[uid].settings || '{}'); const off = ds.dcOff || []; const L = ds.dcPause ? [] : msgs.slice(0, 4).filter(x => !off.includes(x.cat)); if (L.length) await dcSend(env, dc[uid], dcFormat(L)).catch(() => null); }
+    if (dc[uid] && b.take()) { const ds = JSON.parse(dc[uid].settings || '{}'); const off = ds.dcOff || []; const L = ds.dcPause ? [] : msgs.slice(0, 4).filter(x => !off.includes(x.cat)); if (L.length) await dcSend(env, dc[uid], dcFormat(L, langOf(ds))).catch(() => null); }
     for (const msg of msgs.slice(0, 4)) {
       ops.push(env.DB.prepare('INSERT OR IGNORE INTO notif(id,user_id,title,body,url,cat,score,t) VALUES(?,?,?,?,?,?,?,?)').bind(msg.tag + ':' + now, uid, msg.title, msg.body || '', msg.url || '/', msg.cat || '', msg.score ?? null, now));
       if (msg.cat !== 'alert' && msg.cat !== 'reminder' && msg.cat !== 'order') ops.push(env.DB.prepare('INSERT INTO sent(user_id,key,t) VALUES(?,?,?) ON CONFLICT(user_id,key) DO UPDATE SET t=excluded.t').bind(uid, msg.key, now));
       for (const sub of subsBy[uid] || []) { if (!sub.endpoint || gone.has(sub.endpoint) || !b.take()) continue;
-        const res = await sendPush(env, sub, { title: msg.title, body: msg.body, url: msg.url, link: msg.link || null, tag: msg.tag, urgency: msg.cat === 'alert' || msg.cat === 'order' ? 'high' : 'normal', cat: msg.cat, score: msg.score ?? null, important: msg.cat === 'alert' || msg.cat === 'order' || (msg.score || 0) >= 80 }).catch(e => 'fail:' + e.message);
+        const lg = langOf(sub.settings); const res = await sendPush(env, sub, { title: tx(lg, msg.title), body: tx(lg, msg.body), url: msg.url, link: msg.link || null, tag: msg.tag, urgency: msg.cat === 'alert' || msg.cat === 'order' ? 'high' : 'normal', cat: msg.cat, score: msg.score ?? null, important: msg.cat === 'alert' || msg.cat === 'order' || (msg.score || 0) >= 80 }).catch(e => 'fail:' + e.message);
         if (res === 'gone') { gone.add(sub.endpoint); ops.push(env.DB.prepare('DELETE FROM push_subs WHERE endpoint=?').bind(sub.endpoint)); } }
     }
   }
@@ -302,15 +308,15 @@ async function dispatch(env, fresh, b, state, extra = {}) {
 async function morning(env) {
   const st = await loadState(env, ['tickers', 'ticks', 'names', 'candles', 'news', 'extra']); if (!st.tickers) return;
   const ev = (await env.DB.prepare('SELECT data FROM events WHERE first>?').bind(Date.now() - DAY).all()).results.map(x => JSON.parse(x.data));
-  const br = buildBriefing(st, ev, analyse(st)); await kvPutStmt(env, 'briefing', br).run();
+  const br = buildBriefing(st, ev, analyse(st)); await kvPutStmt(env, 'briefing', br).run(); await loadDict(env);
   const rows = (await env.DB.prepare('SELECT s.endpoint,s.user_id,s.p256dh,s.auth,p.settings,u.plan FROM push_subs s JOIN users u ON u.id=s.user_id LEFT JOIN prefs p ON p.user_id=s.user_id').all()).results;
   const b = budget(45); const ops = []; const logged = new Set(); const now = Date.now();
   for (const r of rows) { const st2 = { ...DEFAULT_SETTINGS, ...JSON.parse(r.settings || '{}') }; if (st2.briefing === false) continue; if (env.PREMIUM_ENFORCED === 'true' && tierRank(r.plan) < 1) continue;
     if (!logged.has(r.user_id)) { logged.add(r.user_id); ops.push(env.DB.prepare('INSERT OR IGNORE INTO notif(id,user_id,title,body,url,cat,score,t) VALUES(?,?,?,?,?,?,?,?)').bind('brief:' + br.day, r.user_id, 'Ochtendbriefing · ' + br.day, br.headline, '/app#briefing', 'briefing', null, now)); }
-    if (!b.take()) continue; const res = await sendPush(env, r, { title: 'Vantis ochtendbriefing', body: br.headline, url: '/app#briefing', tag: 'briefing' }).catch(() => 'fail');
+    if (!b.take()) continue; const lg = langOf(r.settings); const res = await sendPush(env, r, { title: lg === 'nl' ? 'Vantis ochtendbriefing' : 'Vantis morning briefing', body: tx(lg, br.headline), url: '/app#briefing', tag: 'briefing' }).catch(() => 'fail');
     if (res === 'gone') ops.push(env.DB.prepare('DELETE FROM push_subs WHERE endpoint=?').bind(r.endpoint)); }
   if (dcReady(env)) { const T = (await env.DB.prepare('SELECT d.*,p.settings FROM dc_links d LEFT JOIN prefs p ON p.user_id=d.user_id').all()).results;
-    for (const r of T) { const st2 = JSON.parse(r.settings || '{}'); if (st2.briefing === false || st2.dcPause || (st2.dcOff || []).includes('briefing') || !b.take()) continue; await dcSend(env, r, briefingEmbed(br)).catch(() => null); } }
+    for (const r of T) { const st2 = JSON.parse(r.settings || '{}'); if (st2.briefing === false || st2.dcPause || (st2.dcOff || []).includes('briefing') || !b.take()) continue; await dcSend(env, r, briefingEmbed(br, langOf(r.settings))).catch(() => null); } }
   await dcPublic(env, briefingEmbed(br)).catch(() => null);
   if (ops.length) await env.DB.batch(ops);
 }
