@@ -1213,6 +1213,46 @@ a.acnext:hover b{text-decoration:underline}
 .sb-coach{background:rgba(180,140,242,.16);color:#CDB2FF;border-color:rgba(180,140,242,.35)}.sb-analist{background:rgba(77,182,229,.15);color:#8FD3F2;border-color:rgba(77,182,229,.35)}.sb-support{background:rgba(242,155,75,.15);color:#F7B57A;border-color:rgba(242,155,75,.35)}
 :root[data-theme=light] .sb-admin{color:#C2272D}:root[data-theme=light] .sb-moderator{color:#18834A}:root[data-theme=light] .sb-coach{color:#6E43C9}:root[data-theme=light] .sb-analist{color:#1F7EA8}:root[data-theme=light] .sb-support{color:#B5621C}
 
+/* =====================================================================
+   v13 — Vantis AI
+   ===================================================================== */
+#aiwrap{position:fixed;right:20px;bottom:20px;z-index:120}
+.aifab{display:flex;align-items:center;gap:7px;height:48px;padding:0 18px 0 14px;border-radius:999px;border:1px solid var(--hair,var(--line2));background:var(--metal,var(--navy3));color:var(--accentInk,#0b0b0b);font-weight:800;font-size:14px;letter-spacing:.04em;cursor:pointer;box-shadow:0 12px 32px rgba(0,0,0,.35)}
+.aifab svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round}
+.aifab:hover{transform:translateY(-1px)}#aiwrap.open .aifab{display:none}
+.aip{position:fixed;right:20px;bottom:20px;width:min(420px,calc(100vw - 24px));height:min(680px,calc(100vh - 100px));display:flex;flex-direction:column;background:linear-gradient(var(--panel),var(--panel)),var(--bg);border:1px solid var(--line2);border-radius:18px;box-shadow:0 30px 80px rgba(0,0,0,.45);overflow:hidden;animation:aiin .18s ease-out}
+@keyframes aiin{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.aip{animation:none}}
+.aiph{display:flex;align-items:center;gap:11px;padding:14px 14px 10px 16px}.aiph>div{flex:1;min-width:0;display:flex;flex-direction:column}.aiph small{color:var(--ink2);font-size:12px}
+.aiicon{display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:var(--metal,var(--navy3));color:var(--accentInk,#0b0b0b)}.aiicon svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8}
+.aitabs{margin:0 16px 8px}
+.aipb{flex:1;min-height:0;display:flex;flex-direction:column}
+.aimsgs{flex:1;overflow-y:auto;padding:6px 16px 12px;display:flex;flex-direction:column;gap:10px;overscroll-behavior:contain}
+.aiwelc p{color:var(--ink2);font-size:13.5px;line-height:1.5}.aisug{display:flex;flex-wrap:wrap;gap:6px}.aisug .chip{font-size:12.5px}
+.aim{align-self:flex-start;max-width:92%}.aim.me{align-self:flex-end}
+.aim.me p{margin:0;padding:9px 13px;border-radius:16px 16px 5px 16px;background:var(--navy2,var(--bg3));box-shadow:inset 0 0 0 1px var(--line2);font-size:14px;white-space:pre-wrap;overflow-wrap:anywhere}
+.aibody{padding:10px 13px;border-radius:16px 16px 16px 5px;background:var(--bg3);font-size:14px;line-height:1.5}.aibody p{margin:0 0 8px}.aibody p:last-child{margin:0}.aibody ul{margin:4px 0 8px;padding-left:18px}.aibody li{margin:2px 0}
+.aifcs{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.aifc{padding:10px 12px;border:1px solid var(--line2);border-radius:12px;background:var(--bg2)}
+.aifh{display:flex;align-items:baseline;gap:8px}.aifh .faint{font-size:12px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.aiflab{font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--bg3);color:var(--ink2)}.aiflab.up{color:var(--up,#2BB673)}.aiflab.down{color:var(--down,#E5484D)}
+.aibar{position:relative;height:6px;margin:9px 0 8px;border-radius:3px;background:linear-gradient(90deg,var(--down,#E5484D),var(--bg3) 50%,var(--up,#2BB673))}.aibar i{position:absolute;top:-4px;width:3px;height:14px;margin-left:-1.5px;border-radius:2px;background:var(--ink)}
+.aifs{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--ink2)}.aifs b{color:var(--ink);font-variant-numeric:tabular-nums}
+.aiacts{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px}.aiacts small{width:100%;font-size:11.5px}
+.aiact svg,.aidone svg{width:14px;height:14px;margin-right:4px;fill:none;stroke:currentColor;stroke-width:2}.aiact.confirm{outline:2px solid var(--focus,var(--navy3));outline-offset:1px}
+.aidone{display:inline-flex;align-items:center;font-size:12.5px;color:var(--up,#2BB673);font-weight:600}
+.aitype{display:flex;gap:4px;padding:12px 14px;border-radius:16px;background:var(--bg3)}.aitype span{width:6px;height:6px;border-radius:50%;background:var(--ink3);animation:aidot 1s infinite}.aitype span:nth-child(2){animation-delay:.15s}.aitype span:nth-child(3){animation-delay:.3s}
+@keyframes aidot{0%,60%,100%{opacity:.3}30%{opacity:1}}
+.aif{display:flex;align-items:flex-end;gap:8px;padding:10px 12px;border-top:1px solid var(--line)}
+.aif textarea{flex:1;min-width:0;resize:none;min-height:40px;max-height:120px;padding:9px 12px;border:1px solid var(--line2);border-radius:12px;background:var(--bg2);color:var(--ink);font:inherit;font-size:14px;line-height:1.45;outline:none}.aif textarea:focus{border-color:var(--focus,var(--navy3))}
+.aif .btn{width:42px;padding:0;justify-content:center}.aif .btn svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2}
+.aiauto{flex:1;overflow-y:auto;padding:4px 16px 16px}.aiauto .set p{font-size:13px}
+.aiaf{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:6px 0}.aiaf label{display:flex;flex-direction:column;gap:5px;font-size:12.5px;font-weight:600;color:var(--ink2)}.aiaf .inp{width:100%}
+.aih3{font-size:14px;margin:16px 0 6px}.ailog div{display:grid;grid-template-columns:auto auto 1fr;gap:2px 8px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}.ailog small{grid-column:1/-1;font-size:11.5px}.ailog span:nth-child(3){text-align:right;font-variant-numeric:tabular-nums}
+.aiasset .chead h2{display:flex;align-items:center;gap:8px}.aiasset .chead h2 svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8}.aiasset button.lnk{background:none;border:0;cursor:pointer;font:inherit;font-size:13px;font-weight:600}
+@media (max-width:900px){#aiwrap{right:14px;bottom:calc(78px + env(safe-area-inset-bottom))}.aifab{height:44px;padding:0 14px 0 12px}
+  .aip{right:0;bottom:0;width:100vw;height:calc(100dvh - 0px);border-radius:0;border:0}}
+
 </style>
 </head>
 <body>
@@ -4971,6 +5011,74 @@ const ROLEN={founder:'Founder',senior_partner:'Senior Partner',admin:'Admin',mod
 const staffBadge=r=>r&&ROLEN[r]?`<span class="sbadge sb-${r}">${ROLEN[r]}</span>`:'';
 function roleSelect(u){const R=(ADM.roles||[]);const can=id=>!id||(R.find(x=>x.id===id)||{}).canGive;const cur=u.role||'';const me=Api.user||{};
   const locked=cur&&!can(cur);return `<select class="inp sm" data-urole="${esc(u.id)}" style="width:auto" ${locked?'disabled title="Je kunt deze rol niet wijzigen"':''}><option value="">Geen rol</option>${Object.entries(ROLEN).map(([k,n])=>`<option value="${k}" ${cur===k?'selected':''} ${can(k)||cur===k?'':'disabled'}>${n}</option>`).join('')}</select>`}
+
+/* =====================================================================
+   v13 — Vantis AI: chat-pop-up met voorspellingen, oefenorders en autopilot
+   ===================================================================== */
+IC.spark='<path d="M12 3l1.8 4.9L19 9.7l-5.2 1.8L12 16.5l-1.8-5-5.2-1.8 5.2-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>';
+IC.robot='<rect x="4" y="8" width="16" height="11" rx="3"/><path d="M12 4v4M9 13h.01M15 13h.01M9.5 16.5h5"/>';
+const AI={open:false,tab:'chat',busy:false,msgs:LS.get('aichat',[]),auto:null,
+  lang(){return S.settings.lang==='en'?'en':'nl'},
+  save(){this.msgs=this.msgs.slice(-24);LS.set('aichat',this.msgs)}};
+const aiMd=t=>esc(t).replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>').replace(/^[•\-*] (.+)$/gm,'<li>$1</li>').replace(/(<li>[\s\S]*?<\/li>)(?!\s*<li>)/g,'<ul>$1</ul>').replace(/<\/ul>\s*<ul>/g,'').replace(/\n{2,}/g,'</p><p>').replace(/\n/g,'<br>');
+const aiFc=f=>{const c=f.score>=12?'up':f.score<=-12?'down':'';const pos=Math.max(0,Math.min(100,(f.score+100)/2));
+  return `<div class="aifc"><div class="aifh"><b>${esc(f.sym)}</b><span class="faint">${esc(f.name&&f.name!==f.sym?f.name:'')}</span><span class="aiflab ${c}">${esc(f.label)}</span></div>
+    <div class="aibar" title="Modelscore ${f.score}"><i style="left:${pos}%"></i></div>
+    <div class="aifs"><span>Kans hoger (7 d) <b>${nlN(f.pUp,0)}%</b></span><span>Bandbreedte <b>${pct(f.range[0],1)} – ${pct(f.range[1],1)}</b></span><span>Trefkans model <b>${f.hitRate!=null?nlN(f.hitRate,0)+'%':'—'}</b></span></div></div>`};
+const aiAct=(a,i,mi)=>`<button class="btn sm ${a.side==='sell'?'ghost':''} aiact" data-mi="${mi}" data-ai="${i}">${ico(a.side==='buy'?'up':'down')}${a.side==='buy'?'Koop':'Verkoop'} ${a.all?'alle':a.eur!=null?eur2(a.eur):''} ${esc(a.sym)}</button>`;
+function aiMsgHTML(m,mi){if(m.role==='user')return `<div class="aim me"><p data-noi18n>${esc(m.content)}</p></div>`;
+  return `<div class="aim"><div class="aibody" data-noi18n><p>${aiMd(m.content)}</p></div>${(m.fc||[]).length?`<div class="aifcs">${m.fc.slice(0,4).map(aiFc).join('')}</div>`:''}${(m.acts||[]).length?`<div class="aiacts">${m.acts.map((a,i)=>a.done?`<span class="aidone">${ico('check')}${esc(a.done)}</span>`:aiAct(a,i,mi)).join('')}<small class="faint">Met oefengeld, na bevestiging.</small></div>`:''}</div>`}
+function aiPanelHTML(){const sug=AI.lang()==='en'?['What should I buy now?','What will BTC do this week?','How is my portfolio doing?','Explain RSI simply']:['Wat moet ik nu kopen?','Wat doet BTC deze week?','Hoe staat mijn portefeuille ervoor?','Leg RSI simpel uit'];
+  return `<div class="aip" role="dialog" aria-label="Vantis AI"><div class="aiph"><span class="aiicon">${ico('spark')}</span><div><b>Vantis AI</b><small>Voorspellingen, uitleg en handelen met oefengeld</small></div><button class="ibtn" id="aix" aria-label="Sluiten">${ico('x')}</button></div>
+    <div class="seg aitabs"><button data-aitab="chat" class="${AI.tab==='chat'?'on':''}">Chat</button><button data-aitab="auto" class="${AI.tab==='auto'?'on':''}">Autopilot</button></div>
+    <div class="aipb" id="aipb">${AI.tab==='chat'?`<div class="aimsgs" id="aimsgs">${AI.msgs.length?AI.msgs.map(aiMsgHTML).join(''):`<div class="aiwelc"><p>Vraag wat je wilt over de markt. Ik gebruik het Vantis-model: het rekent per munt of aandeel de kans uit dat de koers over 7 dagen hoger staat, en hoe vaak dat model er in het verleden goed mee zat.</p><div class="aisug">${sug.map(s=>`<button class="chip" data-aisug="${esc(s)}">${esc(s)}</button>`).join('')}</div></div>`}</div>
+      <form class="aif" id="aif"><textarea name="q" rows="1" maxlength="1500" placeholder="Vraag het Vantis AI…" aria-label="Vraag aan Vantis AI"></textarea><button class="btn" aria-label="Versturen">${ico('send')}</button></form>`:aiAutoHTML()}</div></div>`}
+function aiAutoHTML(){const c=AI.auto;if(!c)return `<div class="aiauto"><p class="muted">Laden…</p></div>`;
+  const R={voorzichtig:'Voorzichtig: alleen sterke signalen, kleine posities, stop-loss bij −8%.',normaal:'Normaal: sterke en redelijke signalen, stop-loss bij −12%.',actief:'Actief: meer posities en eerder instappen, stop-loss bij −18%.'};
+  return `<div class="aiauto"><div class="set" style="padding-top:0"><div><b>Autopilot</b><p>Vantis AI handelt zelf voor je met je oefengeld, op basis van het Vantis-model. Hij koopt bij sterke signalen, verkoopt als het signaal omslaat of de stop-loss geraakt wordt, en houdt altijd minimaal 20% vrij saldo aan. Hij raakt alleen posities aan die hij zelf heeft gekocht.</p></div><label class="sw"><input type="checkbox" id="apon" ${c.on?'checked':''}><span></span></label></div>
+    <div class="aiaf"><label>Risico<select class="inp sm" id="aprisk">${['voorzichtig','normaal','actief'].map(k=>`<option value="${k}" ${c.risk===k?'selected':''}>${k[0].toUpperCase()+k.slice(1)}</option>`).join('')}</select></label>
+      <label>Markten<select class="inp sm" id="apuni">${[['alles','Crypto en aandelen'],['crypto','Alleen crypto'],['stocks','Alleen aandelen']].map(([k,l])=>`<option value="${k}" ${c.universe===k?'selected':''}>${l}</option>`).join('')}</select></label>
+      <label>Max. per aankoop<input class="inp sm" id="apmax" inputmode="numeric" value="${c.max||1000}"></label>
+      <label>Controleren<select class="inp sm" id="apevery">${[[1,'Elk uur'],[4,'Elke 4 uur'],[12,'Elke 12 uur'],[24,'Elke dag']].map(([k,l])=>`<option value="${k}" ${+c.every===k?'selected':''}>${l}</option>`).join('')}</select></label></div>
+    <p class="note" id="aprisknote">${R[c.risk]||R.normaal}</p>
+    <div class="row" style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn sm" id="apsave">Opslaan</button><button class="btn ghost sm" id="aprun" ${c.on?'':'disabled'}>Nu controleren</button></div>
+    <h3 class="aih3">Laatste acties</h3>${(c.log||[]).length?`<div class="ailog">${c.log.slice().reverse().slice(0,12).map(x=>`<div><span class="otag ${x.side}">${x.side==='buy'?'Koop':'Verkoop'}</span><b>${esc(x.sym)}</b><span>${eur2(x.eur)}</span><small class="faint">${esc(x.why||'')} · ${dmy(x.t)} ${hhmm(x.t)}</small></div>`).join('')}</div>`:'<p class="muted sm">Nog geen acties. Zet de autopilot aan; hij controleert de markt op het gekozen ritme.</p>'}
+    <p class="disc" style="margin-top:12px">Werkt alleen met oefengeld. Het model geeft kansen, geen zekerheden; ook de autopilot kan verlies maken.</p></div>`}
+
+function aiRender(){let w=$('#aiwrap');if(!w){document.body.insertAdjacentHTML('beforeend',`<div id="aiwrap"><button class="aifab" id="aifab" aria-label="Open Vantis AI" title="Vantis AI">${ico('spark')}<span>AI</span></button><div id="aipane"></div></div>`);w=$('#aiwrap');aiBind(w)}
+  w.classList.toggle('open',AI.open);$('#aipane').innerHTML=AI.open?aiPanelHTML():'';if(AI.open){const m=$('#aimsgs');if(m)m.scrollTop=m.scrollHeight;if(AI.tab==='auto'&&!AI.auto)aiLoadAuto();const ta=$('#aif textarea');if(ta&&window.innerWidth>700)ta.focus()}}
+async function aiLoadAuto(){if(!Api.authed){AI.auto={on:false,risk:'normaal',universe:'alles',max:1000,every:4,log:[]};}else try{AI.auto=await Api.call('/api/ai/autopilot')}catch(e){AI.auto={on:false,risk:'normaal',universe:'alles',max:1000,every:4,log:[]}}if(AI.open&&AI.tab==='auto')$('#aipb').innerHTML=aiAutoHTML()}
+async function aiAsk(q){if(AI.busy||!q.trim())return;if(!Api.authed){UI.toast({title:'Log in om Vantis AI te gebruiken'});return}
+  AI.msgs.push({role:'user',content:q.trim()});AI.busy=true;AI.save();aiRender();const m=$('#aimsgs');m.insertAdjacentHTML('beforeend','<div class="aim aitype" id="aityping"><span></span><span></span><span></span></div>');m.scrollTop=m.scrollHeight;
+  try{const r=await Api.call('/api/ai/chat',{method:'POST',body:{lang:AI.lang(),messages:AI.msgs.map(x=>({role:x.role,content:x.content}))}});AI.msgs.push({role:'assistant',content:r.reply,fc:r.forecasts||[],acts:r.actions||[]})}
+  catch(e){AI.msgs.push({role:'assistant',content:e.message||'Er ging iets mis. Probeer het opnieuw.'})}
+  AI.busy=false;AI.save();aiRender()}
+function aiBind(w){
+  w.addEventListener('click',async e=>{const t=e.target;
+    if(t.closest('#aifab')){AI.open=!AI.open;aiRender();return}
+    if(t.closest('#aix')){AI.open=false;aiRender();return}
+    const tb=t.closest('[data-aitab]');if(tb){AI.tab=tb.dataset.aitab;aiRender();return}
+    const sg=t.closest('[data-aisug]');if(sg){aiAsk(sg.dataset.aisug);return}
+    const ab=t.closest('[data-ai]');if(ab){const msg=AI.msgs[+ab.dataset.mi],a=msg&&msg.acts&&msg.acts[+ab.dataset.ai];if(!a)return;
+      if(!ab.classList.contains('confirm')){ab.classList.add('confirm');ab.innerHTML=`${ico('check')}Bevestigen: ${a.side==='buy'?'koop':'verkoop'} ${a.all?'alle':a.eur!=null?eur2(a.eur):''} ${esc(a.sym)}`;setTimeout(()=>{if(ab.isConnected&&ab.classList.contains('confirm')){ab.classList.remove('confirm');ab.innerHTML=aiAct(a,+ab.dataset.ai,+ab.dataset.mi).replace(/^<button[^>]*>|<\/button>$/g,'')}},6000);return}
+      ab.disabled=true;try{await PT.order({sym:a.sym,side:a.side,kind:a.kind||kindOf(a.sym),type:'market',...(a.all?{all:true}:{eur:a.eur}),note:'Via Vantis AI'});a.done=`${a.side==='buy'?'Gekocht':'Verkocht'}: ${a.all?'alle':eur2(a.eur)} ${a.sym}`;AI.save();aiRender();UI.toast({kind:'success',title:a.done,body:'Met oefengeld. Bekijk het bij Handelen.'})}
+      catch(x){ab.disabled=false;UI.toast({kind:'error',title:'Order niet gelukt',body:x.message})}return}
+    if(t.closest('#apsave')||t.closest('#aprun')){const run=!!t.closest('#aprun');const b={on:$('#apon').checked,risk:$('#aprisk').value,universe:$('#apuni').value,max:+String($('#apmax').value).replace(/\D/g,'')||1000,every:+$('#apevery').value,runNow:run||undefined,keepLast:!run};
+      const bt=t.closest('button');bt.disabled=true;try{AI.auto=await Api.call('/api/ai/autopilot',{method:'PUT',body:b});$('#aipb').innerHTML=aiAutoHTML();
+        UI.toast({kind:'success',title:run?(AI.auto.ran&&AI.auto.ran.length?`Autopilot: ${AI.auto.ran.length} ${AI.auto.ran.length===1?'transactie':'transacties'}`:'Autopilot: geen actie nodig'):(b.on?'Autopilot staat aan':'Autopilot staat uit'),body:run&&AI.auto.ran&&!AI.auto.ran.length?'Er zijn nu geen signalen die sterk genoeg zijn.':''});if(run)PT.load()}
+      catch(x){bt.disabled=false;UI.toast({kind:'error',title:'Niet gelukt',body:x.message})}}});
+  w.addEventListener('change',e=>{if(e.target.id==='aprisk'){const R={voorzichtig:'Voorzichtig: alleen sterke signalen, kleine posities, stop-loss bij −8%.',normaal:'Normaal: sterke en redelijke signalen, stop-loss bij −12%.',actief:'Actief: meer posities en eerder instappen, stop-loss bij −18%.'};$('#aprisknote').textContent=R[e.target.value]}});
+  w.addEventListener('submit',e=>{if(e.target.id!=='aif')return;e.preventDefault();const ta=e.target.q;const v=ta.value;ta.value='';aiAsk(v)});
+  w.addEventListener('keydown',e=>{if(e.target.matches('#aif textarea')&&e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();e.target.form.requestSubmit()}if(e.key==='Escape'&&AI.open){AI.open=false;aiRender();$('#aifab')?.focus()}});
+  w.addEventListener('input',e=>{if(e.target.matches('#aif textarea')){e.target.style.height='auto';e.target.style.height=Math.min(120,e.target.scrollHeight)+'px'}})}
+setTimeout(aiRender,800);
+
+/* Vantis-model op de pagina van een munt of aandeel */
+{const am=Pages.asset.mount;Pages.asset.mount=function(el,arg){am&&am.call(this,el,arg);const sym=String(arg||'').toUpperCase();if(!sym)return;
+  const host=$('.card',el);if(!host)return;const box=document.createElement('div');box.className='card aiasset';box.innerHTML=`<div class="chead"><h2>${ico('spark')}Vantis-model</h2><button class="lnk" id="aiaskasset">Vraag Vantis AI</button></div><div class="aifbody"><p class="muted">Vooruitzicht berekenen…</p></div>`;host.insertAdjacentElement('afterend',box);
+  $('#aiaskasset',box).onclick=()=>{AI.open=true;AI.tab='chat';aiRender();aiAsk(S.settings.lang==='en'?`What will ${sym} do this week?`:`Wat doet ${sym} deze week?`)};
+  fetch(API_BASE+'/api/ai/forecast?sym='+encodeURIComponent(sym)).then(r=>r.ok?r.json():null).then(f=>{const b=$('.aifbody',box);if(!b)return;if(!f){b.innerHTML='<p class="muted">Te weinig koershistorie voor een vooruitzicht.</p>';return}
+    b.innerHTML=aiFc(f)+`<p class="note" style="margin:10px 0 0">Kans dat de koers over 7 dagen hoger staat, met de bandbreedte waarbinnen hij waarschijnlijk (80%) uitkomt. Getest op ${f.tested} eerdere signalen van ${esc(sym)}. Een model geeft kansen, geen zekerheden.</p>`}).catch(()=>{const b=$('.aifbody',box);if(b)b.innerHTML='<p class="muted">Vooruitzicht niet beschikbaar.</p>'})}}
 
 }
 </script>

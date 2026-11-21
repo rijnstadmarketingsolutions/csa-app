@@ -24,7 +24,7 @@ export async function priceFor(env, sym, kind, st) {
   return r;
 }
 
-async function account(env, uid, st) {
+export async function account(env, uid, st) {
   let a = await env.DB.prepare('SELECT cash,holdings,realized,fees,created,board,nick FROM paper WHERE user_id=?').bind(uid).first();
   if (!a) { const now = Date.now(); a = { cash: START, holdings: '{}', realized: 0, fees: 0, created: now, board: 0, nick: null }; st = st || await loadKV(env, ['tickers', 'xquotes', 'stocks', 'fx']);
     await env.DB.batch([env.DB.prepare('INSERT INTO paper(user_id,cash,holdings,updated,realized,fees,created) VALUES(?,?,?,?,0,0,?) ON CONFLICT(user_id) DO NOTHING').bind(uid, START, '{}', now, now), histStmt(env, uid, now, START, st)]); }
@@ -37,7 +37,7 @@ function valueOf(H, st, override) {
 }
 
 /* één transactie uitvoeren tegen koers q.p */
-async function execTrade(env, uid, o, q, via, st) {
+export async function execTrade(env, uid, o, q, via, st) {
   st = st || await loadKV(env, ['tickers', 'xquotes', 'stocks', 'fx']); const a = await account(env, uid, st); const H = JSON.parse(a.holdings || '{}'); const kind = o.kind || 'crypto';
   const h = H[o.sym] || { qty: 0, cost: 0, k: kind, t: Date.now() }; const price = q.p; let cash = a.cash, eur, qty, fee, pnl = null;
   if (!(price > 0)) throw new Error('Geen geldige koers.');

@@ -7,6 +7,7 @@ import { checkout, portal, webhook, stripeReady, plans } from './billing.js';
 import { adminApi, isAdmin } from './admin.js';
 import { handlePaper, paperCron, paperNeed, tradeStats } from './paper.js';
 import { handleSocial } from './social.js';
+import { handleAI, aiCron } from './ai.js';
 import { newsKw, weekly, mailApi, mailReady } from './notify.js';
 import { dcEnv, dcReady, dcApi, dcCallback, dcInteractions, dcSend, dcFormat, dcPublic, briefingEmbed, dcDaily } from './discord.js';
 
@@ -45,9 +46,11 @@ export default {
     if (hm >= 480 && hm < 485) return ctx.waitUntil(morning(env));
     if (hm >= 255 && hm < 260) return ctx.waitUntil(daily(env));
     if (L.wd === 'Sun' && hm >= 1080 && hm < 1085) return ctx.waitUntil(weekly(env));
+    if (L.m >= 30 && L.m < 35) return ctx.waitUntil(autopilot(env)); // elk uur: autopilot (eigen budget, daarom los van de scan)
     ctx.waitUntil(tick(env));
   }
 };
+async function autopilot(env) { try { const st = await loadState(env, ['tickers', 'names', 'candles', 'xquotes', 'stocks', 'fx']); if (!st.tickers) return; const r = await aiCron(env, st); await kvPutStmt(env, 'aistatus', { ...r, t: Date.now() }).run(); } catch (e) { console.error('autopilot', e.message); } }
 
 /* =================================================================== API */
 async function api(req, env, ctx, url) {
@@ -58,7 +61,7 @@ async function api(req, env, ctx, url) {
       if (url.searchParams.get('probefeeds')) { const bf = budget(8); probe.feeds = {}; for (const [n, u] of FEED_CANDIDATES) { try { probe.feeds[n] = parseRSS(await getText(u, bf), n).length + ' artikelen'; } catch (e) { probe.feeds[n] = 'fout: ' + e.message; } } }
       if (url.searchParams.get('probestock')) { const ps = await loadState(env, ['fx', 'tickers']); const b2 = budget(12); const fx = await usdPerEur(env, b2, ps); for (const sy of url.searchParams.get('probestock').toUpperCase().split(',').slice(0, 3)) { const r = await lookupStock(env, sy, b2, fx); probe['S:' + sy] = r.p ? { p: r.p, native: r.native, cur: r.cur, src: r.src, tried: r.tried } : { p: null, tried: r.tried }; } probe.fx = fx; }
       const xq = await loadState(env, ['xquotes']); return json({ probe, xquotes: Object.fromEntries(Object.entries(xq.xquotes || {}).map(([k, v]) => [k, v.p ? { p: v.p, src: v.src, age: Date.now() - v.u } : { miss: v.tried }])), version: VERSION, now: Date.now(), scanstart: st.scanstart || null, scan: st.scanstatus || null, prices: st.tickers ? { src: st.tickers.src || 'Bitvavo', n: (st.tickers.list || []).length, age: Date.now() - st.tickers.t, sample: Object.fromEntries(['BTC', 'ETH', 'SOL', 'XRP'].map(s => [s, (st.tickers.list || []).find(x => x.s === s)?.p ?? null])) } : null }); }
-    return json({ ok: true, version: VERSION, lastScan: st.marketTs || null, prices: st.tickers ? { src: st.tickers.src || 'Bitvavo', n: (st.tickers.list || []).length, t: st.tickers.t } : null, scanOk: st.scanstatus ? Object.fromEntries(Object.entries(st.scanstatus).filter(([, v]) => v && typeof v === 'object' && 'ok' in v).map(([k, v]) => [k, v.ok])) : null, data: { extra: st.extra ? { global: !!st.extra.global, fng: !!(st.extra.fng && st.extra.fng.length), trending: !!(st.extra.trending && st.extra.trending.length), errors: [st.extra.globalErr, st.extra.trendErr, st.extra.fngErr].filter(Boolean) } : null, news: st.news ? { items: (st.news.items || []).length, sources: st.news.sources || {} } : null }, features: { accounts: true, push: true, stripe: stripeReady(env), finnhub: !!env.FINNHUB_KEY, ai: false, premiumEnforced: env.PREMIUM_ENFORCED === 'true' , discord: dcReady(env), discordInvite: (await dcEnv(env)).DISCORD_INVITE || null, mail: mailReady(env)} }); }
+    return json({ ok: true, version: VERSION, lastScan: st.marketTs || null, prices: st.tickers ? { src: st.tickers.src || 'Bitvavo', n: (st.tickers.list || []).length, t: st.tickers.t } : null, scanOk: st.scanstatus ? Object.fromEntries(Object.entries(st.scanstatus).filter(([, v]) => v && typeof v === 'object' && 'ok' in v).map(([k, v]) => [k, v.ok])) : null, data: { extra: st.extra ? { global: !!st.extra.global, fng: !!(st.extra.fng && st.extra.fng.length), trending: !!(st.extra.trending && st.extra.trending.length), errors: [st.extra.globalErr, st.extra.trendErr, st.extra.fngErr].filter(Boolean) } : null, news: st.news ? { items: (st.news.items || []).length, sources: st.news.sources || {} } : null }, features: { accounts: true, push: true, stripe: stripeReady(env), finnhub: !!env.FINNHUB_KEY, ai: !!(env.AI || env.ANTHROPIC_API_KEY), premiumEnforced: env.PREMIUM_ENFORCED === 'true' , discord: dcReady(env), discordInvite: (await dcEnv(env)).DISCORD_INVITE || null, mail: mailReady(env)} }); }
 
   /* ---------- account ---------- */
   if (p === '/api/auth/username' && m === 'GET') { const u = cleanUsername(url.searchParams.get('u')); const e = await usernameError(env, u, null); return json({ ok: !e, error: e, username: u }); }
@@ -159,6 +162,7 @@ async function api(req, env, ctx, url) {
   if (pm && m === 'DELETE') { if (!s) return needAuth(); await env.DB.prepare('DELETE FROM positions WHERE id=? AND user_id=?').bind(+pm[1], s.user_id).run(); return json({ ok: true }); }
 
   /* ---------- oefenportefeuille (virtueel geld, koersen van de server) ---------- */
+  if (p.startsWith('/api/ai')) { const r = await handleAI(req, env, s, p, m, url, ctx); if (r) return r; }
   if (p.startsWith('/api/social')) { const r = await handleSocial(req, env, s, p, m, url, ctx); if (r) return r; }
   if (p === '/api/rewards' && m === 'GET') { if (!s) return needAuth(); return json(await tradeStats(env, s.user_id)); }
   if (p === '/api/brand' || p.startsWith('/api/widget') || p.startsWith('/api/admin/')) { const r = await adminApi(req, env, s, p, m, url); if (r) return r; if (!s) return needAuth(); }

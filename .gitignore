@@ -7,3 +7,4 @@ android/
 ios/
 tools/unlocks.sql
 wrangler.old.json
+wrangler.local.jsonc
