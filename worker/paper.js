@@ -25,8 +25,8 @@ export async function priceFor(env, sym, kind, st) {
 }
 
 export async function account(env, uid, st) {
-  let a = await env.DB.prepare('SELECT cash,holdings,realized,fees,created,board,nick FROM paper WHERE user_id=?').bind(uid).first();
-  if (!a) { const now = Date.now(); a = { cash: START, holdings: '{}', realized: 0, fees: 0, created: now, board: 0, nick: null }; st = st || await loadKV(env, ['tickers', 'xquotes', 'stocks', 'fx']);
+  let a = await env.DB.prepare('SELECT cash,holdings,realized,fees,created,board,nick,start FROM paper WHERE user_id=?').bind(uid).first();
+  if (!a) { const now = Date.now(); a = { cash: START, holdings: '{}', realized: 0, fees: 0, created: now, board: 0, nick: null, start: START }; st = st || await loadKV(env, ['tickers', 'xquotes', 'stocks', 'fx']);
     await env.DB.batch([env.DB.prepare('INSERT INTO paper(user_id,cash,holdings,updated,realized,fees,created) VALUES(?,?,?,?,0,0,?) ON CONFLICT(user_id) DO NOTHING').bind(uid, START, '{}', now, now), histStmt(env, uid, now, START, st)]); }
   return a;
 }
@@ -74,7 +74,7 @@ async function snapshot(env, uid, extra = {}) {
     env.DB.prepare('SELECT id,sym,kind,eur,every,next,active,created,last,runs,note FROM paper_dca WHERE user_id=? ORDER BY created DESC').bind(uid),
   ]);
   const bn = bench(st); if (!px.BTC && bn.btc) px.BTC = { p: bn.btc, src: 'bench' };
-  return { start: START, fee: FEE, cash: a.cash, holdings: H, realized: a.realized || 0, fees: a.fees || 0, created: a.created || null, px, board: !!a.board, nick: a.nick || null, bench: bn,
+  return { start: a.start || START, fee: FEE, cash: a.cash, holdings: H, realized: a.realized || 0, fees: a.fees || 0, created: a.created || null, px, board: !!a.board, nick: a.nick || null, bench: bn,
     trades: tr.results, transfers: tf.results, orders: od.results, hist: hi.results.reverse(), dca: dc.results, ...extra };
 }
 
@@ -82,10 +82,10 @@ async function snapshot(env, uid, extra = {}) {
 export async function handlePaper(req, env, s, p, m, url) {
   const uid = s.user_id;
   if (p === '/api/paper' && m === 'GET') return json(await snapshot(env, uid));
-  if (p === '/api/paper/reset' && m === 'POST') { const now = Date.now(); const prev = await tradeStats(env, uid);
-    await env.DB.batch([kvPutStmt(env, 'rw:' + uid, prev),env.DB.prepare('INSERT INTO paper(user_id,cash,holdings,updated,realized,fees,created) VALUES(?,?,?,?,0,0,?) ON CONFLICT(user_id) DO UPDATE SET cash=excluded.cash,holdings=excluded.holdings,updated=excluded.updated,realized=0,fees=0,created=excluded.created').bind(uid, START, '{}', now, now),
+  if (p === '/api/paper/reset' && m === 'POST') { const now = Date.now(); const prev = await tradeStats(env, uid); const S0 = (await env.DB.prepare('SELECT start FROM paper WHERE user_id=?').bind(uid).first())?.start || START;
+    await env.DB.batch([kvPutStmt(env, 'rw:' + uid, prev),env.DB.prepare('INSERT INTO paper(user_id,cash,holdings,updated,realized,fees,created) VALUES(?,?,?,?,0,0,?) ON CONFLICT(user_id) DO UPDATE SET cash=excluded.cash,holdings=excluded.holdings,updated=excluded.updated,realized=0,fees=0,created=excluded.created').bind(uid, S0, '{}', now, now), env.DB.prepare("DELETE FROM kv WHERE key=?").bind('pdep:' + uid),
       env.DB.prepare('DELETE FROM paper_trades WHERE user_id=?').bind(uid), env.DB.prepare('DELETE FROM paper_orders WHERE user_id=?').bind(uid), env.DB.prepare('DELETE FROM paper_hist WHERE user_id=?').bind(uid), env.DB.prepare('DELETE FROM paper_dca WHERE user_id=?').bind(uid),
-      histStmt(env, uid, now, START, await loadKV(env, ['tickers', 'xquotes', 'stocks', 'fx']))]);
+      histStmt(env, uid, now, S0, await loadKV(env, ['tickers', 'xquotes', 'stocks', 'fx']))]);
     return json(await snapshot(env, uid)); }
   if (p === '/api/paper/order' && m === 'POST') {
     const b = await readJSON(req); const sym = String(b.sym || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12); if (!sym) return err(400, 'Kies een asset.');
@@ -134,9 +134,10 @@ export async function handlePaper(req, env, s, p, m, url) {
     if (b.on) { const taken = await env.DB.prepare('SELECT user_id FROM paper WHERE board=1 AND lower(nick)=lower(?) AND user_id<>?').bind(nick, uid).first(); if (taken) return err(400, 'Deze schermnaam is al in gebruik.'); }
     await env.DB.prepare('UPDATE paper SET board=?, nick=COALESCE(?,nick) WHERE user_id=?').bind(b.on ? 1 : 0, nick || null, uid).run(); return json(await snapshot(env, uid)); }
   if (p === '/api/board' && m === 'GET') { const st = await loadKV(env, ['tickers', 'xquotes', 'stocks', 'fx']); const now = new Date(); const ms = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1);
-    const [rows, firsts] = await env.DB.batch([env.DB.prepare('SELECT user_id,cash,holdings,nick,created FROM paper WHERE board=1 LIMIT 200'), env.DB.prepare('SELECT h.user_id,h.value FROM paper_hist h JOIN paper p ON p.user_id=h.user_id AND p.board=1 WHERE h.t=(SELECT MIN(t) FROM paper_hist x WHERE x.user_id=h.user_id AND x.t>=?)').bind(ms)]);
+    const [rows, firsts] = await env.DB.batch([env.DB.prepare('SELECT user_id,cash,holdings,nick,created,start FROM paper WHERE board=1 LIMIT 200'), env.DB.prepare('SELECT h.user_id,h.value FROM paper_hist h JOIN paper p ON p.user_id=h.user_id AND p.board=1 WHERE h.t=(SELECT MIN(t) FROM paper_hist x WHERE x.user_id=h.user_id AND x.t>=?)').bind(ms)]);
     const first = Object.fromEntries(firsts.results.map(r => [r.user_id, r.value]));
-    const L = rows.results.map(r => { const H = JSON.parse(r.holdings || '{}'); const v = r.cash + valueOf(H, st); const m0 = first[r.user_id] || START; return { nick: r.nick, me: r.user_id === uid, value: r2(v), ret: (v / START - 1) * 100, month: (v / m0 - 1) * 100, pos: Object.keys(H).length, since: r.created }; });
+    const dep = {}; for (const r of (await env.DB.prepare("SELECT key,val FROM kv WHERE key LIKE 'pdep:%'").all()).results) { try { dep[r.key.slice(5)] = JSON.parse(r.val).filter(d => d.t >= ms).reduce((s2, d) => s2 + d.eur, 0); } catch (e) { } }
+    const L = rows.results.map(r => { const H = JSON.parse(r.holdings || '{}'); const v = r.cash + valueOf(H, st); const s0 = r.start || START; const m0 = (first[r.user_id] || s0) + (dep[r.user_id] || 0); return { nick: r.nick, me: r.user_id === uid, value: r2(v), ret: (v / s0 - 1) * 100, month: (v / m0 - 1) * 100, pos: Object.keys(H).length, since: r.created }; });
     return json({ all: L.slice().sort((a, b) => b.ret - a.ret), month: L.slice().sort((a, b) => b.month - a.month), monthStart: ms }); }
   const om = p.match(/^\/api\/paper\/orders\/(\d+)$/);
   if (om && m === 'DELETE') { await env.DB.prepare("UPDATE paper_orders SET status='cancelled',done=? WHERE id=? AND user_id=? AND status='open'").bind(Date.now(), +om[1], uid).run(); return json(await snapshot(env, uid)); }

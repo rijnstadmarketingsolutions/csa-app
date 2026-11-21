@@ -199,7 +199,7 @@ function portfolioReply(en, P, st) {
   if (!rows.length) return en ? `You don't hold any positions yet. Your available balance is ${eur(P.cash)}. Ask me "what should I buy?" or tell me what to buy, for example "buy 100 of BTC".` : `Je hebt nog geen posities. Je vrije saldo is ${eur(P.cash)}. Vraag "wat moet ik kopen?" of zeg wat je wilt kopen, bijvoorbeeld "koop 100 aan BTC".`;
   const part = kind => rows.filter(r => r.kind === kind).map(r => `• **${r.k}**: ${eur(r.val)} (${pc(r.ret)})`).join('\n');
   const c = part('crypto'), s2 = part('stock');
-  return (en ? `Your practice portfolio is worth **${eur(total)}** (${pc((total / 10000 - 1) * 100)} since the start), with ${eur(P.cash)} available.` : `Je oefenportefeuille is **${eur(total)}** waard (${pc((total / 10000 - 1) * 100)} sinds de start), met ${eur(P.cash)} vrij saldo.`)
+  return (en ? `Your practice portfolio is worth **${eur(total)}** (${pc((total / (P.start || 10000) - 1) * 100)} since the start), with ${eur(P.cash)} available.` : `Je oefenportefeuille is **${eur(total)}** waard (${pc((total / (P.start || 10000) - 1) * 100)} sinds de start), met ${eur(P.cash)} vrij saldo.`)
     + (c ? `\n\n${en ? 'Crypto' : 'Crypto'}:\n${c}` : `\n\n${en ? 'No crypto right now.' : 'Je hebt nu geen crypto.'}`) + (s2 ? `\n\n${en ? 'Stocks' : 'Aandelen'}:\n${s2}` : '');
 }
 const DISC = { en: 'Educational model outlook, not personal financial advice.', nl: 'Educatief modelvooruitzicht, geen persoonlijk financieel advies.' };
@@ -235,7 +235,7 @@ export async function handleAI(req, env, s, p, m, url, ctx) {
     { const w = q.toLowerCase().match(/[a-zà-ü']+/g) || []; const NL = new Set(['ik', 'je', 'jij', 'wat', 'welke', 'moet', 'heb', 'mijn', 'koop', 'kopen', 'verkoop', 'maar', 'aan', 'nu', 'het', 'een', 'de', 'van', 'voor', 'zou', 'nog', 'hoe', 'waarom', 'gaat', 'niet', 'ook', 'dat', 'deze', 'graag', 'oke', 'oké', 'nieuws', 'aandelen', 'munten', 'gebaseerd', 'op', 'er', 'wel', 'kun', 'kan', 'doen', 'stuk', 'welk']); const EN = new Set(['i', 'you', 'what', 'which', 'should', 'have', 'my', 'buy', 'sell', 'the', 'a', 'of', 'for', 'now', 'how', 'why', 'will', 'not', 'is', 'do', 'does', 'can', 'it', 'based', 'on', 'news', 'stocks', 'coins', 'some', 'please']);
       const n = w.filter(x => NL.has(x)).length, e = w.filter(x => EN.has(x)).length; if (n > e) en = false; else if (e > n) en = true; }
     const st = await kv(env, ['tickers', 'names', 'candles', 'xquotes', 'stocks', 'fx', 'extra', 'news', 'briefing']);
-    const P0 = await env.DB.prepare('SELECT cash,holdings FROM paper WHERE user_id=?').bind(s.user_id).first() || { cash: 10000, holdings: '{}' }; const PP = { cash: P0.cash, holdings: JSON.parse(P0.holdings || '{}') };
+    const P0 = await env.DB.prepare('SELECT cash,holdings,start FROM paper WHERE user_id=?').bind(s.user_id).first() || { cash: 10000, holdings: '{}', start: 10000 }; const PP = { start: P0.start, cash: P0.cash, holdings: JSON.parse(P0.holdings || '{}') };
     const lastSym = (Array.isArray(b.lastActions) && b.lastActions[0] && b.lastActions[0].sym) || symbolsIn(msgs.slice(0, -1).map(x => x.content).join(' '), st).slice(-1)[0] || null;
     const oi = orderIntent(q, st, lastSym);
     if (oi) { if (oi.side === 'sell' && !PP.holdings[oi.sym]) return json({ reply: en ? `You don't hold any ${oi.sym}, so there's nothing to sell.` : `Je hebt geen ${oi.sym}, dus er valt niets te verkopen.`, actions: [], forecasts: [], engine: 'vantis' });

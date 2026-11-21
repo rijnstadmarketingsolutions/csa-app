@@ -1,0 +1,47 @@
+name: Oefengeld storten
+on:
+  workflow_dispatch:
+    inputs:
+      wie:
+        description: 'E-mailadressen of gebruikersnamen, gescheiden door komma'
+        required: true
+      bedrag:
+        description: 'Bedrag in euro dat erbij komt'
+        required: true
+        default: '1000000'
+env:
+  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+jobs:
+  storten:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm ci --no-audit --no-fund || npm i --no-audit --no-fund
+      - name: Database-ID invullen
+        run: |
+          npx wrangler d1 list --json > d1.json
+          ID=$(python3 -c "import json;print(next((d.get('uuid') or d.get('id')) for d in json.load(open('d1.json')) if d.get('name')=='csa-db'))")
+          sed -i "s/00000000-0000-0000-0000-000000000000/$ID/" wrangler.jsonc
+      - name: Storten
+        env:
+          WIE: ${{ inputs.wie }}
+          BEDRAG: ${{ inputs.bedrag }}
+        run: |
+          python3 - <<'PY' > stort.sql
+          import os, re, time
+          amt = float(os.environ['BEDRAG']); assert 0 < amt <= 100_000_000
+          now = int(time.time() * 1000); out = []
+          for w in [x.strip().lower() for x in os.environ['WIE'].split(',') if x.strip()]:
+              assert re.fullmatch(r"[a-z0-9_.@+-]{2,80}", w), w
+              who = f"(SELECT id FROM users WHERE lower(email)='{w}' OR lower(username)='{w.lstrip('@')}')"
+              out += [f"INSERT INTO paper(user_id,cash,holdings,updated,realized,fees,created,start) SELECT id,10000,'{{}}',{now},0,0,{now},10000 FROM users WHERE id={who} ON CONFLICT(user_id) DO NOTHING;",
+                      f"UPDATE paper SET cash=cash+{amt}, start=start+{amt}, updated={now} WHERE user_id={who};",
+                      f"INSERT INTO kv(key,val,ts) SELECT 'pdep:'||id, json_array(json_object('t',{now},'eur',{amt})), {now} FROM users WHERE id={who} ON CONFLICT(key) DO UPDATE SET val=json_insert(kv.val,'$[#]',json_object('t',{now},'eur',{amt})), ts={now};"]
+          print('\n'.join(out))
+          PY
+          cat stort.sql
+          npx wrangler d1 execute csa-db --remote --file stort.sql
+          npx wrangler d1 execute csa-db --remote --command "SELECT u.email,u.username,p.cash,p.start FROM paper p JOIN users u ON u.id=p.user_id WHERE p.start>10000"
