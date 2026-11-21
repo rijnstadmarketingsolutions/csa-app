@@ -66,23 +66,24 @@ async function snapshot(env, uid, extra = {}) {
   const st = await loadKV(env, ['tickers', 'xquotes', 'stocks', 'fx']);
   const a = await account(env, uid, st); const H = JSON.parse(a.holdings || '{}');
   const px = {}; for (const [sym, h] of Object.entries(H)) { const q = cachedPx(st, sym, h.k || 'crypto', 6 * HOUR); if (q) px[sym] = { p: q.p, o: q.o ?? null, src: q.src, u: q.u, native: q.native ?? null, cur: q.cur || 'EUR' }; }
-  const [tr, od, hi, dc] = await env.DB.batch([
-    env.DB.prepare('SELECT id,sym,kind,side,eur,qty,price,t,fee,pnl,src,via,note FROM paper_trades WHERE user_id=? ORDER BY t DESC LIMIT 300').bind(uid),
+  const [tr, tf, od, hi, dc] = await env.DB.batch([
+    env.DB.prepare('SELECT id,sym,kind,side,eur,qty,price,t,fee,pnl,src,via,note FROM paper_trades WHERE user_id=? AND side IN (\'buy\',\'sell\') ORDER BY t DESC LIMIT 300').bind(uid),
+    env.DB.prepare("SELECT id,sym,side,eur,qty,price,t,note FROM paper_trades WHERE user_id=? AND side IN ('send','receive') ORDER BY t DESC LIMIT 50").bind(uid),
     env.DB.prepare("SELECT id,sym,kind,type,side,eur,qty,allq,lvl,oco,status,created,done,price,note,trail,peak FROM paper_orders WHERE user_id=? AND (status='open' OR created>?) ORDER BY created DESC LIMIT 80").bind(uid, Date.now() - 30 * DAY),
     env.DB.prepare('SELECT t,value,btc,spy FROM paper_hist WHERE user_id=? ORDER BY t DESC LIMIT 720').bind(uid),
     env.DB.prepare('SELECT id,sym,kind,eur,every,next,active,created,last,runs,note FROM paper_dca WHERE user_id=? ORDER BY created DESC').bind(uid),
   ]);
   const bn = bench(st); if (!px.BTC && bn.btc) px.BTC = { p: bn.btc, src: 'bench' };
   return { start: START, fee: FEE, cash: a.cash, holdings: H, realized: a.realized || 0, fees: a.fees || 0, created: a.created || null, px, board: !!a.board, nick: a.nick || null, bench: bn,
-    trades: tr.results, orders: od.results, hist: hi.results.reverse(), dca: dc.results, ...extra };
+    trades: tr.results, transfers: tf.results, orders: od.results, hist: hi.results.reverse(), dca: dc.results, ...extra };
 }
 
 /* ---------- API ---------- */
 export async function handlePaper(req, env, s, p, m, url) {
   const uid = s.user_id;
   if (p === '/api/paper' && m === 'GET') return json(await snapshot(env, uid));
-  if (p === '/api/paper/reset' && m === 'POST') { const now = Date.now();
-    await env.DB.batch([env.DB.prepare('INSERT INTO paper(user_id,cash,holdings,updated,realized,fees,created) VALUES(?,?,?,?,0,0,?) ON CONFLICT(user_id) DO UPDATE SET cash=excluded.cash,holdings=excluded.holdings,updated=excluded.updated,realized=0,fees=0,created=excluded.created').bind(uid, START, '{}', now, now),
+  if (p === '/api/paper/reset' && m === 'POST') { const now = Date.now(); const prev = await tradeStats(env, uid);
+    await env.DB.batch([kvPutStmt(env, 'rw:' + uid, prev),env.DB.prepare('INSERT INTO paper(user_id,cash,holdings,updated,realized,fees,created) VALUES(?,?,?,?,0,0,?) ON CONFLICT(user_id) DO UPDATE SET cash=excluded.cash,holdings=excluded.holdings,updated=excluded.updated,realized=0,fees=0,created=excluded.created').bind(uid, START, '{}', now, now),
       env.DB.prepare('DELETE FROM paper_trades WHERE user_id=?').bind(uid), env.DB.prepare('DELETE FROM paper_orders WHERE user_id=?').bind(uid), env.DB.prepare('DELETE FROM paper_hist WHERE user_id=?').bind(uid), env.DB.prepare('DELETE FROM paper_dca WHERE user_id=?').bind(uid),
       histStmt(env, uid, now, START, await loadKV(env, ['tickers', 'xquotes', 'stocks', 'fx']))]);
     return json(await snapshot(env, uid)); }
@@ -198,4 +199,48 @@ export async function paperNeed(env) { // welke koersen de cron apart moet bijho
   if (pa.results.length) need.add('S:SPY');
   try { for (const r of (await env.DB.prepare('SELECT DISTINCT sym,kind FROM paper_dca WHERE active=1').all()).results) need.add(r.kind === 'stock' ? 'S:' + r.sym : r.sym); } catch { }
   return need;
+}
+
+/* crypto sturen naar een vriend (tot de lancering met oefengeld): bezit gaat over tegen de actuele koers, zonder kosten */
+export async function transferPaper(env, from, to, o) {
+  const st = await loadKV(env, ['tickers', 'xquotes', 'stocks', 'fx']);
+  const a = await account(env, from, st), b = await account(env, to, st); const H = JSON.parse(a.holdings || '{}'), H2 = JSON.parse(b.holdings || '{}');
+  const sym = String(o.sym || '').toUpperCase(); const h = H[sym];
+  if (!h || !h.qty) throw new Error(`Je hebt geen ${sym} om te sturen.`);
+  if ((h.k || 'crypto') !== 'crypto') throw new Error('Alleen crypto kan naar een vriend worden gestuurd.');
+  const price = cachedPx(st, sym, 'crypto', 6 * HOUR)?.p; if (!(price > 0)) throw new Error(`Geen actuele koers voor ${sym}.`);
+  let qty = o.all ? h.qty : o.qty != null ? +o.qty : +o.eur / price;
+  if (!(qty > 0)) throw new Error('Kies een bedrag of aantal.');
+  if (qty > h.qty * (1 + 1e-6)) throw new Error(`Je hebt maar ${nl(h.qty)} ${sym}.`);
+  qty = Math.min(qty, h.qty); const eur = r2(qty * price); if (eur < 1) throw new Error('Stuur minimaal € 1.');
+  const basis = h.cost * (qty / h.qty); h.cost -= basis; h.qty -= qty; if (h.qty < 1e-12 || h.qty * price < 0.005) delete H[sym]; else H[sym] = h;
+  const g = H2[sym] || { qty: 0, cost: 0, k: 'crypto', t: Date.now() }; g.qty += qty; g.cost += eur; H2[sym] = g;
+  const now = Date.now(), note = o.note ? String(o.note).slice(0, 140) : null;
+  await env.DB.batch([
+    env.DB.prepare('UPDATE paper SET holdings=?,updated=? WHERE user_id=?').bind(JSON.stringify(H), now, from),
+    env.DB.prepare('UPDATE paper SET holdings=?,updated=? WHERE user_id=?').bind(JSON.stringify(H2), now, to),
+    env.DB.prepare('INSERT INTO paper_trades(user_id,sym,side,eur,qty,price,t,kind,fee,pnl,src,via,note) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)').bind(from, sym, 'send', eur, qty, price, now, 'crypto', 0, null, 'vriend', 'friend', note),
+    env.DB.prepare('INSERT INTO paper_trades(user_id,sym,side,eur,qty,price,t,kind,fee,pnl,src,via,note) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)').bind(to, sym, 'receive', eur, qty, price, now, 'crypto', 0, null, 'vriend', 'friend', note),
+    histStmt(env, from, now, r2(a.cash + valueOf(H, st, { [sym]: price })), st), histStmt(env, to, now, r2(b.cash + valueOf(H2, st, { [sym]: price })), st),
+  ]);
+  return { sym, qty, eur, price, t: now };
+}
+
+/* ervaringspunten: zelfde formule als in de app */
+export const xpOf = r => Math.round((r.n || 0) * 10 + (r.days || 0) * 25 + Math.min(Math.floor((r.vol || 0) / 500), 2000));
+
+/* handelsstatistiek voor beloningen: aantal orders en omzet (alleen echte koop/verkoop) */
+export async function tradeStats(env, uid) {
+  const k = await env.DB.prepare('SELECT val FROM kv WHERE key=?').bind('rw:' + uid).first(); const o = k ? JSON.parse(k.val) : { n: 0, vol: 0, syms: 0, days: 0 };
+  const r = await env.DB.prepare("SELECT COUNT(*) n, COALESCE(SUM(eur),0) vol, COUNT(DISTINCT sym) syms, COUNT(DISTINCT CAST(t/86400000 AS INTEGER)) days FROM paper_trades WHERE user_id=? AND side IN ('buy','sell')").bind(uid).first();
+  const out = { n: (r.n || 0) + o.n, vol: Math.round((r.vol || 0) + o.vol), syms: Math.max(r.syms || 0, o.syms), days: (r.days || 0) + o.days }; out.xp = xpOf(out); return out;
+}
+
+/* xp van meerdere gebruikers tegelijk (vriendenlijst) */
+export async function xpMany(env, ids) {
+  if (!ids.length) return {}; const q = ids.map(() => '?').join(',');
+  const [a, b] = await env.DB.batch([env.DB.prepare(`SELECT user_id, COUNT(*) n, COALESCE(SUM(eur),0) vol, COUNT(DISTINCT CAST(t/86400000 AS INTEGER)) days FROM paper_trades WHERE user_id IN (${q}) AND side IN ('buy','sell') GROUP BY user_id`).bind(...ids),
+    env.DB.prepare(`SELECT key,val FROM kv WHERE key IN (${q})`).bind(...ids.map(i => 'rw:' + i))]);
+  const off = Object.fromEntries(b.results.map(r => [r.key.slice(3), JSON.parse(r.val)])); const cur = Object.fromEntries(a.results.map(r => [r.user_id, r]));
+  const out = {}; for (const id of ids) { const c = cur[id] || {}, o = off[id] || {}; out[id] = xpOf({ n: (c.n || 0) + (o.n || 0), vol: (c.vol || 0) + (o.vol || 0), days: (c.days || 0) + (o.days || 0) }); } return out;
 }

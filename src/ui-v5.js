@@ -296,7 +296,7 @@ function srLevels(d,price){if(!d||d.length<15)return {sup:[],res:[]};const H=d.m
   cc.insertAdjacentHTML('beforeend',[...lv.res.map(c=>['res',c]),...lv.sup.map(c=>['sup',c])].filter(([,c])=>c.v>lo&&c.v<hi).map(([t,c])=>`<div class="srl ${t}" style="top:${y(c.v).toFixed(1)}%"><span>${t==='res'?'Weerstand':'Steun'} ${money(a,c.v)}${c.n>1?` · ${c.n}× geraakt`:''}</span></div>`).join(''))}}
 
 /* =====================================================================
-   v5 ronde 3 — nieuws op trefwoord, Telegram, weekoverzicht per e-mail,
+   v5 ronde 3 — nieuws op trefwoord, Discord, weekoverzicht per e-mail,
    koersdoelen per positie en een eigen geluid per soort melding
    ===================================================================== */
 /* ---------- geluiden per soort ---------- */
@@ -308,14 +308,15 @@ NX.tone=function(name,strong){if(S.settings.sound===false||name==='uit')return;t
 NX.chime=function(strong,kind){const map=S.settings.snd||{};const def=Object.fromEntries(SNDCAT.map(([k,,d])=>[k,d]));const k=kind||(strong?'alert':'impact');NX.tone(map[k]||def[k]||'zacht',strong)};
 {const ot=UI.toast;UI.toast=function(a){const k=NX.kindOf(a);const cat=a.cat==='news'?'news':k;const save=NX.chime;NX.chime=(strong)=>save(strong,cat==='success'||cat==='error'||cat==='info'?null:cat);try{ot.call(this,a)}finally{NX.chime=save}}}
 TKIND.news=['news','Nieuws'];
-/* ---------- instellingen: Telegram, e-mail, geluiden ---------- */
+/* ---------- instellingen: Discord, e-mail, geluiden ---------- */
 const TGS={st:null,poll:null};
-async function tgStatus(){if(!Api.authed)return null;try{TGS.st=await Api.call('/api/telegram/status')}catch(e){TGS.st={ready:false,err:e.message}}return TGS.st}
-function chHTML(){const s=S.settings;const F=(Api.h&&Api.h.features)||Api.features||{};const T=TGS.st;const off=s.tgOff||[];const sw=(id,on,extra='')=>`<label class="sw"><input type="checkbox" id="${id}" ${on?'checked':''} ${extra}><span></span></label>`;
-  return `<div class="card" style="margin-top:16px" id="chcard"><div class="chead"><h2>Telegram en e-mail</h2></div>
-    <div class="set"><div><b>Telegram</b><p>${!Api.authed?'Log in om Telegram te koppelen.':!F.telegram?'Binnenkort beschikbaar: de Vantis-bot wordt nog ingesteld.':T&&T.linked?`Gekoppeld${T.username?' als @'+esc(T.username):''}. Je krijgt hier koersalerts, orders, nieuws en de ochtendbriefing. Commando's in de bot: /koers BTC, /briefing, /portefeuille.`:'Ontvang je meldingen ook in Telegram en vraag koersen op met /koers BTC.'}</p></div>
-      ${Api.authed&&F.telegram?(T&&T.linked?`<div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn ghost sm" id="tgtest">Test</button><button class="btn ghost sm" id="tgoff">Ontkoppelen</button></div>`:`<button class="btn sm" id="tglink">Koppel Telegram</button>`):''}</div>
-    ${T&&T.linked?`<div class="set"><div><b>Wat stuurt Vantis naar Telegram?</b><div class="chips" id="tgcats" style="margin-top:8px">${[['alert','Koersalerts'],['order','Orders'],['news','Nieuws'],['impact','Impact'],['briefing','Ochtendbriefing']].map(([k,l])=>`<button class="chip ${off.includes(k)?'':'on'}" data-tgc="${k}">${l}</button>`).join('')}</div></div></div>`:''}
+async function tgStatus(){if(!Api.authed)return null;try{TGS.st=await Api.call('/api/discord/status')}catch(e){TGS.st={ready:false,err:e.message}}return TGS.st}
+function chHTML(){const s=S.settings;const F=(Api.h&&Api.h.features)||Api.features||{};const T=TGS.st;const off=s.dcOff||[];const sw=(id,on,extra='')=>`<label class="sw"><input type="checkbox" id="${id}" ${on?'checked':''} ${extra}><span></span></label>`;const inv=(T&&T.invite)||F.discordInvite;
+  return `<div class="card" style="margin-top:16px" id="chcard"><div class="chead"><h2>Discord en e-mail</h2></div>
+    <div class="set"><div><b>Discord</b><p>${!Api.authed?'Log in om Discord te koppelen.':!(F.discord&&T&&T.ready)?'Binnenkort beschikbaar: de Vantis-server en -bot worden nog ingesteld.':T.linked?`Gekoppeld${T.username?` als <b>${esc(T.username)}</b>`:''}. <span>De Vantis-bot stuurt je koersalerts, orders, nieuws en de ochtendbriefing als privébericht.</span>${s.dcPause?' <b>Meldingen staan op pauze</b> <span>(zet ze aan met /meldingen aan in Discord).</span>':''} <span>Commando's: /koers BTC, /briefing, /portefeuille.</span>`:'Koppel je Discord-account: je wordt lid van de Vantis-server en krijgt je meldingen als privébericht van de Vantis-bot.'}</p>
+      ${inv?`<a class="lnk" href="${esc(inv)}" target="_blank" rel="noopener">Naar de Vantis-server op Discord</a>`:''}</div>
+      ${Api.authed&&F.discord&&T&&T.ready?(T.linked?`<div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn ghost sm" id="tgtest">Test</button><button class="btn ghost sm" id="tgoff">Ontkoppelen</button></div>`:`<button class="btn sm" id="tglink">Koppel Discord</button>`):''}</div>
+    ${T&&T.linked?`<div class="set"><div><b>Wat stuurt Vantis naar Discord?</b><div class="chips" id="tgcats" style="margin-top:8px">${[['alert','Koersalerts'],['order','Orders'],['news','Nieuws'],['impact','Impact'],['briefing','Ochtendbriefing']].map(([k,l])=>`<button class="chip ${off.includes(k)?'':'on'}" data-tgc="${k}">${l}</button>`).join('')}</div></div></div>`:''}
     <div id="tgbox"></div>
     <div class="set"><div><b>Weekoverzicht per e-mail</b><p>Elke zondag om 18:00: de markt van de week, je watchlist, je oefenportefeuille en wat er komende week gebeurt.${F.mail?'':' <i>Het versturen wordt nog ingesteld; je kunt het al aanzetten en het voorbeeld bekijken.</i>'}</p>
       ${Api.authed?`<div style="display:flex;gap:10px;margin-top:6px;flex-wrap:wrap"><button class="lnk" id="mlprev">Voorbeeld bekijken</button>${F.mail?'<button class="lnk" id="mltest">Stuur mij een testmail</button>':''}</div>`:''}</div>${Api.authed?sw('mlon',!!s.weekmail):'<span class="faint">Log in</span>'}</div></div>
@@ -327,13 +328,10 @@ function chHTML(){const s=S.settings;const F=(Api.h&&Api.h.features)||Api.featur
       if(t.dataset.snd){S.settings.snd={...(S.settings.snd||{}),[t.dataset.snd]:t.value};saveSettings();NX.tone(t.value,true)}});
     wrap.addEventListener('click',async e=>{const b=e.target.closest('button');if(!b)return;
       if(b.dataset.sndp){const k=b.dataset.sndp;NX.tone((S.settings.snd||{})[k]||SNDCAT.find(x=>x[0]===k)[2],true);return}
-      if(b.dataset.tgc){const k=b.dataset.tgc;const off=new Set(S.settings.tgOff||[]);off.has(k)?off.delete(k):off.add(k);S.settings.tgOff=[...off];saveSettings();b.classList.toggle('on',!off.has(k));return}
-      try{if(b.id==='tglink'){const r=await Api.call('/api/telegram/link',{method:'POST',body:{}});const w=window.open(r.url,'_blank');
-          $('#tgbox',wrap).innerHTML=`<div class="callout"><b>Bijna klaar.</b> ${w?'Telegram is geopend: tik daar op <b>Start</b>.':`Open <a href="${esc(r.url)}" target="_blank" rel="noopener">t.me/${esc(r.bot)}</a> en tik op <b>Start</b>.`} Op je computer? Scan de code met je telefoon.<div id="tgqr" style="margin-top:10px"></div><p class="note">Wacht op koppeling…</p></div>`;
-          try{if(window.QRCode)new QRCode($('#tgqr',wrap),{text:r.url,width:140,height:140,colorDark:'#17243A',colorLight:'#ffffff'})}catch(x){}
-          clearInterval(TGS.poll);let n=0;TGS.poll=setInterval(async()=>{n++;const st=await tgStatus();if(st&&st.linked){clearInterval(TGS.poll);redraw();UI.toast({kind:'success',title:'Telegram gekoppeld',body:'Je ontvangt je meldingen nu ook in Telegram.'})}else if(n>60||!wrap.isConnected)clearInterval(TGS.poll)},3000)}
-        else if(b.id==='tgtest'){await Api.call('/api/telegram/test',{method:'POST',body:{}});UI.toast({kind:'success',title:'Testbericht verstuurd naar Telegram'})}
-        else if(b.id==='tgoff'){await Api.call('/api/telegram/link',{method:'DELETE'});await tgStatus();redraw();UI.toast({kind:'info',title:'Telegram ontkoppeld'})}
+      if(b.dataset.tgc){const k=b.dataset.tgc;const off=new Set(S.settings.dcOff||[]);off.has(k)?off.delete(k):off.add(k);S.settings.dcOff=[...off];saveSettings();b.classList.toggle('on',!off.has(k));return}
+      try{if(b.id==='tglink'){b.disabled=true;const r=await Api.call('/api/discord/link',{method:'POST',body:{}});location.href=r.url}
+        else if(b.id==='tgtest'){await Api.call('/api/discord/test',{method:'POST',body:{}});UI.toast({kind:'success',title:'Testbericht verstuurd naar Discord'})}
+        else if(b.id==='tgoff'){await Api.call('/api/discord/link',{method:'DELETE'});await tgStatus();redraw();UI.toast({kind:'info',title:'Discord ontkoppeld'})}
         else if(b.id==='mlprev'){const r=await fetch(API_BASE+'/api/mail/preview',{headers:{authorization:'Bearer '+Api.token}});const html=await r.text();dlg(`<div class="chead"><h2>Voorbeeld weekoverzicht</h2><button class="ibtn" id="mpx" aria-label="Sluiten">${ico('x')}</button></div><iframe id="mpf" style="width:100%;height:65vh;border:1px solid var(--line);border-radius:var(--r);background:#fff"></iframe>`,c=>{c.style.width='min(680px,100%)';$('#mpx',c).onclick=closeOverlay;$('#mpf',c).srcdoc=html})}
         else if(b.id==='mltest'){const r=await Api.call('/api/mail/test',{method:'POST',body:{}});UI.toast({kind:'success',title:'Testmail verstuurd',body:'Naar '+r.to})}}
       catch(x){UI.toast({kind:'error',title:'Niet gelukt',body:x.message})}})}}
@@ -354,7 +352,7 @@ function kwHTML(){const s=S.settings;const L=s.kw||[];return `<div class="card" 
 
 /* ---------- Mijn bezit: koersdoel en ondergrens per positie ---------- */
 function goalDialog(sym){const a=getAsset(sym);const L=(PA.list||[]).filter(x=>x.sym===sym&&x.active&&/^(above|below)$/.test(x.kind));const up=L.find(x=>x.kind==='above'),dn=L.find(x=>x.kind==='below');
-  dlg(`<h2>Doelen voor ${esc(a?.name||sym)}</h2><p class="muted">Je krijgt een melding (push${Api.authed?', meldingencentrum en Telegram als gekoppeld':''}) zodra de koers je doel of ondergrens raakt.${a&&a.price!=null?` Nu ${money(a,a.price)}.`:''}</p>
+  dlg(`<h2>Doelen voor ${esc(a?.name||sym)}</h2><p class="muted">Je krijgt een melding (push${Api.authed?', meldingencentrum en Discord als gekoppeld':''}) zodra de koers je doel of ondergrens raakt.${a&&a.price!=null?` Nu ${money(a,a.price)}.`:''}</p>
     <div class="tkgrid" style="margin-top:0"><div class="field"><label for="gup">Koersdoel (verkoopdoel)</label><div class="tkin"><span>${a?.cur==='USD'?'$':'€'}</span><input class="inp" id="gup" inputmode="decimal" value="${up?nlN(up.value,up.value<1?6:2).replace(/\./g,''):''}" placeholder="${a&&a.price?nlN(a.price*1.2,a.price<1?6:2).replace(/\./g,''):''}"></div></div>
     <div class="field"><label for="gdn">Ondergrens</label><div class="tkin"><span>${a?.cur==='USD'?'$':'€'}</span><input class="inp" id="gdn" inputmode="decimal" value="${dn?nlN(dn.value,dn.value<1?6:2).replace(/\./g,''):''}" placeholder="${a&&a.price?nlN(a.price*.85,a.price<1?6:2).replace(/\./g,''):''}"></div></div></div>
     <div class="err" id="gerr"></div><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn ghost" id="no">Annuleren</button><button class="btn" id="yes">Bewaren</button></div>`,c=>{$('#no',c).onclick=closeOverlay;

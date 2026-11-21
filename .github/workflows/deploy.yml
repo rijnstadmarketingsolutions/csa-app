@@ -91,7 +91,15 @@ jobs:
           STRIPE_PRICE_ID: ${{ secrets.STRIPE_PRICE_ID }}
           STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
           PREMIUM_PRICE_LABEL: ${{ secrets.PREMIUM_PRICE_LABEL }}
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+          DISCORD_APP_ID: ${{ secrets.DISCORD_APP_ID }}
+          DISCORD_PUBLIC_KEY: ${{ secrets.DISCORD_PUBLIC_KEY }}
+          DISCORD_CLIENT_SECRET: ${{ secrets.DISCORD_CLIENT_SECRET }}
+          DISCORD_GUILD_ID: ${{ secrets.DISCORD_GUILD_ID }}
+          DISCORD_ROLE_MEMBER: ${{ secrets.DISCORD_ROLE_MEMBER }}
+          DISCORD_ROLE_PREMIUM: ${{ secrets.DISCORD_ROLE_PREMIUM }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_INVITE: ${{ secrets.DISCORD_INVITE }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           MAIL_FROM: ${{ secrets.MAIL_FROM }}
           STRIPE_PRICE_ID_PRO: ${{ secrets.STRIPE_PRICE_ID_PRO }}
@@ -101,20 +109,21 @@ jobs:
           EXIST=$(npx wrangler secret list --format json 2>/dev/null || echo '[]')
           # sleutel voor het versleutelen van 2FA-geheimen: eenmalig automatisch aanmaken, nooit overschrijven
           if ! echo "$EXIST" | grep -q '"ENC_KEY"'; then openssl rand -base64 48 | npx wrangler secret put ENC_KEY; fi
-          for NAME in FINNHUB_KEY COINGECKO_KEY CRYPTOCOMPARE_KEY STRIPE_SECRET_KEY STRIPE_PRICE_ID STRIPE_WEBHOOK_SECRET PREMIUM_PRICE_LABEL TELEGRAM_BOT_TOKEN RESEND_API_KEY MAIL_FROM STRIPE_PRICE_ID_PRO STRIPE_PRICE_ID_YEAR ADMIN_EMAILS; do
+          for NAME in FINNHUB_KEY COINGECKO_KEY CRYPTOCOMPARE_KEY STRIPE_SECRET_KEY STRIPE_PRICE_ID STRIPE_WEBHOOK_SECRET PREMIUM_PRICE_LABEL DISCORD_BOT_TOKEN DISCORD_APP_ID DISCORD_PUBLIC_KEY DISCORD_CLIENT_SECRET DISCORD_GUILD_ID DISCORD_ROLE_MEMBER DISCORD_ROLE_PREMIUM DISCORD_WEBHOOK_URL DISCORD_INVITE RESEND_API_KEY MAIL_FROM STRIPE_PRICE_ID_PRO STRIPE_PRICE_ID_YEAR ADMIN_EMAILS; do
             VAL="${!NAME}"
             if [ -n "$VAL" ]; then printf '%s' "$VAL" | npx wrangler secret put "$NAME"; fi
           done
 
-      - name: Telegram-webhook instellen (alleen met bot-token)
+      - name: Discord-bot aan de app koppelen (alleen met bot-token)
         if: env.WORKER_URL != ''
         env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
         run: |
-          if [ -z "$TELEGRAM_BOT_TOKEN" ]; then echo "Geen Telegram-token, overgeslagen"; exit 0; fi
-          SECRET=$(printf 'vantis-tg:%s' "$TELEGRAM_BOT_TOKEN" | sha256sum | cut -c1-48)
-          curl -sS "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setWebhook" -d "url=${WORKER_URL}/api/telegram/webhook" -d "secret_token=${SECRET}" -d 'allowed_updates=["message"]' | head -c 300; echo
-          curl -sS "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setMyCommands" -H 'content-type: application/json' -d '{"commands":[{"command":"koers","description":"Actuele koers, bijv. /koers BTC"},{"command":"briefing","description":"Ochtendbriefing"},{"command":"portefeuille","description":"Je oefenportefeuille"},{"command":"stop","description":"Meldingen stoppen"}]}' | head -c 200; echo
+          if [ -z "$DISCORD_BOT_TOKEN" ]; then echo "Geen Discord-token, overgeslagen"; exit 0; fi
+          sleep 15
+          # Discord stuurt hierbij een PING naar de worker; die registreert daarna de slash-commando's
+          curl -sS -X PATCH "https://discord.com/api/v10/applications/@me" -H "Authorization: Bot ${DISCORD_BOT_TOKEN}" -H 'content-type: application/json' \
+            -d "{\"interactions_endpoint_url\":\"${WORKER_URL}/api/discord/interactions\"}" | head -c 400; echo
 
       - name: Oude link (pages.dev) doorsturen naar de nieuwe app
         if: env.WORKER_URL != ''

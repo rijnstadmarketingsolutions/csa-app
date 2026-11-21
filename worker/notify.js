@@ -1,4 +1,4 @@
-// Ronde 3: nieuwsalerts op trefwoord, Telegram-bot en het wekelijkse e-mailoverzicht.
+// Ronde 3: nieuwsalerts op trefwoord en het wekelijkse e-mailoverzicht (Discord staat in discord.js).
 import { json, err, readJSON, sha256, kvPutStmt, DAY, HOUR, MIN } from './lib.js';
 import { quote, RADAR } from './market.js';
 
@@ -26,47 +26,6 @@ export async function newsKw(env, state, status) {
   status.newsKw = { ok: true, fresh: fresh.length, users: rows.length, hits }; return out;
 }
 
-/* ---------------- 17. Telegram ---------------- */
-const TG = (env, method, body) => fetch(`https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/${method}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }).then(r => r.json()).catch(e => ({ ok: false, description: e.message }));
-export const tgReady = env => !!env.TELEGRAM_BOT_TOKEN;
-export const tgSecret = async env => (await sha256('vantis-tg:' + env.TELEGRAM_BOT_TOKEN)).slice(0, 48);
-async function tgBot(env) { const c = await env.DB.prepare("SELECT val,ts FROM kv WHERE key='tgbot'").first(); if (c && Date.now() - c.ts < 7 * DAY) return JSON.parse(c.val); const r = await TG(env, 'getMe', {}); if (!r.ok) throw new Error('Telegram: ' + (r.description || 'onbekend')); await kvPutStmt(env, 'tgbot', r.result).run(); return r.result; }
-export async function tgSend(env, chatId, html) { return TG(env, 'sendMessage', { chat_id: chatId, text: html.slice(0, 4000), parse_mode: 'HTML', disable_web_page_preview: true }); }
-export async function tgApi(req, env, s, p, m) {
-  if (p === '/api/telegram/status' && m === 'GET') { const l = await env.DB.prepare('SELECT username,created FROM tg_links WHERE user_id=?').bind(s.user_id).first(); let bot = null; if (tgReady(env)) try { bot = (await tgBot(env)).username; } catch { } return json({ ready: tgReady(env), bot, linked: !!l, username: l?.username || null, since: l?.created || null }); }
-  if (p === '/api/telegram/link' && m === 'POST') { if (!tgReady(env)) return err(501, 'De Telegram-bot is nog niet ingesteld.'); const bot = await tgBot(env); const code = [...crypto.getRandomValues(new Uint8Array(9))].map(b => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[b % 32]).join('');
-    await env.DB.batch([env.DB.prepare('DELETE FROM tg_codes WHERE user_id=? OR expires<?').bind(s.user_id, Date.now()), env.DB.prepare('INSERT INTO tg_codes(code,user_id,expires) VALUES(?,?,?)').bind(code, s.user_id, Date.now() + 15 * MIN)]);
-    return json({ url: `https://t.me/${bot.username}?start=${code}`, bot: bot.username, code }); }
-  if (p === '/api/telegram/link' && m === 'DELETE') { const l = await env.DB.prepare('SELECT chat_id FROM tg_links WHERE user_id=?').bind(s.user_id).first(); await env.DB.prepare('DELETE FROM tg_links WHERE user_id=?').bind(s.user_id).run(); if (l && tgReady(env)) await tgSend(env, l.chat_id, 'Je Vantis-account is ontkoppeld. Je krijgt hier geen meldingen meer.'); return json({ ok: true }); }
-  if (p === '/api/telegram/test' && m === 'POST') { const l = await env.DB.prepare('SELECT chat_id FROM tg_links WHERE user_id=?').bind(s.user_id).first(); if (!l) return err(400, 'Telegram is nog niet gekoppeld.'); const r = await tgSend(env, l.chat_id, '🔔 <b>Testmelding van Vantis</b>\nZo zien je koersalerts en orders eruit in Telegram.'); return r.ok ? json({ ok: true }) : err(502, 'Telegram: ' + r.description); }
-  return null;
-}
-export async function tgWebhook(req, env) {
-  if (!tgReady(env) || req.headers.get('x-telegram-bot-api-secret-token') !== await tgSecret(env)) return new Response('nee', { status: 403 });
-  const u = await readJSON(req).catch(() => ({})); const msg = u.message || u.edited_message; if (!msg || !msg.text) return json({ ok: true });
-  const chat = String(msg.chat.id), text = msg.text.trim(), [cmd, ...args] = text.split(/\s+/); const c = cmd.toLowerCase().replace(/@.*/, '');
-  const link = await env.DB.prepare('SELECT user_id FROM tg_links WHERE chat_id=?').bind(chat).first();
-  const reply = h => tgSend(env, chat, h);
-  if (c === '/start' && args[0]) { const row = await env.DB.prepare('SELECT user_id FROM tg_codes WHERE code=? AND expires>?').bind(args[0].toUpperCase(), Date.now()).first();
-    if (!row) { await reply('Deze koppelcode is verlopen of ongeldig. Maak in Vantis bij <b>Instellingen → Telegram</b> een nieuwe aan.'); return json({ ok: true }); }
-    const user = await env.DB.prepare('SELECT name FROM users WHERE id=?').bind(row.user_id).first();
-    await env.DB.batch([env.DB.prepare('DELETE FROM tg_links WHERE user_id=? OR chat_id=?').bind(row.user_id, chat), env.DB.prepare('INSERT INTO tg_links(user_id,chat_id,username,created) VALUES(?,?,?,?)').bind(row.user_id, chat, msg.from?.username || msg.from?.first_name || null, Date.now()), env.DB.prepare('DELETE FROM tg_codes WHERE code=?').bind(args[0].toUpperCase())]);
-    await reply(`✅ <b>Gekoppeld${user?.name ? ' aan ' + escH(user.name) : ''}</b>\nJe krijgt hier je koersalerts, uitgevoerde orders, nieuws op trefwoord en de ochtendbriefing.\n\n${HELP}`); return json({ ok: true }); }
-  if (c === '/start' || c === '/help') { await reply(link ? HELP : 'Welkom bij <b>Vantis</b>.\nKoppel je account in de app: <b>Instellingen → Telegram koppelen</b>.\n\n' + HELP); return json({ ok: true }); }
-  if (c === '/koers') { const sym = String(args[0] || 'BTC').toUpperCase().replace(/[^A-Z0-9]/g, ''); const st = await kv(env, ['tickers', 'xquotes', 'names', 'stocks', 'ticks']); const q = quote(st, sym);
-    await reply(q ? `<b>${escH(q.name)} (${sym})</b>\n${q.cur === 'USD' ? '$ ' + nl(q.p) : eurF(q.p)}  ${pct(q.ch24)} in 24 uur${q.ch1h != null ? ` · ${pct(q.ch1h)} in 1 uur` : ''}` : `Geen koers gevonden voor ${escH(sym)}.`); return json({ ok: true }); }
-  if (c === '/briefing') { const b = (await kv(env, ['briefing'])).briefing; await reply(b ? `☀️ <b>Ochtendbriefing · ${escH(b.day)}</b>\n${escH(b.headline)}${(b.points || b.bullets || []).slice(0, 5).map(x => '\n• ' + escH(typeof x === 'string' ? x : x.t || x.text || '')).join('')}` : 'De briefing van vandaag is er nog niet (elke dag om 08:00).'); return json({ ok: true }); }
-  if (!link) { await reply('Koppel eerst je account in de app: <b>Instellingen → Telegram koppelen</b>.'); return json({ ok: true }); }
-  if (c === '/portefeuille' || c === '/oefen') { const a = await env.DB.prepare('SELECT cash,holdings FROM paper WHERE user_id=?').bind(link.user_id).first(); if (!a) { await reply('Je hebt nog geen oefenportefeuille. Begin in de app bij <b>Handelen</b>.'); return json({ ok: true }); }
-    const st = await kv(env, ['tickers', 'xquotes']); const H = JSON.parse(a.holdings || '{}'); let v = a.cash; const L = [];
-    for (const [s2, h] of Object.entries(H)) { const q = quote(st, s2); const val = q ? q.p * h.qty : h.cost; v += val; L.push([s2, val, h.cost]); }
-    L.sort((x, y) => y[1] - x[1]); await reply(`📊 <b>Oefenportefeuille</b>\nWaarde ${eurF(v)} (${pct((v / 10000 - 1) * 100)} sinds start)\nVrij saldo ${eurF(a.cash)}${L.slice(0, 8).map(([s2, val, cost]) => `\n• ${s2}: ${eurF(val)} (${pct((val / cost - 1) * 100)})`).join('')}`); return json({ ok: true }); }
-  if (c === '/stop') { await env.DB.prepare('DELETE FROM tg_links WHERE chat_id=?').bind(chat).run(); await reply('Ontkoppeld. Je krijgt hier geen meldingen meer. Opnieuw koppelen kan in de app.'); return json({ ok: true }); }
-  await reply(HELP); return json({ ok: true });
-}
-const HELP = '<b>Commando\'s</b>\n/koers BTC – actuele koers\n/briefing – ochtendbriefing\n/portefeuille – je oefenportefeuille\n/stop – meldingen stoppen';
-export function tgFormat(msgs) { const ic = { alert: '🔔', order: '✅', news: '📰', impact: '⚡', reminder: '⏰', briefing: '☀️' };
-  return msgs.map(m => `${ic[m.cat] || '•'} <b>${escH(m.title)}</b>${m.body ? '\n' + escH(m.body) : ''}${m.link ? `\n<a href="${escH(m.link)}">Lees het artikel</a>` : ''}`).join('\n\n'); }
 
 /* ---------------- 18. wekelijks e-mailoverzicht ---------------- */
 export const mailReady = env => !!(env.RESEND_API_KEY && env.MAIL_FROM);

@@ -305,7 +305,7 @@ h2.big{font-family:var(--wide);font-stretch:115%;font-variation-settings:"wdth" 
     <div class="feat">
       <div><h3>Event Radar</h3><p>Rentebesluiten van de Fed en ECB, inflatie- en banencijfers, met aftelklok en herinneringen.</p></div>
       <div><h3>Ochtendbriefing</h3><p>Elke ochtend om 08:00 een kort marktoverzicht, ook als pushmelding.</p></div>
-      <div><h3>Meldingen</h3><p>Koersalerts, indicatoren als RSI en nieuws op trefwoord, via pushmelding of Telegram.</p></div>
+      <div><h3>Meldingen</h3><p>Koersalerts, indicatoren als RSI en nieuws op trefwoord, via pushmelding of Discord.</p></div>
       <div><h3>Opportunity Scanner</h3><p>Munten die nu opvallen door volume, momentum of een uitbraak, met eigen filters.</p></div>
       <div><h3>Marktdata</h3><p>Sectoren, futures en funding, het Bitcoin-netwerk en komende token-unlocks.</p></div>
       <div><h3>Vergelijken</h3><p>Twee munten of aandelen naast elkaar: rendement, risico en correlatie.</p></div>
@@ -372,7 +372,7 @@ h2.big{font-family:var(--wide);font-stretch:115%;font-variation-settings:"wdth" 
   var esc=function(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})};
   var CHK='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg>';
   var PLANF={free:['Live koersen, grafieken en analyses','De volledige Vantis Academy','Koersalerts in de app','Ochtendbriefing en Event Radar'],
-    premium:['Alles van Gratis','Pushmeldingen, ook als de app dicht is','Telegram en weekoverzicht per e-mail','Indicator-alerts en nieuws op trefwoord','Volledige track record en marktdata'],
+    premium:['Alles van Gratis','Pushmeldingen, ook als de app dicht is','Discord-meldingen en weekoverzicht per e-mail','Indicator-alerts en nieuws op trefwoord','Volledige track record en marktdata'],
     pro:['Alles van Premium','Onbeperkt eigen scanners met meldingen','Onbeperkt periodiek kopen en trailing stops','Persoonlijke widgetsleutel','Als eerste nieuwe functies']};
   document.querySelectorAll('[data-tier]').forEach(function(u){u.innerHTML=PLANF[u.dataset.tier].map(function(f){return '<li>'+CHK+'<span>'+esc(f)+'</span></li>'}).join('')});
   fetch('/api/billing/plans').then(function(r){return r.ok?r.json():null}).then(function(P){if(!P||!P.plans)return;

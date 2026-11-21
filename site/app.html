@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Vantis</title>
-<script>try{var v=localStorage.getItem("vantis.skin"),k=(v&&JSON.parse(v))||"luxdark",R=document.documentElement;R.dataset.skin=k;if(["luxdark","oled","navygold","emerald","bordeaux"].indexOf(k)>=0)R.dataset.theme="dark";else if(["luxlight","arctic"].indexOf(k)>=0)R.dataset.theme="light"}catch(e){document.documentElement.dataset.skin="luxdark";document.documentElement.dataset.theme="dark"}</script>
+<script>try{var v=localStorage.getItem("vantis.skin"),k=(v&&JSON.parse(v))||"luxdark",R=document.documentElement;R.dataset.skin=k;if(["luxdark","oled","navygold","emerald","bordeaux","noirblue","noirgreen"].indexOf(k)>=0)R.dataset.theme="dark";else if(["luxlight","arctic"].indexOf(k)>=0)R.dataset.theme="light"}catch(e){document.documentElement.dataset.skin="luxdark";document.documentElement.dataset.theme="dark"}</script>
 <meta name="description" content="Vantis: Crypto Intelligence voor crypto en aandelen.">
 <meta name="theme-color" content="#050505">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -823,10 +823,10 @@ summary.lnk{white-space:normal;display:list-item}
 .sw-luxlight{background:radial-gradient(70% 90% at 80% 0%,#fff,transparent 70%),linear-gradient(180deg,#f7f8fa,#e4e7ec)}.sw-luxlight::after{content:"";position:absolute;left:10px;right:10px;top:18px;height:8px;border-radius:4px;background:linear-gradient(135deg,#2b2e34,#9aa0a9 45%,#1c1e22 60%,#7c828c)}
 
 /* ===================== VANTIS: DARK LUXURY ===================== */
-:root:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux]){--bg:#050505;--bg2:rgba(255,255,255,.045);--bg3:rgba(255,255,255,.08);--panel:rgba(16,16,19,.62);--ink:#F3F4F6;--ink2:#A8ADB6;--ink3:#737985;--line:rgba(255,255,255,.10);--line2:rgba(255,255,255,.17);
+:root:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen]){--bg:#050505;--bg2:rgba(255,255,255,.045);--bg3:rgba(255,255,255,.08);--panel:rgba(16,16,19,.62);--ink:#F3F4F6;--ink2:#A8ADB6;--ink3:#737985;--line:rgba(255,255,255,.10);--line2:rgba(255,255,255,.17);
   --navy:#0A0A0C;--navy2:#141417;--navy3:#C9CDD4;--accent:#E4E6EA;--accentInk:#0A0A0C;--chip:rgba(255,255,255,.065);--focus:#E6E9EE;--up:#3DDC97;--down:#FF5C69;--warn:#F2C14E;--upbg:rgba(61,220,151,.12);--downbg:rgba(255,92,105,.12);--warnbg:rgba(242,193,78,.12);
   --heat0:#141417;--ring-hi:#E6E8EB;--r:10px;--logo-paint:var(--metal);--logo-paint-side:var(--metal);--shadow:inset 0 1px 0 rgba(255,255,255,.07),0 18px 44px rgba(0,0,0,.55);--glass:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.015));--hair:rgba(255,255,255,.14);--glow:rgba(225,230,240,.22);--sheen:rgba(255,255,255,.16);color-scheme:dark}
-:root:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux]) body{background:radial-gradient(1100px 600px at 85% -15%,rgba(205,210,220,.11),transparent 60%),radial-gradient(900px 600px at -15% 110%,rgba(150,160,175,.08),transparent 60%),linear-gradient(180deg,#070708,#050505) fixed}
+:root:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen]) body{background:radial-gradient(1100px 600px at 85% -15%,rgba(205,210,220,.11),transparent 60%),radial-gradient(900px 600px at -15% 110%,rgba(150,160,175,.08),transparent 60%),linear-gradient(180deg,#070708,#050505) fixed}
 
 /* ===================== VANTIS: LIGHT LUXURY ===================== */
 :root:is([data-skin=luxlight],[data-skin=arctic]){--bg:#F3F4F6;--bg2:rgba(20,24,32,.035);--bg3:rgba(20,24,32,.06);--panel:rgba(255,255,255,.66);--ink:#0B0D12;--ink2:#535A65;--ink3:#8A909A;--line:rgba(16,20,28,.08);--line2:rgba(16,20,28,.14);
@@ -836,77 +836,77 @@ summary.lnk{white-space:normal;display:list-item}
 :root:is([data-skin=luxlight],[data-skin=arctic]) body{background:radial-gradient(1200px 700px at 85% -10%,#ffffff,transparent 60%),radial-gradient(1000px 650px at -10% 105%,#e2e5ea,transparent 60%),linear-gradient(180deg,#f8f9fa,#eceef1) fixed}
 
 /* ===================== gedeeld door beide luxe-stijlen ===================== */
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) body{font-feature-settings:"cv11","ss01","tnum"}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) :is(.card,.kpi,.plan,.sect,.bd,.opp,.ovaddb,.tkpicked,.fk>div,.wak>div,.ovpfk>div,.tkpos,.ulr .uld,.lrc){background:var(--glass)!important;-webkit-backdrop-filter:blur(18px) saturate(150%);backdrop-filter:blur(18px) saturate(150%);border:1px solid var(--line2)!important;box-shadow:var(--shadow);border-radius:14px}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) :is(.kpi,.card,.plan,.sect,.bd.on){position:relative;overflow:hidden;isolation:isolate}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) :is(.kpi,.card,.plan,.sect,.bd.on)::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;background:linear-gradient(115deg,transparent 30%,var(--sheen) 48%,transparent 62%);transform:translateX(-130%);transition:transform .9s cubic-bezier(.2,.7,.2,1)}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) :is(.kpi,.card:not(.tkcard),.plan,.sect,.bd.on):hover::before{transform:translateX(130%)}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) :is(.kpi,.plan,.sect,.bd.on):hover{border-color:var(--line2)!important;box-shadow:var(--shadow),0 0 0 1px var(--hair),0 0 34px var(--glow);transform:translateY(-1px);transition:box-shadow .3s,transform .3s}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .card.flush{overflow:hidden}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) h1{background:var(--metal);-webkit-background-clip:text;background-clip:text;color:transparent;letter-spacing:-.02em}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .dprice,:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .kv{letter-spacing:-.015em}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .btn{position:relative;overflow:hidden;border-radius:999px;background:var(--metal);color:var(--accentInk);border:1px solid var(--hair);box-shadow:inset 0 1px 0 rgba(255,255,255,.55),inset 0 -1px 0 rgba(0,0,0,.25),0 6px 18px rgba(0,0,0,.28);font-weight:650;transition:box-shadow .25s,transform .2s,filter .2s}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) body{font-feature-settings:"cv11","ss01","tnum"}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) :is(.card,.kpi,.plan,.sect,.bd,.opp,.ovaddb,.tkpicked,.fk>div,.wak>div,.ovpfk>div,.tkpos,.ulr .uld,.lrc){background:var(--glass)!important;-webkit-backdrop-filter:blur(18px) saturate(150%);backdrop-filter:blur(18px) saturate(150%);border:1px solid var(--line2)!important;box-shadow:var(--shadow);border-radius:14px}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) :is(.kpi,.card,.plan,.sect,.bd.on){position:relative;overflow:hidden;isolation:isolate}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) :is(.kpi,.card,.plan,.sect,.bd.on)::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;background:linear-gradient(115deg,transparent 30%,var(--sheen) 48%,transparent 62%);transform:translateX(-130%);transition:transform .9s cubic-bezier(.2,.7,.2,1)}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) :is(.kpi,.card:not(.tkcard),.plan,.sect,.bd.on):hover::before{transform:translateX(130%)}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) :is(.kpi,.plan,.sect,.bd.on):hover{border-color:var(--line2)!important;box-shadow:var(--shadow),0 0 0 1px var(--hair),0 0 34px var(--glow);transform:translateY(-1px);transition:box-shadow .3s,transform .3s}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) .card.flush{overflow:hidden}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) h1{background:var(--metal);-webkit-background-clip:text;background-clip:text;color:transparent;letter-spacing:-.02em}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) .dprice,:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) .kv{letter-spacing:-.015em}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) .btn{position:relative;overflow:hidden;border-radius:999px;background:var(--metal);color:var(--accentInk);border:1px solid var(--hair);box-shadow:inset 0 1px 0 rgba(255,255,255,.55),inset 0 -1px 0 rgba(0,0,0,.25),0 6px 18px rgba(0,0,0,.28);font-weight:650;transition:box-shadow .25s,transform .2s,filter .2s}
 :root:is([data-skin=luxlight],[data-skin=arctic]) .btn{color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.35);box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 6px 16px rgba(20,24,35,.18)}
-:root:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux]) .btn{text-shadow:0 1px 0 rgba(255,255,255,.4)}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .btn::after{content:"";position:absolute;top:0;bottom:0;width:60%;left:-80%;background:linear-gradient(105deg,transparent,rgba(255,255,255,.55),transparent);transform:skewX(-18deg);transition:left .7s cubic-bezier(.2,.7,.2,1);pointer-events:none}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .btn:hover{filter:none;transform:translateY(-1px);box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 0 0 1px var(--hair),0 0 28px var(--glow),0 10px 26px rgba(0,0,0,.3)}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .btn:hover::after{left:130%}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .btn.ghost{background:var(--glass);color:var(--ink);text-shadow:none;border:1px solid var(--line2);box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .btn.ghost:hover{border-color:var(--ink3)}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .btn.gobuy{background:linear-gradient(180deg,#4BE3A3,#159a63);color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.25)}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .btn.gosell{background:linear-gradient(180deg,#FF7480,#C42A39);color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.25)}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .btn[disabled]{opacity:.4;transform:none;box-shadow:none}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) :is(.inp,.tkin,select.inp){background:var(--bg2);border:1px solid var(--line2);border-radius:10px}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .tkin .inp{background:transparent;border:0}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) :is(.inp,.tkin):focus-within,:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .inp:focus{border-color:var(--ink3);box-shadow:0 0 0 3px var(--glow)}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .seg{background:var(--bg2);border:1px solid var(--line2);border-radius:999px;padding:2px}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .seg button{border:0;border-radius:999px}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .seg button.on{background:var(--metal);color:var(--accentInk);box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 2px 8px rgba(0,0,0,.25);font-weight:650}
+:root:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen]) .btn{text-shadow:0 1px 0 rgba(255,255,255,.4)}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) .btn::after{content:"";position:absolute;top:0;bottom:0;width:60%;left:-80%;background:linear-gradient(105deg,transparent,rgba(255,255,255,.55),transparent);transform:skewX(-18deg);transition:left .7s cubic-bezier(.2,.7,.2,1);pointer-events:none}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) .btn:hover{filter:none;transform:translateY(-1px);box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 0 0 1px var(--hair),0 0 28px var(--glow),0 10px 26px rgba(0,0,0,.3)}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) .btn:hover::after{left:130%}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) .btn.ghost{background:var(--glass);color:var(--ink);text-shadow:none;border:1px solid var(--line2);box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) .btn.ghost:hover{border-color:var(--ink3)}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) .btn.gobuy{background:linear-gradient(180deg,#4BE3A3,#159a63);color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.25)}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) .btn.gosell{background:linear-gradient(180deg,#FF7480,#C42A39);color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.25)}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) .btn[disabled]{opacity:.4;transform:none;box-shadow:none}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) :is(.inp,.tkin,select.inp){background:var(--bg2);border:1px solid var(--line2);border-radius:10px}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) .tkin .inp{background:transparent;border:0}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) :is(.inp,.tkin):focus-within,:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) .inp:focus{border-color:var(--ink3);box-shadow:0 0 0 3px var(--glow)}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) .seg{background:var(--bg2);border:1px solid var(--line2);border-radius:999px;padding:2px}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) .seg button{border:0;border-radius:999px}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) .seg button.on{background:var(--metal);color:var(--accentInk);box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 2px 8px rgba(0,0,0,.25);font-weight:650}
 :root:is([data-skin=luxlight],[data-skin=arctic]) .seg button.on{color:#fff}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .chip{border-radius:999px;border:1px solid var(--line2);background:var(--bg2)}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .chip.on{background:var(--metal);color:var(--accentInk);border-color:var(--hair)}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) .chip{border-radius:999px;border:1px solid var(--line2);background:var(--bg2)}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) .chip.on{background:var(--metal);color:var(--accentInk);border-color:var(--hair)}
 :root:is([data-skin=luxlight],[data-skin=arctic]) .chip.on{color:#fff}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .tag{border-radius:999px}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .tag.navy{background:var(--metal);color:var(--accentInk)}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) .tag{border-radius:999px}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) .tag.navy{background:var(--metal);color:var(--accentInk)}
 :root:is([data-skin=luxlight],[data-skin=arctic]) .tag.navy{color:#fff}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .side{background:var(--glass);-webkit-backdrop-filter:blur(24px) saturate(150%);backdrop-filter:blur(24px) saturate(150%);border-right:1px solid var(--line2);color:var(--ink)}
-:root:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux]) .side{background:linear-gradient(180deg,rgba(18,18,21,.92),rgba(6,6,7,.94))}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .nav a{color:var(--ink2);border-radius:10px}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .nav a:hover{background:var(--bg3);color:var(--ink)}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .nav a.on{background:var(--bg3);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line2),inset 3px 0 0 var(--ink3)}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .nav a.on svg{stroke:url(#vmetal) currentColor}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .brand small,:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .sidefoot{color:var(--ink3)}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .topbar{background:color-mix(in srgb,var(--bg) 70%,transparent);-webkit-backdrop-filter:blur(20px) saturate(160%);backdrop-filter:blur(20px) saturate(160%);border-bottom:1px solid var(--line)}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .tape{background:transparent;border-bottom:1px solid var(--line)}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .ibtn:hover{background:var(--bg3)}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .avatar{background:var(--metal);color:var(--accentInk)}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .callout{background:var(--glass);border:1px solid var(--line2);border-left:3px solid var(--ink3);border-radius:12px}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .tst{background:var(--glass);-webkit-backdrop-filter:blur(22px) saturate(150%);backdrop-filter:blur(22px) saturate(150%);border-radius:14px}
-:root:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux]) .tst{background:linear-gradient(180deg,rgba(28,28,32,.92),rgba(12,12,14,.94))}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) #overlay .card{background:var(--panel)!important}
-:root:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux]) #overlay .card{background:linear-gradient(180deg,rgba(26,26,30,.96),rgba(10,10,12,.97))!important}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) .side{background:var(--glass);-webkit-backdrop-filter:blur(24px) saturate(150%);backdrop-filter:blur(24px) saturate(150%);border-right:1px solid var(--line2);color:var(--ink)}
+:root:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen]) .side{background:linear-gradient(180deg,rgba(18,18,21,.92),rgba(6,6,7,.94))}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) .nav a{color:var(--ink2);border-radius:10px}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) .nav a:hover{background:var(--bg3);color:var(--ink)}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) .nav a.on{background:var(--bg3);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line2),inset 3px 0 0 var(--ink3)}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) .nav a.on svg{stroke:url(#vmetal) currentColor}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) .brand small,:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) .sidefoot{color:var(--ink3)}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) .topbar{background:color-mix(in srgb,var(--bg) 70%,transparent);-webkit-backdrop-filter:blur(20px) saturate(160%);backdrop-filter:blur(20px) saturate(160%);border-bottom:1px solid var(--line)}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) .tape{background:transparent;border-bottom:1px solid var(--line)}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) .ibtn:hover{background:var(--bg3)}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) .avatar{background:var(--metal);color:var(--accentInk)}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) .callout{background:var(--glass);border:1px solid var(--line2);border-left:3px solid var(--ink3);border-radius:12px}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) .tst{background:var(--glass);-webkit-backdrop-filter:blur(22px) saturate(150%);backdrop-filter:blur(22px) saturate(150%);border-radius:14px}
+:root:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen]) .tst{background:linear-gradient(180deg,rgba(28,28,32,.92),rgba(12,12,14,.94))}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) #overlay .card{background:var(--panel)!important}
+:root:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen]) #overlay .card{background:linear-gradient(180deg,rgba(26,26,30,.96),rgba(10,10,12,.97))!important}
 :root:is([data-skin=luxlight],[data-skin=arctic]) #overlay .card{background:rgba(255,255,255,.95)!important}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .scrim{-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) table tr:hover td{background:var(--bg2)}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .tkside{border-radius:999px;padding:3px;background:var(--bg2)}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .tkside button{border-radius:999px;background:transparent}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .kbar,.wbar{border-radius:99px}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .lg-l{background:radial-gradient(900px 500px at 80% -10%,rgba(210,215,225,.14),transparent 60%),#050505;color:#fff}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) .scrim{-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) table tr:hover td{background:var(--bg2)}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) .tkside{border-radius:999px;padding:3px;background:var(--bg2)}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) .tkside button{border-radius:999px;background:transparent}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) .kbar,.wbar{border-radius:99px}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) .lg-l{background:radial-gradient(900px 500px at 80% -10%,rgba(210,215,225,.14),transparent 60%),#050505;color:#fff}
 :root:is([data-skin=luxlight],[data-skin=arctic]) .lg-l{background:radial-gradient(900px 500px at 80% -10%,#fff,transparent 60%),linear-gradient(180deg,#eef0f3,#dfe2e7);color:var(--ink)}
 :root:is([data-skin=luxlight],[data-skin=arctic]) .lg-l :is(li,p){color:var(--ink2)}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .tabbar{background:color-mix(in srgb,var(--bg) 72%,transparent);-webkit-backdrop-filter:blur(20px) saturate(160%);backdrop-filter:blur(20px) saturate(160%);border-top:1px solid var(--line2)}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) ::selection{background:var(--glow)}
-:root:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux]) ::-webkit-scrollbar{width:10px;height:10px}:root:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux]) ::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#5b6068,#2b2e33);border-radius:10px;border:2px solid #050505}:root:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux]) ::-webkit-scrollbar-track{background:#050505}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) .tabbar{background:color-mix(in srgb,var(--bg) 72%,transparent);-webkit-backdrop-filter:blur(20px) saturate(160%);backdrop-filter:blur(20px) saturate(160%);border-top:1px solid var(--line2)}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) ::selection{background:var(--glow)}
+:root:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen]) ::-webkit-scrollbar{width:10px;height:10px}:root:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen]) ::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#5b6068,#2b2e33);border-radius:10px;border:2px solid #050505}:root:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen]) ::-webkit-scrollbar-track{background:#050505}
 @keyframes vshine{0%{background-position:0% 50%}100%{background-position:200% 50%}}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .vword,:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .vfull,:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .logo{background-size:200% 100%;animation:vshine 9s linear infinite}
-@media (prefers-reduced-motion:reduce){:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) *{animation:none!important;transition:none!important}}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) .vword,:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) .vfull,:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) .logo{background-size:200% 100%;animation:vshine 9s linear infinite}
+@media (prefers-reduced-motion:reduce){:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) *{animation:none!important;transition:none!important}}
 .skinrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px}
 .bname{font:650 15px/1.1 "Inter Tight",Inter,sans-serif}
 #skinbtn svg{stroke:currentColor;fill:none;stroke-width:1.7}
-:root:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux]) :is(a.link,.lnk,.lg-r a,.card a:not(.btn):not(.tag)){color:#E6E8EB}
+:root:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen]) :is(a.link,.lnk,.lg-r a,.card a:not(.btn):not(.tag)){color:#E6E8EB}
 :root:is([data-skin=luxlight],[data-skin=arctic]) :is(a.link,.lnk,.lg-r a,.card a:not(.btn):not(.tag)){color:#15171B}
-:root:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .side .nav a.on{background:var(--bg3);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line2),inset 3px 0 0 var(--ink3)}
-:root:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .sidefoot{border-top-color:var(--line)}
+:root:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) .side .nav a.on{background:var(--bg3);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line2),inset 3px 0 0 var(--ink3)}
+:root:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) .sidefoot{border-top-color:var(--line)}
 
 /* ===================== v9: overzicht in één oogopslag ===================== */
 .ovhead{margin-bottom:14px}.ovhead h1{font-size:28px}
@@ -946,9 +946,9 @@ summary.lnk{white-space:normal;display:list-item}
 @media (max-width:700px){.glance{grid-template-columns:1fr}.glance>*+*{border-left:0;border-top:1px solid var(--line)}.glance>*{padding:14px 16px}
   .glg{width:92px}.glv>b{font-size:21px}.ovhead h1{font-size:24px}
   .ptiles{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.ptadd{min-height:70px}}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .ptile{background:var(--glass);border-color:var(--line2);border-radius:14px;box-shadow:var(--shadow);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px)}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .ptile:hover{box-shadow:var(--shadow),0 0 26px var(--glow)}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .ptadd{background:transparent;box-shadow:none}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) .ptile{background:var(--glass);border-color:var(--line2);border-radius:14px;box-shadow:var(--shadow);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px)}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) .ptile:hover{box-shadow:var(--shadow),0 0 26px var(--glow)}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) .ptadd{background:transparent;box-shadow:none}
 @media (max-width:700px){
   .ovhead{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:10px}
   .ovhead>div:last-child a.btn{display:none}
@@ -978,7 +978,7 @@ summary.lnk{white-space:normal;display:list-item}
 .achero>*{padding:18px 20px;min-width:0}.achero>*+*{border-left:1px solid var(--line)}
 .aclv{display:flex;gap:14px;align-items:center}
 .aclvn{flex:none;width:56px;height:56px;border-radius:50%;display:grid;place-items:center;font:700 22px/1 "Inter Tight",Inter,sans-serif;background:var(--navy);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.4)}
-:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .aclvn{background:var(--metal);color:var(--accentInk)}
+:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) .aclvn{background:var(--metal);color:var(--accentInk)}
 :root:is([data-skin=luxlight],[data-skin=arctic]) .aclvn{color:#fff}
 .aclv small,.acst small,.acnext small{display:block;font-size:11.5px;color:var(--ink3)}
 .aclv b{display:block;font-size:18px;margin:1px 0 6px}.aclv span{font-size:12px;color:var(--ink2)}
@@ -994,7 +994,7 @@ a.acnext:hover b{text-decoration:underline}
 .acph .chev{width:18px;height:18px;stroke:var(--ink3);fill:none;stroke-width:2}
 .acring{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--up) calc(var(--p)*1%),var(--bg3) 0);position:relative}
 .acring::before{content:"";position:absolute;inset:5px;border-radius:50%;background:var(--panel)}
-:root:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux]) .acring::before{background:#0d0d10}:root:is([data-skin=luxlight],[data-skin=arctic]) .acring::before{background:#fff}
+:root:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen]) .acring::before{background:#0d0d10}:root:is([data-skin=luxlight],[data-skin=arctic]) .acring::before{background:#fff}
 .acring b{position:relative;font-size:12.5px;font-weight:650}
 .acll{list-style:none;margin:0;padding:6px 10px 10px;border-top:1px solid var(--line)}
 .acll a,.actask{display:grid;grid-template-columns:28px minmax(0,1fr);gap:12px;align-items:center;padding:10px 8px;border-radius:10px;color:inherit;text-decoration:none}
@@ -1059,7 +1059,7 @@ a.acnext:hover b{text-decoration:underline}
 @media (max-width:900px){.achero{grid-template-columns:1fr}.achero>*+*{border-left:0;border-top:1px solid var(--line)}}
 @media (max-width:640px){.aclbody{padding:20px 16px!important}.aclbody h1{font-size:24px}.acsvw{grid-template-columns:1fr}.acwhy{grid-template-columns:1fr}.acrec>div{grid-template-columns:110px minmax(0,1fr) 54px}.actask{grid-template-columns:28px minmax(0,1fr)}.actask .tag{display:none}.acstats{gap:12px}}
 .aclegend i.acafter.down{background:var(--down)}
-.lg-l li b{width:84px!important;font-size:12.5px!important}:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=luxlight],[data-skin=arctic]) .lg-l li b{color:var(--ink2)!important}
+.lg-l li b{width:84px!important;font-size:12.5px!important}:is([data-skin=luxdark],[data-skin=navygold],[data-skin=oled],[data-skin=emerald],[data-skin=bordeaux],[data-skin=noirblue],[data-skin=noirgreen],[data-skin=luxlight],[data-skin=arctic]) .lg-l li b{color:var(--ink2)!important}
 #themebtn{display:none!important}
 .sw-classic-light{background:linear-gradient(90deg,#17243A 0 34%,#F3F5F9 34%)}
 .sw-classic-dark{background:linear-gradient(90deg,#0E1626 0 34%,#1B2433 34%)}.sw-classic-dark::after{content:"";position:absolute;left:44%;right:10px;top:18px;height:8px;border-radius:4px;background:#3B5A8C}
@@ -1094,6 +1094,21 @@ a.acnext:hover b{text-decoration:underline}
 :root[data-skin=bordeaux] body{background:radial-gradient(1100px 600px at 85% -15%,rgba(227,166,140,.12),transparent 60%),linear-gradient(180deg,#17080C,#0A0405) fixed}
 :root[data-skin=bordeaux] .side{background:linear-gradient(180deg,rgba(34,12,17,.95),rgba(14,5,7,.96))}
 
+:root[data-skin=noirblue]{--bg:#020306;--bg2:rgba(255,255,255,.04);--bg3:rgba(255,255,255,.075);--panel:rgba(8,12,22,.72);--ink:#EEF3FB;--ink2:#A4B0C4;--ink3:#6B778C;--line:rgba(255,255,255,.075);--line2:rgba(77,141,245,.28);
+  --navy:#020306;--navy2:#0A1222;--navy3:#4D8DF5;--accentInk:#020A1C;--focus:#7FB0FF;--chip:rgba(77,141,245,.09);--heat0:#0A1222;--ring-hi:#7FB0FF;
+  --metal:linear-gradient(135deg,#EAF3FF 0%,#8DB8FF 28%,#1F5FD1 48%,#CFE0FF 66%,#4C8DF5 100%);--logo-paint:var(--metal);--logo-paint-side:var(--metal);
+  --glass:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.012));--hair:rgba(110,160,250,.3);--glow:rgba(61,139,255,.22);--sheen:rgba(214,230,255,.14)}
+:root[data-skin=noirblue] body{background:radial-gradient(1000px 560px at 88% -18%,rgba(61,139,255,.13),transparent 60%),radial-gradient(700px 420px at -10% 110%,rgba(61,139,255,.06),transparent 60%),#020306 fixed}
+:root[data-skin=noirblue] .side{background:linear-gradient(180deg,rgba(6,10,20,.96),rgba(2,3,6,.97))}
+
+:root[data-skin=noirgreen]{--bg:#020403;--bg2:rgba(255,255,255,.04);--bg3:rgba(255,255,255,.075);--panel:rgba(8,16,11,.72);--ink:#EDF7F0;--ink2:#A2B8A9;--ink3:#6A8072;--line:rgba(255,255,255,.075);--line2:rgba(54,196,111,.28);
+  --navy:#020403;--navy2:#0A1A10;--navy3:#36C46F;--accentInk:#02140A;--focus:#74E3A2;--chip:rgba(54,196,111,.09);--heat0:#0A1A10;--ring-hi:#74E3A2;
+  --metal:linear-gradient(135deg,#E8FFF0 0%,#7DEBA8 28%,#13994F 48%,#C6F7DA 66%,#36C46F 100%);--logo-paint:var(--metal);--logo-paint-side:var(--metal);
+  --glass:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.012));--hair:rgba(100,220,150,.3);--glow:rgba(43,224,122,.2);--sheen:rgba(214,255,230,.14)}
+:root[data-skin=noirgreen] body{background:radial-gradient(1000px 560px at 88% -18%,rgba(43,224,122,.11),transparent 60%),radial-gradient(700px 420px at -10% 110%,rgba(43,224,122,.05),transparent 60%),#020403 fixed}
+:root[data-skin=noirgreen] .side{background:linear-gradient(180deg,rgba(6,14,9,.96),rgba(2,4,3,.97))}
+
+
 :root[data-skin=arctic]{--bg:#EDF2F8;--bg2:rgba(20,40,70,.035);--bg3:rgba(20,40,70,.06);--panel:rgba(255,255,255,.72);--ink:#0B1A2B;--ink2:#4A5B70;--ink3:#8494A8;--line:rgba(16,40,70,.08);--line2:rgba(16,40,70,.15);
   --navy:#0F2440;--navy2:#1D3A63;--navy3:#3E6EA6;--accent:#1D4E89;--accentInk:#fff;--focus:#2C64A8;--chip:rgba(20,60,110,.06);--heat0:#E2E9F2;--ring-hi:#1D4E89;
   --metal:linear-gradient(135deg,#1C3A61 0%,#5C8BC2 28%,#132C4B 48%,#8DB3DD 66%,#284B77 100%);--logo-paint:var(--metal);--logo-paint-side:var(--metal);
@@ -1104,9 +1119,86 @@ a.acnext:hover b{text-decoration:underline}
 .sw-oled{background:#000;border-color:#333!important}.sw-oled::after{content:"";position:absolute;left:10px;right:10px;top:18px;height:8px;border-radius:4px;background:#E5E5E5}
 .sw-emerald{background:radial-gradient(70% 90% at 80% 0%,rgba(110,214,165,.3),transparent 60%),#05110D}.sw-emerald::after{content:"";position:absolute;left:10px;right:10px;top:18px;height:8px;border-radius:4px;background:linear-gradient(135deg,#E9FFF5,#8BE0B9 30%,#2E8C66 50%,#C8F4E0 70%,#4DB487)}
 .sw-bordeaux{background:radial-gradient(70% 90% at 80% 0%,rgba(227,166,140,.3),transparent 60%),#120709}.sw-bordeaux::after{content:"";position:absolute;left:10px;right:10px;top:18px;height:8px;border-radius:4px;background:linear-gradient(135deg,#FFE9DE,#E4AA90 30%,#9A5747 50%,#F7D1BE 70%,#BB7963)}
+.sw-noirblue{background:radial-gradient(70% 90% at 80% 0%,rgba(61,139,255,.32),transparent 60%),#020306}.sw-noirblue::after{content:"";position:absolute;left:10px;right:10px;top:18px;height:8px;border-radius:4px;background:linear-gradient(135deg,#EAF3FF,#8DB8FF 30%,#1F5FD1 50%,#CFE0FF 70%,#4C8DF5)}
+.sw-noirgreen{background:radial-gradient(70% 90% at 80% 0%,rgba(43,224,122,.28),transparent 60%),#020403}.sw-noirgreen::after{content:"";position:absolute;left:10px;right:10px;top:18px;height:8px;border-radius:4px;background:linear-gradient(135deg,#E8FFF0,#7DEBA8 30%,#13994F 50%,#C6F7DA 70%,#36C46F)}
 .sw-arctic{background:radial-gradient(70% 90% at 80% 0%,#fff,transparent 70%),linear-gradient(180deg,#f5f8fc,#dfe8f2)}.sw-arctic::after{content:"";position:absolute;left:10px;right:10px;top:18px;height:8px;border-radius:4px;background:linear-gradient(135deg,#1C3A61,#5C8BC2 30%,#132C4B 50%,#8DB3DD 70%,#284B77)}
 .skinmenu{max-height:calc(100vh - 90px);overflow-y:auto}
 .skinopt{grid-template-columns:56px 1fr auto;padding:7px 8px}.skinopt .sw{height:38px}
+
+/* =====================================================================
+   v12 — vrienden en chat, handelsrang, vergrendelde stijlen
+   ===================================================================== */
+.nbadge{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 5px;margin-left:auto;border-radius:9px;background:var(--down,#E5484D);color:#fff;font:700 11px/1 inherit;font-style:normal}
+.nbadge[hidden]{display:none}
+#tabbar a{position:relative}#tabbar a .nbadge{position:absolute;top:4px;left:calc(50% + 6px);margin:0}
+.skinopt.locked{opacity:.62}.skinopt.locked .sw{filter:grayscale(.6)}
+.skinopt .lockinfo{display:flex;align-items:flex-start;gap:5px;margin-top:3px;color:var(--ink2);font-size:11.5px}
+.skinopt .lockinfo svg{width:12px;height:12px;flex:none;fill:none;stroke:currentColor;stroke-width:2}
+.rwline{display:flex;align-items:center;gap:10px;margin:2px 4px 8px;padding:9px 10px;border:1px solid var(--line);border-radius:10px;color:var(--ink);text-decoration:none}
+.rwline:hover{border-color:var(--line2)}.rwline svg{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8}.rwline b{display:block;font-size:13px}.rwline small{color:var(--ink2);font-size:12px}
+.rwbar{margin:0 0 14px}.rwtop{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:13.5px}.rwtop span{color:var(--ink2);font-variant-numeric:tabular-nums}
+.rwtrack{height:6px;margin:8px 0;border-radius:3px;background:var(--bg3);overflow:hidden}.rwtrack i{display:block;height:100%;border-radius:3px;background:var(--metal,var(--navy3))}
+.rwbar small{display:block;color:var(--ink3);font-size:12px;line-height:1.45}
+.ava{display:inline-grid;place-items:center;flex:none;width:38px;height:38px;border-radius:50%;background:var(--bg3);color:var(--ink);font-weight:700;font-size:15px;box-shadow:inset 0 0 0 1px var(--line2)}
+.ava.lg{width:52px;height:52px;font-size:20px}
+.ava.r1{box-shadow:0 0 0 2px var(--bg),0 0 0 3.5px #B8BEC8}
+.ava.r2{box-shadow:0 0 0 2px var(--bg),0 0 0 3.5px #D4AF5F}
+.ava.r3{box-shadow:0 0 0 2px var(--bg),0 0 0 3.5px #8DB8FF,0 0 14px rgba(141,184,255,.45)}
+.soc{display:grid;grid-template-columns:minmax(280px,340px) 1fr;gap:16px;align-items:start}
+.socl{display:flex;flex-direction:column;gap:14px;min-width:0}.socl>*{margin:0}
+.socc{min-width:0;position:sticky;top:76px}
+.socme{display:grid;grid-template-columns:auto 1fr;gap:12px 14px;align-items:center}.socme>div{display:flex;flex-direction:column;min-width:0}.socme .rwbar{grid-column:1/-1;margin:0}
+.socme .muted{font-size:13px}
+.soc button.lnk{background:none;border:0;padding:0;margin-top:4px;cursor:pointer;text-align:left;font:inherit;font-size:12.5px;font-weight:600;color:var(--ink2)}.soc button.lnk:hover{color:var(--ink)}
+.socin{display:flex;align-items:center;margin-top:8px;border:1px solid var(--line2);border-radius:10px;background:var(--bg2)}
+.socin span{padding:0 4px 0 12px;color:var(--ink3);font-weight:600}
+.socin input{flex:1;min-width:0;height:40px;border:0;background:none;color:var(--ink);font:inherit;outline:none;padding-right:12px}
+.socin:focus-within{border-color:var(--focus,var(--navy3));box-shadow:0 0 0 3px var(--glow,rgba(100,140,220,.2))}
+#socres{margin-top:6px}#socres:empty{display:none}
+.srq{display:flex;align-items:center;gap:10px;padding:8px 0}.srq+.srq{border-top:1px solid var(--line)}
+.srq>span:not(.ava){flex:1;min-width:0;display:flex;flex-direction:column}.srq small{color:var(--ink2);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.srq .btn svg{width:15px;height:15px;margin-right:4px;fill:none;stroke:currentColor;stroke-width:2}
+.muted.sm,.sm.muted{font-size:12.5px}
+.pill{font-size:11.5px;font-weight:600;padding:3px 8px;border-radius:999px;background:var(--chip,var(--bg3));color:var(--ink)}
+.sfr{display:flex;align-items:center;gap:11px;padding:11px 16px;color:var(--ink);text-decoration:none;border-top:1px solid var(--line)}
+.sfr:hover,.sfr.on{background:var(--bg2)}.sfr.on{box-shadow:inset 3px 0 0 var(--navy3)}
+.sfr>span:nth-child(2){flex:1;min-width:0;display:flex;flex-direction:column}.sfr small{color:var(--ink2);font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sfm{display:flex;flex-direction:column;align-items:flex-end;gap:4px}.sfm time{color:var(--ink3);font-size:11.5px;white-space:nowrap}.sfm .nbadge{margin:0}
+.socnone{padding:4px 16px 16px;font-size:13px}
+.soce{text-align:center;padding:40px 24px}.soce>svg{width:36px;height:36px;fill:none;stroke:var(--ink3);stroke-width:1.5}.soce h2{margin:10px 0 6px}.soce p{max-width:46ch;margin:0 auto 14px}
+.socname{text-align:left;max-width:520px}.socname form{max-width:360px}.socname .row{margin-top:6px}
+.soc .row,.sdf .row{display:flex;gap:8px;flex-wrap:wrap}
+.chat{display:flex;flex-direction:column;padding:0!important;height:calc(100vh - 190px);min-height:440px;overflow:hidden}
+.chh{display:flex;align-items:center;gap:11px;padding:12px 16px;border-bottom:1px solid var(--line)}.chh>span:not(.ava){flex:1;min-width:0;display:flex;flex-direction:column}.chh small{color:var(--ink2);font-size:12.5px}
+.chback{display:none}.chback svg,.chf svg,.sdf .btn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2}
+.chm{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:6px;overscroll-behavior:contain}
+.chmore{align-self:center;margin-bottom:6px}.chnone{margin:auto;text-align:center;font-size:13.5px}
+.mday{display:flex;justify-content:center;margin:10px 0 4px}.mday span{font-size:11.5px;color:var(--ink3);padding:3px 10px;border-radius:999px;background:var(--bg2)}
+.msg{max-width:min(78%,520px);align-self:flex-start;display:flex;flex-direction:column}
+.msg.me{align-self:flex-end;align-items:flex-end}
+.msg p{margin:0;padding:9px 13px;border-radius:16px 16px 16px 5px;background:var(--bg3);color:var(--ink);font-size:14px;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}
+.msg.me p{border-radius:16px 16px 5px 16px;background:var(--navy2,var(--bg3));box-shadow:inset 0 0 0 1px var(--line2)}
+.msg p a{color:inherit;text-decoration:underline}
+.msg time{font-size:11px;color:var(--ink3);margin:3px 6px 0}
+.tfc{display:flex;gap:11px;padding:12px 14px;border-radius:14px;border:1px solid var(--hair,var(--line2));background:var(--glass,var(--bg2));min-width:220px}
+.tfc>div{display:flex;flex-direction:column;gap:1px}.tfc small{color:var(--ink2);font-size:12px}.tfc b{font-size:19px;font-variant-numeric:tabular-nums}.tfc span:not(.tfi){font-size:12.5px;color:var(--ink2)}
+.tfc p{padding:6px 0 0;background:none!important;box-shadow:none!important;border-radius:0}.tfc em{font-style:normal;font-size:11px;color:var(--ink3);margin-top:4px}
+.tfi{display:grid;place-items:center;flex:none;width:34px;height:34px;border-radius:50%;background:var(--bg3)}.tfi svg{width:17px;height:17px;fill:none;stroke:var(--ink);stroke-width:1.8}
+.chf{display:flex;align-items:flex-end;gap:8px;padding:10px 12px;border-top:1px solid var(--line)}
+.chf textarea{flex:1;min-width:0;resize:none;min-height:40px;max-height:140px;padding:9px 12px;border:1px solid var(--line2);border-radius:12px;background:var(--bg2);color:var(--ink);font:inherit;font-size:14px;line-height:1.45;outline:none}
+.chf textarea:focus{border-color:var(--focus,var(--navy3))}
+.chsend{gap:6px}.chsend span{font-size:13px}
+.sdf{display:flex;flex-direction:column;gap:12px;margin-top:12px}.sdf label{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:600}
+.sdf select,.sdf input{height:40px;padding:0 11px;border:1px solid var(--line2);border-radius:10px;background:var(--bg2);color:var(--ink);font:inherit;font-weight:400}
+.sdamt{display:flex;gap:8px}.sdamt input{flex:1;min-width:0}.sdprev{margin:-4px 0 0;font-size:13px;color:var(--ink2);min-height:18px}
+@media (max-width:900px){.soc{grid-template-columns:1fr}.soc.inchat .socl{display:none}.soc:not(.inchat) .socc{display:none}.socc{position:static}.chback{display:inline-flex}.chat{height:calc(100vh - 210px);height:calc(100dvh - 210px)}}
+@media (max-width:640px){.chsend span{display:none}.msg{max-width:88%}}
+.socl .card.flush .chead{padding:14px 16px 10px;margin:0}
+.chat{height:calc(100vh - 250px);height:calc(100dvh - 250px)}
+.skinmenu{background:linear-gradient(var(--panel),var(--panel)),var(--bg);z-index:160}
+.sdf .err:empty{display:none}
+@media (max-width:900px){#view:has(.soc.inchat) .phead{display:none}.soc.inchat .chat{height:calc(100vh - 200px);height:calc(100dvh - 200px);min-height:360px}}
+.skinopt .lockinfo svg{margin-top:2px}
 
 </style>
 </head>
@@ -3773,7 +3865,7 @@ function srLevels(d,price){if(!d||d.length<15)return {sup:[],res:[]};const H=d.m
   cc.insertAdjacentHTML('beforeend',[...lv.res.map(c=>['res',c]),...lv.sup.map(c=>['sup',c])].filter(([,c])=>c.v>lo&&c.v<hi).map(([t,c])=>`<div class="srl ${t}" style="top:${y(c.v).toFixed(1)}%"><span>${t==='res'?'Weerstand':'Steun'} ${money(a,c.v)}${c.n>1?` · ${c.n}× geraakt`:''}</span></div>`).join(''))}}
 
 /* =====================================================================
-   v5 ronde 3 — nieuws op trefwoord, Telegram, weekoverzicht per e-mail,
+   v5 ronde 3 — nieuws op trefwoord, Discord, weekoverzicht per e-mail,
    koersdoelen per positie en een eigen geluid per soort melding
    ===================================================================== */
 /* ---------- geluiden per soort ---------- */
@@ -3785,14 +3877,15 @@ NX.tone=function(name,strong){if(S.settings.sound===false||name==='uit')return;t
 NX.chime=function(strong,kind){const map=S.settings.snd||{};const def=Object.fromEntries(SNDCAT.map(([k,,d])=>[k,d]));const k=kind||(strong?'alert':'impact');NX.tone(map[k]||def[k]||'zacht',strong)};
 {const ot=UI.toast;UI.toast=function(a){const k=NX.kindOf(a);const cat=a.cat==='news'?'news':k;const save=NX.chime;NX.chime=(strong)=>save(strong,cat==='success'||cat==='error'||cat==='info'?null:cat);try{ot.call(this,a)}finally{NX.chime=save}}}
 TKIND.news=['news','Nieuws'];
-/* ---------- instellingen: Telegram, e-mail, geluiden ---------- */
+/* ---------- instellingen: Discord, e-mail, geluiden ---------- */
 const TGS={st:null,poll:null};
-async function tgStatus(){if(!Api.authed)return null;try{TGS.st=await Api.call('/api/telegram/status')}catch(e){TGS.st={ready:false,err:e.message}}return TGS.st}
-function chHTML(){const s=S.settings;const F=(Api.h&&Api.h.features)||Api.features||{};const T=TGS.st;const off=s.tgOff||[];const sw=(id,on,extra='')=>`<label class="sw"><input type="checkbox" id="${id}" ${on?'checked':''} ${extra}><span></span></label>`;
-  return `<div class="card" style="margin-top:16px" id="chcard"><div class="chead"><h2>Telegram en e-mail</h2></div>
-    <div class="set"><div><b>Telegram</b><p>${!Api.authed?'Log in om Telegram te koppelen.':!F.telegram?'Binnenkort beschikbaar: de Vantis-bot wordt nog ingesteld.':T&&T.linked?`Gekoppeld${T.username?' als @'+esc(T.username):''}. Je krijgt hier koersalerts, orders, nieuws en de ochtendbriefing. Commando's in de bot: /koers BTC, /briefing, /portefeuille.`:'Ontvang je meldingen ook in Telegram en vraag koersen op met /koers BTC.'}</p></div>
-      ${Api.authed&&F.telegram?(T&&T.linked?`<div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn ghost sm" id="tgtest">Test</button><button class="btn ghost sm" id="tgoff">Ontkoppelen</button></div>`:`<button class="btn sm" id="tglink">Koppel Telegram</button>`):''}</div>
-    ${T&&T.linked?`<div class="set"><div><b>Wat stuurt Vantis naar Telegram?</b><div class="chips" id="tgcats" style="margin-top:8px">${[['alert','Koersalerts'],['order','Orders'],['news','Nieuws'],['impact','Impact'],['briefing','Ochtendbriefing']].map(([k,l])=>`<button class="chip ${off.includes(k)?'':'on'}" data-tgc="${k}">${l}</button>`).join('')}</div></div></div>`:''}
+async function tgStatus(){if(!Api.authed)return null;try{TGS.st=await Api.call('/api/discord/status')}catch(e){TGS.st={ready:false,err:e.message}}return TGS.st}
+function chHTML(){const s=S.settings;const F=(Api.h&&Api.h.features)||Api.features||{};const T=TGS.st;const off=s.dcOff||[];const sw=(id,on,extra='')=>`<label class="sw"><input type="checkbox" id="${id}" ${on?'checked':''} ${extra}><span></span></label>`;const inv=(T&&T.invite)||F.discordInvite;
+  return `<div class="card" style="margin-top:16px" id="chcard"><div class="chead"><h2>Discord en e-mail</h2></div>
+    <div class="set"><div><b>Discord</b><p>${!Api.authed?'Log in om Discord te koppelen.':!(F.discord&&T&&T.ready)?'Binnenkort beschikbaar: de Vantis-server en -bot worden nog ingesteld.':T.linked?`Gekoppeld${T.username?` als <b>${esc(T.username)}</b>`:''}. <span>De Vantis-bot stuurt je koersalerts, orders, nieuws en de ochtendbriefing als privébericht.</span>${s.dcPause?' <b>Meldingen staan op pauze</b> <span>(zet ze aan met /meldingen aan in Discord).</span>':''} <span>Commando's: /koers BTC, /briefing, /portefeuille.</span>`:'Koppel je Discord-account: je wordt lid van de Vantis-server en krijgt je meldingen als privébericht van de Vantis-bot.'}</p>
+      ${inv?`<a class="lnk" href="${esc(inv)}" target="_blank" rel="noopener">Naar de Vantis-server op Discord</a>`:''}</div>
+      ${Api.authed&&F.discord&&T&&T.ready?(T.linked?`<div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn ghost sm" id="tgtest">Test</button><button class="btn ghost sm" id="tgoff">Ontkoppelen</button></div>`:`<button class="btn sm" id="tglink">Koppel Discord</button>`):''}</div>
+    ${T&&T.linked?`<div class="set"><div><b>Wat stuurt Vantis naar Discord?</b><div class="chips" id="tgcats" style="margin-top:8px">${[['alert','Koersalerts'],['order','Orders'],['news','Nieuws'],['impact','Impact'],['briefing','Ochtendbriefing']].map(([k,l])=>`<button class="chip ${off.includes(k)?'':'on'}" data-tgc="${k}">${l}</button>`).join('')}</div></div></div>`:''}
     <div id="tgbox"></div>
     <div class="set"><div><b>Weekoverzicht per e-mail</b><p>Elke zondag om 18:00: de markt van de week, je watchlist, je oefenportefeuille en wat er komende week gebeurt.${F.mail?'':' <i>Het versturen wordt nog ingesteld; je kunt het al aanzetten en het voorbeeld bekijken.</i>'}</p>
       ${Api.authed?`<div style="display:flex;gap:10px;margin-top:6px;flex-wrap:wrap"><button class="lnk" id="mlprev">Voorbeeld bekijken</button>${F.mail?'<button class="lnk" id="mltest">Stuur mij een testmail</button>':''}</div>`:''}</div>${Api.authed?sw('mlon',!!s.weekmail):'<span class="faint">Log in</span>'}</div></div>
@@ -3804,13 +3897,10 @@ function chHTML(){const s=S.settings;const F=(Api.h&&Api.h.features)||Api.featur
       if(t.dataset.snd){S.settings.snd={...(S.settings.snd||{}),[t.dataset.snd]:t.value};saveSettings();NX.tone(t.value,true)}});
     wrap.addEventListener('click',async e=>{const b=e.target.closest('button');if(!b)return;
       if(b.dataset.sndp){const k=b.dataset.sndp;NX.tone((S.settings.snd||{})[k]||SNDCAT.find(x=>x[0]===k)[2],true);return}
-      if(b.dataset.tgc){const k=b.dataset.tgc;const off=new Set(S.settings.tgOff||[]);off.has(k)?off.delete(k):off.add(k);S.settings.tgOff=[...off];saveSettings();b.classList.toggle('on',!off.has(k));return}
-      try{if(b.id==='tglink'){const r=await Api.call('/api/telegram/link',{method:'POST',body:{}});const w=window.open(r.url,'_blank');
-          $('#tgbox',wrap).innerHTML=`<div class="callout"><b>Bijna klaar.</b> ${w?'Telegram is geopend: tik daar op <b>Start</b>.':`Open <a href="${esc(r.url)}" target="_blank" rel="noopener">t.me/${esc(r.bot)}</a> en tik op <b>Start</b>.`} Op je computer? Scan de code met je telefoon.<div id="tgqr" style="margin-top:10px"></div><p class="note">Wacht op koppeling…</p></div>`;
-          try{if(window.QRCode)new QRCode($('#tgqr',wrap),{text:r.url,width:140,height:140,colorDark:'#17243A',colorLight:'#ffffff'})}catch(x){}
-          clearInterval(TGS.poll);let n=0;TGS.poll=setInterval(async()=>{n++;const st=await tgStatus();if(st&&st.linked){clearInterval(TGS.poll);redraw();UI.toast({kind:'success',title:'Telegram gekoppeld',body:'Je ontvangt je meldingen nu ook in Telegram.'})}else if(n>60||!wrap.isConnected)clearInterval(TGS.poll)},3000)}
-        else if(b.id==='tgtest'){await Api.call('/api/telegram/test',{method:'POST',body:{}});UI.toast({kind:'success',title:'Testbericht verstuurd naar Telegram'})}
-        else if(b.id==='tgoff'){await Api.call('/api/telegram/link',{method:'DELETE'});await tgStatus();redraw();UI.toast({kind:'info',title:'Telegram ontkoppeld'})}
+      if(b.dataset.tgc){const k=b.dataset.tgc;const off=new Set(S.settings.dcOff||[]);off.has(k)?off.delete(k):off.add(k);S.settings.dcOff=[...off];saveSettings();b.classList.toggle('on',!off.has(k));return}
+      try{if(b.id==='tglink'){b.disabled=true;const r=await Api.call('/api/discord/link',{method:'POST',body:{}});location.href=r.url}
+        else if(b.id==='tgtest'){await Api.call('/api/discord/test',{method:'POST',body:{}});UI.toast({kind:'success',title:'Testbericht verstuurd naar Discord'})}
+        else if(b.id==='tgoff'){await Api.call('/api/discord/link',{method:'DELETE'});await tgStatus();redraw();UI.toast({kind:'info',title:'Discord ontkoppeld'})}
         else if(b.id==='mlprev'){const r=await fetch(API_BASE+'/api/mail/preview',{headers:{authorization:'Bearer '+Api.token}});const html=await r.text();dlg(`<div class="chead"><h2>Voorbeeld weekoverzicht</h2><button class="ibtn" id="mpx" aria-label="Sluiten">${ico('x')}</button></div><iframe id="mpf" style="width:100%;height:65vh;border:1px solid var(--line);border-radius:var(--r);background:#fff"></iframe>`,c=>{c.style.width='min(680px,100%)';$('#mpx',c).onclick=closeOverlay;$('#mpf',c).srcdoc=html})}
         else if(b.id==='mltest'){const r=await Api.call('/api/mail/test',{method:'POST',body:{}});UI.toast({kind:'success',title:'Testmail verstuurd',body:'Naar '+r.to})}}
       catch(x){UI.toast({kind:'error',title:'Niet gelukt',body:x.message})}})}}
@@ -3831,7 +3921,7 @@ function kwHTML(){const s=S.settings;const L=s.kw||[];return `<div class="card" 
 
 /* ---------- Mijn bezit: koersdoel en ondergrens per positie ---------- */
 function goalDialog(sym){const a=getAsset(sym);const L=(PA.list||[]).filter(x=>x.sym===sym&&x.active&&/^(above|below)$/.test(x.kind));const up=L.find(x=>x.kind==='above'),dn=L.find(x=>x.kind==='below');
-  dlg(`<h2>Doelen voor ${esc(a?.name||sym)}</h2><p class="muted">Je krijgt een melding (push${Api.authed?', meldingencentrum en Telegram als gekoppeld':''}) zodra de koers je doel of ondergrens raakt.${a&&a.price!=null?` Nu ${money(a,a.price)}.`:''}</p>
+  dlg(`<h2>Doelen voor ${esc(a?.name||sym)}</h2><p class="muted">Je krijgt een melding (push${Api.authed?', meldingencentrum en Discord als gekoppeld':''}) zodra de koers je doel of ondergrens raakt.${a&&a.price!=null?` Nu ${money(a,a.price)}.`:''}</p>
     <div class="tkgrid" style="margin-top:0"><div class="field"><label for="gup">Koersdoel (verkoopdoel)</label><div class="tkin"><span>${a?.cur==='USD'?'$':'€'}</span><input class="inp" id="gup" inputmode="decimal" value="${up?nlN(up.value,up.value<1?6:2).replace(/\./g,''):''}" placeholder="${a&&a.price?nlN(a.price*1.2,a.price<1?6:2).replace(/\./g,''):''}"></div></div>
     <div class="field"><label for="gdn">Ondergrens</label><div class="tkin"><span>${a?.cur==='USD'?'$':'€'}</span><input class="inp" id="gdn" inputmode="decimal" value="${dn?nlN(dn.value,dn.value<1?6:2).replace(/\./g,''):''}" placeholder="${a&&a.price?nlN(a.price*.85,a.price<1?6:2).replace(/\./g,''):''}"></div></div></div>
     <div class="err" id="gerr"></div><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn ghost" id="no">Annuleren</button><button class="btn" id="yes">Bewaren</button></div>`,c=>{$('#no',c).onclick=closeOverlay;
@@ -3955,7 +4045,7 @@ function widgetHTML(){const k=LS.get('wkey',null);const base=location.origin;ret
 /* ---------------- 26. PREMIUM: niveaus met proefweek ---------------- */
 const PRF={plans:null,period:'month'};
 const PLANF={free:['Live koersen, grafieken en analyses','Oefenhandel met € 10.000','Koersalerts in de app','Leren & badges'],
-  premium:['Alles van Gratis','Pushmeldingen 24/7, ook als de app dicht is','Telegram en weekoverzicht per e-mail','Indicator-alerts en nieuws op trefwoord','Volledige track record en Marktdata'],
+  premium:['Alles van Gratis','Pushmeldingen 24/7, ook als de app dicht is','Discord-meldingen en weekoverzicht per e-mail','Indicator-alerts en nieuws op trefwoord','Volledige track record en Marktdata'],
   pro:['Alles van Premium','Onbeperkt eigen scanners met meldingen','Periodiek kopen en trailing stops onbeperkt','Persoonlijke widgetsleutel','Voorrang op nieuwe functies']};
 Pages.premium={
   title:()=>'Premium',
@@ -3995,9 +4085,9 @@ Pages.beheer={
   async users(el){try{ADM.users=(await Api.call('/api/admin/users?q='+encodeURIComponent(ADM.q))).users;$('#admusers',el).innerHTML=this.userRows()}catch(x){}},
   userRows(){return (ADM.users||[]).map(u=>`<tr style="cursor:default"><td data-l="Gebruiker"><b>${esc(u.name||'—')}</b><br><small class="faint">${esc(u.email)}</small></td><td data-l="Sinds">${dmy(u.created)}</td><td data-l="Laatst actief">${u.last_seen?ago(u.last_seen):'—'}</td><td class="n" data-l="Trades">${u.trades}</td><td class="n" data-l="Apparaten">${u.devices}</td><td data-l="Abonnement"><select class="inp sm" data-uplan="${esc(u.id)}" style="width:auto">${['free','premium','pro'].map(p=>`<option value="${p}" ${u.plan===p?'selected':''}>${{free:'Gratis',premium:'Premium',pro:'Pro'}[p]}</option>`).join('')}</select></td></tr>`).join('')||'<tr><td colspan="6"><div class="empty">Geen gebruikers gevonden.</div></td></tr>'},
   live(el,arg,kind){if(kind!=='calc'||!ADM.st)return;const S2=ADM.st;const ok=v=>`<span class="tag ${v?'up':''}">${v?'Gekoppeld':'Niet ingesteld'}</span>`;const scan=S2.scan||{};
-    $('#admbody',el).innerHTML=`<section class="kpis auto">${kpi('Gebruikers',nlN(S2.users,0),`+${S2.new30} in 30 dagen`)+kpi('Actief',`${S2.active1} / ${S2.active7}`,'vandaag / 7 dagen')+kpi('Betalend',nlN((S2.plans.premium||0)+(S2.plans.pro||0),0),`${S2.plans.premium||0} Premium · ${S2.plans.pro||0} Pro`)+kpi('Pushapparaten',nlN(S2.push,0),`Telegram: ${S2.telegram}`)+kpi('Oefenhandel',nlN(S2.trades30,0),`trades in 30 dagen · ${S2.paper} portefeuilles`)+kpi('Open',`${S2.alerts} alerts`,`${S2.orders} orders · ${S2.dca} plannen`)}</section>
+    $('#admbody',el).innerHTML=`<section class="kpis auto">${kpi('Gebruikers',nlN(S2.users,0),`+${S2.new30} in 30 dagen`)+kpi('Actief',`${S2.active1} / ${S2.active7}`,'vandaag / 7 dagen')+kpi('Betalend',nlN((S2.plans.premium||0)+(S2.plans.pro||0),0),`${S2.plans.premium||0} Premium · ${S2.plans.pro||0} Pro`)+kpi('Pushapparaten',nlN(S2.push,0),`Discord: ${S2.discord??0}`)+kpi('Oefenhandel',nlN(S2.trades30,0),`trades in 30 dagen · ${S2.paper} portefeuilles`)+kpi('Open',`${S2.alerts} alerts`,`${S2.orders} orders · ${S2.dca} plannen`)}</section>
       <div class="grid g2x" style="margin-top:16px"><div class="card"><div class="chead"><h2>Aanmeldingen, 30 dagen</h2></div>${S2.signups.length>1?mlines([{name:'Nieuwe gebruikers per dag',color:'var(--navy3)',pts:S2.signups}],{h:180,fmt:v=>nlN(v,0),from:'30 dagen geleden'}):'<div class="empty">Nog te weinig aanmeldingen voor een grafiek.</div>'}</div>
-      <div class="card"><div class="chead"><h2>Koppelingen en status</h2></div><dl class="stats">${[['Stripe (betalen)',ok(S2.config.stripe)],['Telegram-bot',ok(S2.config.telegram)],['E-mail (Resend)',ok(S2.config.mail)],['Finnhub (aandelen)',ok(S2.config.finnhub)],['Premium afgedwongen',S2.config.premiumEnforced?'Ja':'Nee'],['Koersbron server',S2.prices?`${esc(S2.prices.src)} · ${S2.prices.n} · ${ago(S2.prices.t)}`:'—'],['Laatste scan',scan.done?`${ago(scan.done)} · ${Object.entries(scan).filter(([,v])=>v&&typeof v==='object'&&v.ok===false).map(([k])=>k).join(', ')||'alles ok'}`:'—'],['Unlock-kalender',S2.unlocks?`${S2.unlocks.n} events · ${ago(S2.unlocks.t)}`:'—'],['Weekmail',S2.mail?`${esc(S2.mail.status)} · ${ago(S2.mail.t)}`:'nog niet verstuurd']].map(([k,v])=>`<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl></div></div>
+      <div class="card"><div class="chead"><h2>Koppelingen en status</h2></div><dl class="stats">${[['Stripe (betalen)',ok(S2.config.stripe)],['Discord-bot',ok(S2.config.discord)],['E-mail (Resend)',ok(S2.config.mail)],['Finnhub (aandelen)',ok(S2.config.finnhub)],['Premium afgedwongen',S2.config.premiumEnforced?'Ja':'Nee'],['Koersbron server',S2.prices?`${esc(S2.prices.src)} · ${S2.prices.n} · ${ago(S2.prices.t)}`:'—'],['Laatste scan',scan.done?`${ago(scan.done)} · ${Object.entries(scan).filter(([,v])=>v&&typeof v==='object'&&v.ok===false).map(([k])=>k).join(', ')||'alles ok'}`:'—'],['Unlock-kalender',S2.unlocks?`${S2.unlocks.n} events · ${ago(S2.unlocks.t)}`:'—'],['Weekmail',S2.mail?`${esc(S2.mail.status)} · ${ago(S2.mail.t)}`:'nog niet verstuurd']].map(([k,v])=>`<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl></div></div>
       <div class="card flush" style="margin-top:16px"><div class="chead" style="padding:18px 18px 0"><h2>Gebruikers</h2><input class="inp sm" id="admq" placeholder="Zoek op naam of e-mail" value="${esc(ADM.q)}" style="max-width:240px"></div><div class="tw"><table class="stack hdt"><thead><tr><th>Gebruiker</th><th>Sinds</th><th>Laatst actief</th><th class="n">Trades</th><th class="n">Apparaten</th><th>Abonnement</th></tr></thead><tbody id="admusers">${this.userRows()}</tbody></table></div></div>
       <div class="card" style="margin-top:16px" id="brandcard"><div class="chead"><div><h2>Huisstijl en white-label</h2><div class="src">Pas naam, kleuren en logo aan, voor alle domeinen of per (klant)domein</div></div><button class="btn sm" id="bnew">${ico('plus')}Domein toevoegen</button></div><div id="brandbox"></div></div>`;
     this.brandList(el)},
@@ -4643,6 +4733,8 @@ SKINS.splice(0,SKINS.length,
   ['luxdark','Dark Luxury','Zwart met chroom en zilver, glas en glans. De Vantis-stijl.'],
   ['oled','OLED zwart','Puur zwart zonder glas: rustig voor de ogen en zuinig op OLED-schermen.'],
   ['navygold','Navy & goud','Diep marineblauw met gouden accenten.'],
+  ['noirblue','Zwart & blauw','Pikzwart met elektrisch blauwe accenten.'],
+  ['noirgreen','Zwart & groen','Pikzwart met fel groene accenten.'],
   ['emerald','Smaragd','Donkergroen met mintgroene glans.'],
   ['bordeaux','Bordeaux & roségoud','Warm wijnrood met roségouden accenten.'],
   ['luxlight','Light Luxury','Parelwit met gepolijst zilver en matglas.'],
@@ -4658,9 +4750,163 @@ Skin.set=function(k){const base=k.startsWith('classic')?'classic':k;if(base==='c
 {const sb=$('#skinbtn');if(sb){sb.setAttribute('aria-label','Stijl en licht of donker');sb.title='Stijl'}const tb=$('#themebtn');if(tb){tb.hidden=true;tb.setAttribute('aria-hidden','true');tb.tabIndex=-1}}
 
 /* thema per stijl: donker of licht, ook voor de browserbalk */
-{const DARKS=['luxdark','oled','navygold','emerald','bordeaux'],LIGHTS=['luxlight','arctic'],TC={luxdark:'#050505',oled:'#000000',navygold:'#0A1224',emerald:'#05110D',bordeaux:'#120709',luxlight:'#F3F4F6',arctic:'#EDF2F8'};
+{const DARKS=['luxdark','oled','navygold','emerald','bordeaux','noirblue','noirgreen'],LIGHTS=['luxlight','arctic'],TC={luxdark:'#050505',oled:'#000000',navygold:'#0A1224',emerald:'#05110D',bordeaux:'#120709',noirblue:'#020306',noirgreen:'#020403',luxlight:'#F3F4F6',arctic:'#EDF2F8'};
   const oa=Skin.apply.bind(Skin);Skin.apply=function(k){oa(k);const R=document.documentElement;if(DARKS.includes(k))R.dataset.theme='dark';else if(LIGHTS.includes(k))R.dataset.theme='light';
     if(TC[k])document.querySelector('meta[name=theme-color]')?.setAttribute('content',TC[k])};Skin.apply(Skin.get())}
+
+/* =====================================================================
+   v12 — vrienden, chat, crypto sturen en vrijspelen door te handelen
+   ===================================================================== */
+IC.users='<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-6 6.5-6s5.9 2.4 6.5 6"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.2c2 .8 3.1 2.8 3.5 5.8"/>';
+IC.send='<path d="M21 3 10.5 13.5"/><path d="M21 3 14.6 21l-4.1-7.5L3 9.4z"/>';
+IC.lock='<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>';
+IC.back='<path d="m15 5-7 7 7 7"/>';
+IC.useradd='<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-6 6.5-6s5.9 2.4 6.5 6M19 8v6M16 11h6"/>';
+{const i=NAV.findIndex(n=>n[0]==='meldingen');NAV.splice(i>=0?i+1:NAV.length,0,['vrienden','Vrienden','users'])}
+
+/* ---------- handelsrang en vrij te spelen stijlen ---------- */
+const RANKS=[[0,'Starter'],[100,'Leerling'],[300,'Handelaar'],[800,'Gevorderd'],[1800,'Expert'],[4000,'Meester'],[8000,'Legende']];
+const rankOf=xp=>{let i=0;RANKS.forEach((r,k)=>{if((xp||0)>=r[0])i=k});return {n:i+1,name:RANKS[i][1],min:RANKS[i][0],next:RANKS[i+1]?RANKS[i+1][0]:null}};
+const xpOf=r=>Math.round((r.n||0)*10+(r.days||0)*25+Math.min(Math.floor((r.vol||0)/500),2000));
+const UNLOCKS={
+  noirblue:{n:5,txt:'Doe 5 transacties'},
+  arctic:{days:3,txt:'Handel op 3 verschillende dagen'},
+  noirgreen:{n:15,txt:'Doe 15 transacties'},
+  navygold:{rank:3,txt:'Bereik handelsrang 3: Handelaar'},
+  emerald:{days:10,txt:'Handel op 10 verschillende dagen'},
+  bordeaux:{rank:5,txt:'Bereik handelsrang 5: Expert'}
+};
+const REW={st:null,
+  local(){const P=LS.get('paper2',null);const T=((P&&P.trades)||[]).filter(t=>t.side==='buy'||t.side==='sell');const r={n:T.length,vol:T.reduce((a,t)=>a+(+t.eur||0),0),days:new Set(T.map(t=>Math.floor(t.t/864e5))).size};r.xp=xpOf(r);return r},
+  get(){return this.st||LS.get('rw',null)||{n:0,vol:0,days:0,xp:0}},
+  admin(){return !!(Api.user&&Api.user.admin)},
+  async load(n=0){if(!Api.authed&&Api.token&&n<6){setTimeout(()=>this.load(n+1),2000);return this.get()}
+    try{this.st=Api.authed?await Api.call('/api/rewards'):this.local();LS.set('rw',this.st);this.check();this.redraw()}catch(e){}return this.st},
+  redraw(){const v=UI.el;if(!v)return;$$('.rwbar',v).forEach(b=>b.outerHTML=this.bar());if($('.skinrow',v))lockMark(v)},
+  open(k){const u=UNLOCKS[k];if(!u||this.admin())return true;const r=this.get();if(u.n&&r.n<u.n)return false;if(u.days&&r.days<u.days)return false;if(u.rank&&rankOf(r.xp).n<u.rank)return false;return true},
+  prog(k){const u=UNLOCKS[k],r=this.get();if(!u)return 1;if(u.n)return Math.min(1,r.n/u.n);if(u.days)return Math.min(1,r.days/u.days);if(u.rank)return Math.min(1,(r.xp||0)/RANKS[u.rank-1][0]);return 1},
+  check(){const now=Object.keys(UNLOCKS).filter(k=>this.open(k));const seen=LS.get('rwseen',null);if(!Array.isArray(seen)){LS.set('rwseen',now);return}
+    const fresh=now.filter(k=>!seen.includes(k));if(!fresh.length)return;LS.set('rwseen',now);
+    fresh.forEach(k=>{const s=SKINS.find(x=>x[0]===k);UI.toast({kind:'success',title:'Nieuwe stijl vrijgespeeld: '+(s?s[1]:k),body:'Kies hem met de stijlknop rechtsboven.'})})},
+  bar(){const r=this.get(),R=rankOf(r.xp),p=R.next?Math.min(100,((r.xp-R.min)/(R.next-R.min))*100):100;
+    return `<div class="rwbar"><div class="rwtop"><b>Handelsrang ${R.n}: <span>${R.name}</span></b><span>${R.next?`${nlN(r.xp,0)} van ${nlN(R.next,0)} xp`:`${nlN(r.xp,0)} xp, hoogste rang`}</span></div><div class="rwtrack" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(p)}" aria-label="Voortgang naar de volgende rang"><i style="width:${p.toFixed(1)}%"></i></div>
+      <small>Je verdient xp met elke transactie (10), elke dag dat je handelt (25) en met je omzet. Zo speel je nieuwe stijlen vrij.</small></div>`}
+};
+const lockMark=root=>{$$('.skinopt',root).forEach(b=>{const k=b.dataset.skin||b.dataset.skinset;if(!k||!UNLOCKS[k])return;const open=REW.open(k)||k===Skin.cur();
+  b.classList.toggle('locked',!open);b.querySelector('.lockinfo')?.remove();if(open){b.removeAttribute('aria-disabled');return}
+  b.setAttribute('aria-disabled','true');const sm=b.querySelector('small');sm&&sm.insertAdjacentHTML('afterend',`<small class="lockinfo">${ico('lock')}${esc(UNLOCKS[k].txt)} (${Math.round(REW.prog(k)*100)}%)</small>`)})};
+{const os=Skin.set.bind(Skin);Skin.set=function(k){if(UNLOCKS[k]&&!REW.open(k)&&k!==this.cur()){UI.toast({title:'Nog niet vrijgespeeld',body:UNLOCKS[k].txt+' om deze stijl te gebruiken.'});return}return os(k)}}
+{const om=Skin.menu.bind(Skin);Skin.menu=function(btn){om(btn);const m=$('#skinmenu');if(!m)return;lockMark(m);const r=REW.get(),R=rankOf(r.xp);
+  m.querySelector('h3')?.insertAdjacentHTML('afterend',`<a class="rwline" href="#vrienden">${ico('trophy')}<span><b>Rang ${R.n}: <span>${R.name}</span></b><small>${R.next?`${nlN(r.xp,0)} / ${nlN(R.next,0)} xp`:'Hoogste rang'}</small></span></a>`);
+  m.querySelector('.rwline').onclick=()=>m.remove()}}
+{const im=Pages.instellingen.mount;Pages.instellingen.mount=function(el,arg){im.call(this,el,arg);const row=$('.skinrow',el);if(row){row.insertAdjacentHTML('beforebegin',REW.bar());lockMark(el)}}}
+{const oo=PT.order.bind(PT);PT.order=async function(b){const r=await oo(b);setTimeout(()=>REW.load(),600);return r}}
+setTimeout(()=>REW.load(),2500);
+
+/* ---------- vrienden en chat ---------- */
+const ava=(f,cls='')=>{const R=rankOf(f.xp||0);const ring=R.n>=7?'r3':R.n>=5?'r2':R.n>=3?'r1':'';const ch=((f.name||f.username||'?').trim()[0]||'?').toUpperCase();
+  return `<span class="ava ${ring} ${cls}" title="Rang ${R.n}: ${R.name}" aria-hidden="true">${esc(ch)}</span>`};
+const SOC={d:null,u:null,msgs:[],more:false,t:null,lt:0,
+  badge(n){$$('#nav a[data-p=vrienden],#tabbar a[data-p=vrienden]').forEach(a=>{let b=a.querySelector('.nbadge');if(!b){b=document.createElement('span');b.className='nbadge';a.appendChild(b)}b.textContent=n>99?'99+':String(n);b.hidden=!n})},
+  async unread(){if(!Api.authed)return;try{const r=await Api.call('/api/social/unread');this.badge((r.n||0)+(r.req||0))}catch(e){}},
+  stop(){clearInterval(this.t);this.t=null}
+};
+setTimeout(()=>SOC.unread(),3500);
+setInterval(()=>{if(document.visibilityState==='visible'&&UI.cur!=='vrienden')SOC.unread()},45e3);
+
+const linkify=s=>s.replace(/(https?:\/\/[^\s<]+[^\s<.,;:!?)])/g,'<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
+const msgHTML=m=>{const tm=`<time>${hhmm(m.t)}${m.me&&m.read?' · gelezen':''}</time>`;
+  if(m.kind==='transfer'){const d=m.data||{};return `<div class="msg tf${m.me?' me':''}" data-mid="${m.id}"><div class="tfc"><span class="tfi">${ico('send')}</span><div><small>${m.me?'Je stuurde':'Je ontving'}</small><b>${eur2(d.eur)}</b><span>${qtyFmt(d.qty)} ${esc(d.sym)} tegen ${eur(d.price)}</span>${m.text?`<p data-noi18n>${linkify(esc(m.text))}</p>`:''}<em>Oefengeld</em></div></div>${tm}</div>`}
+  return `<div class="msg${m.me?' me':''}" data-mid="${m.id}"><p data-noi18n>${linkify(esc(m.text))}</p>${tm}</div>`};
+const msgsHTML=L=>{let day='',out='';for(const m of L){const d=dmy(m.t);if(d!==day){day=d;out+=`<div class="mday"><span>${d}</span></div>`}out+=msgHTML(m)}return out};
+
+Pages.vrienden={
+  title:a=>a?'@'+a:'Vrienden',
+  html(arg){return `<div class="phead"><div><h1>Vrienden</h1><p>Voeg vrienden toe op gebruikersnaam, chat met elkaar en stuur elkaar crypto.</p></div></div><div id="soc" class="soc${arg?' inchat':''}"><div class="card"><p class="muted">Laden…</p></div></div>`},
+  async mount(el,arg){SOC.stop();const box=$('#soc',el);
+    if(!Api.authed){box.innerHTML=`<div class="card soce"><h2>Log in om vrienden toe te voegen</h2><p class="muted">Met een account kun je vrienden zoeken op gebruikersnaam, chatten en crypto naar elkaar sturen.</p></div>`;return}
+    REW.load();let d;try{d=SOC.d=await Api.call('/api/social')}catch(e){box.innerHTML=`<div class="card"><p>Vrienden laden lukt nu niet: ${esc(e.message)}</p></div>`;return}
+    if(UI.el!==el)return;
+    if(!d.me.username)return this.pickName(box);
+    box.innerHTML=`<aside class="socl">${this.meCard(d)}${this.addCard()}<div id="socreq">${this.reqHTML(d)}</div><div class="card flush"><div class="chead"><h2>Vrienden</h2><span class="muted">${d.friends.length}</span></div><div id="soclist">${this.listHTML(d,arg)}</div></div></aside><section class="socc" id="socc">${arg?'':this.emptyChat(d)}</section>`;
+    this.bindList(el,box);
+    SOC.badge(d.friends.reduce((a,f)=>a+(f.unread||0),0)+d.incoming.length);
+    if(arg)this.openChat(el,arg);
+    else SOC.t=setInterval(()=>{if(UI.cur!=='vrienden'||UI.arg){SOC.stop();return}if(document.visibilityState==='visible')this.refreshList(el)},20e3)},
+  meCard(d){const r=REW.get();return `<div class="card socme">${ava({name:d.me.name,username:d.me.username,xp:r.xp},'lg')}<div><b>${esc(d.me.name||d.me.username)}</b><span class="muted">@${esc(d.me.username)}</span><button class="lnk" data-act="rename">Gebruikersnaam wijzigen</button></div>${REW.bar()}</div>`},
+  addCard(){return `<div class="card socadd"><label for="socq"><b>Vriend toevoegen</b></label><div class="socin"><span>@</span><input id="socq" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="gebruikersnaam" maxlength="21"></div><div id="socres" aria-live="polite"></div></div>`},
+  reqHTML(d){const inc=d.incoming.map(f=>`<div class="srq">${ava(f)}<span><b>${esc(f.name||f.username)}</b><small>@${esc(f.username)} wil je toevoegen</small></span><button class="btn sm" data-acc="${esc(f.username)}">Accepteren</button><button class="btn ghost sm" data-dec="${esc(f.username)}" aria-label="Weigeren">${ico('x')}</button></div>`).join('');
+    const out=d.outgoing.map(f=>`<div class="srq">${ava(f)}<span><b>${esc(f.name||f.username)}</b><small>@${esc(f.username)}: verzoek verstuurd</small></span><button class="btn ghost sm" data-dec="${esc(f.username)}" data-cancel="1">Intrekken</button></div>`).join('');
+    return inc||out?`<div class="card"><div class="chead"><h2>Verzoeken</h2>${d.incoming.length?`<span class="pill">${d.incoming.length} nieuw</span>`:''}</div>${inc}${out}</div>`:''},
+  listHTML(d,arg){if(!d.friends.length)return `<p class="muted socnone">Nog geen vrienden. Zoek hierboven op gebruikersnaam om iemand toe te voegen.</p>`;
+    return d.friends.map(f=>{const R=rankOf(f.xp),l=f.last;const prev=l?(l.kind==='transfer'?`${l.mine?'Je stuurde':'Ontvangen:'} ${l.data?eur2(l.data.eur)+' aan '+esc(l.data.sym):'crypto'}`:`${l.mine?'<span>Jij:</span> ':''}<span data-noi18n>${esc(l.text||'')}</span>`):`Rang ${R.n}: <span>${R.name}</span>`;
+      return `<a class="sfr${arg===f.username?' on':''}" href="#vrienden-${esc(f.username)}">${ava(f)}<span><b>${esc(f.name||f.username)}</b><small>${prev}</small></span><span class="sfm">${l?`<time>${Date.now()-l.t<864e5?hhmm(l.t):dmy(l.t)}</time>`:''}${f.unread?`<i class="nbadge">${f.unread}</i>`:''}</span></a>`}).join('')},
+  emptyChat(d){return `<div class="card soce">${ico('users')}<h2>${d.friends.length?'Kies een vriend om te chatten':'Voeg je eerste vriend toe'}</h2><p class="muted">${d.friends.length?'In de chat kun je ook crypto sturen. Tot de officiële lancering gaat dat met je oefengeld.':'Deel je gebruikersnaam @'+esc(d.me.username)+' met vrienden, of zoek hen links op hun gebruikersnaam.'}</p></div>`},
+  async refreshList(el){try{const d=SOC.d=await Api.call('/api/social');if(UI.el!==el)return;const L=$('#soclist',el);if(L)L.innerHTML=this.listHTML(d,UI.arg);const rq=$('#socreq',el);if(rq)rq.innerHTML=this.reqHTML(d);SOC.badge(d.friends.reduce((a,f)=>a+(f.unread||0),0)+d.incoming.length)}catch(e){}},
+  bindList(el,box){
+    const q=$('#socq',el),res=$('#socres',el);let tm=null,seq=0;
+    q.addEventListener('input',()=>{clearTimeout(tm);const v=q.value.trim().toLowerCase().replace(/^@/,'');if(v.length<2){res.innerHTML='';return}
+      tm=setTimeout(async()=>{const my=++seq;try{const r=await Api.call('/api/social/search?q='+encodeURIComponent(v));if(my!==seq)return;
+        res.innerHTML=r.results.length?r.results.map(u=>`<div class="srq">${ava(u)}<span><b>${esc(u.name||u.username)}</b><small>@${esc(u.username)}</small></span>${u.status==='friend'?`<a class="btn ghost sm" href="#vrienden-${esc(u.username)}">Chat</a>`:u.status==='sent'?'<span class="muted sm">Verstuurd</span>':u.status==='received'?`<button class="btn sm" data-acc="${esc(u.username)}">Accepteren</button>`:`<button class="btn sm" data-add="${esc(u.username)}">${ico('useradd')}Toevoegen</button>`}</div>`).join(''):`<p class="muted sm">Geen gebruiker gevonden die begint met @${esc(v)}.</p>`}catch(e){res.innerHTML=`<p class="muted sm">${esc(e.message)}</p>`}},250)});
+    box.addEventListener('click',async e=>{const b=e.target.closest('[data-add],[data-acc],[data-dec],[data-act=rename]');if(!b)return;
+      if(b.dataset.act==='rename')return this.pickName($('#socc',el)||box,true);
+      b.disabled=true;try{
+        if(b.dataset.add){const r=await Api.call('/api/social/request',{method:'POST',body:{username:b.dataset.add}});UI.toast({kind:'success',title:r.status==='friend'?`Je bent nu bevriend met @${b.dataset.add}`:`Verzoek verstuurd naar @${b.dataset.add}`});q.value='';res.innerHTML=''}
+        else if(b.dataset.acc){await Api.call('/api/social/respond',{method:'POST',body:{username:b.dataset.acc,accept:true}});UI.toast({kind:'success',title:`Je bent nu bevriend met @${b.dataset.acc}`});q.value='';res.innerHTML=''}
+        else if(b.dataset.dec){if(b.dataset.cancel)await Api.call('/api/social/remove',{method:'POST',body:{username:b.dataset.dec}});else await Api.call('/api/social/respond',{method:'POST',body:{username:b.dataset.dec,accept:false}})}
+        await this.refreshList(el)}catch(x){UI.toast({title:'Dat lukte niet',body:x.message});b.disabled=false}})},
+  pickName(box,change){const d=SOC.d||{me:{}};const sug=String(d.me.username||d.me.name||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9_.]/g,'').slice(0,20);
+    box.innerHTML=`<div class="card soce socname"><h2>${change?'Gebruikersnaam wijzigen':'Kies je gebruikersnaam'}</h2><p class="muted">Vrienden vinden je op deze naam. Gebruik 3 tot 20 tekens: kleine letters, cijfers, een punt of een liggend streepje.</p>
+      <form id="unf"><div class="socin"><span>@</span><input name="u" required minlength="3" maxlength="20" autocomplete="off" autocapitalize="none" spellcheck="false" value="${esc(sug)}" aria-label="Gebruikersnaam"></div><p class="err" id="unerr" role="alert"></p><div class="row"><button class="btn">${change?'Opslaan':'Gebruikersnaam opslaan'}</button>${change?'<a class="btn ghost" href="#vrienden">Annuleren</a>':''}</div></form></div>`;
+    const f=$('#unf',box);f.u.focus();f.onsubmit=async e=>{e.preventDefault();const bt=f.querySelector('button');bt.disabled=true;
+      try{const r=await Api.call('/api/social/username',{method:'POST',body:{username:f.u.value}});if(Api.user){Api.user.username=r.username;LS.set('srvuser',Api.user)}UI.toast({kind:'success',title:`Je gebruikersnaam is @${r.username}`});
+        if(change&&location.hash!=='#vrienden')location.hash='#vrienden';else UI.route()}catch(x){$('#unerr',box).textContent=x.message;bt.disabled=false}}},
+
+  /* chat met één vriend */
+  async openChat(el,u){const c=$('#socc',el);c.innerHTML=`<div class="card chat"><p class="muted">Chat laden…</p></div>`;let r;
+    try{r=await Api.call('/api/social/chat?u='+encodeURIComponent(u))}catch(e){c.innerHTML=`<div class="card soce"><h2>Deze chat is niet beschikbaar</h2><p class="muted">${esc(e.message)}</p><a class="btn ghost" href="#vrienden">${ico('back')}Terug naar vrienden</a></div>`;return}
+    if(UI.el!==el)return;SOC.u=u;SOC.msgs=r.messages;SOC.more=r.more;const f=r.friend,R=rankOf(f.xp||0);
+    c.innerHTML=`<div class="card chat"><div class="chh"><a class="btn ghost sm chback" href="#vrienden" aria-label="Terug naar vrienden">${ico('back')}</a>${ava(f)}<span><b>${esc(f.name||f.username)}</b><small>@${esc(f.username)}<span> · rang ${R.n}: </span><span>${R.name}</span></small></span><button class="btn ghost sm" data-act="unfriend">Verwijderen</button></div>
+      <div class="chm" id="chm" aria-live="polite">${SOC.more?'<button class="lnk chmore" data-act="more">Oudere berichten laden</button>':''}${SOC.msgs.length?msgsHTML(SOC.msgs):`<p class="muted chnone">Nog geen berichten. Zeg hallo of stuur @${esc(f.username)} wat crypto.</p>`}</div>
+      <form class="chf" id="chf"><button type="button" class="btn ghost chsend" data-act="send" title="Crypto sturen" aria-label="Crypto sturen">${ico('send')}<span>Crypto</span></button><textarea name="t" rows="1" maxlength="1000" placeholder="Bericht aan @${esc(f.username)}" aria-label="Bericht"></textarea><button class="btn" aria-label="Versturen">Versturen</button></form></div>`;
+    const m=$('#chm',c),fm=$('#chf',c),ta=fm.t;const down=()=>{m.scrollTop=m.scrollHeight};down();
+    ta.addEventListener('input',()=>{ta.style.height='auto';ta.style.height=Math.min(140,ta.scrollHeight)+'px'});
+    ta.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();fm.requestSubmit()}});
+    const add=msg=>{if(SOC.msgs.some(x=>x.id===msg.id))return;SOC.msgs.push(msg);m.querySelector('.chnone')?.remove();const last=SOC.msgs[SOC.msgs.length-2];const sep=!last||dmy(last.t)!==dmy(msg.t)?`<div class="mday"><span>${dmy(msg.t)}</span></div>`:'';
+      const atEnd=m.scrollHeight-m.scrollTop-m.clientHeight<80;m.insertAdjacentHTML('beforeend',sep+msgHTML(msg));if(atEnd||msg.me)down()};
+    fm.onsubmit=async e=>{e.preventDefault();const t=ta.value.trim();if(!t)return;ta.value='';ta.style.height='auto';
+      try{const r=await Api.call('/api/social/chat',{method:'POST',body:{u,text:t}});add(r.message)}catch(x){ta.value=t;UI.toast({title:'Bericht niet verstuurd',body:x.message})}};
+    c.addEventListener('click',async e=>{const b=e.target.closest('[data-act]');if(!b)return;
+      if(b.dataset.act==='send')this.sendDlg(u,f,add);
+      if(b.dataset.act==='more'){b.disabled=true;try{const r=await Api.call(`/api/social/chat?u=${encodeURIComponent(u)}&before=${SOC.msgs[0].id}`);const h=m.scrollHeight;SOC.msgs=r.messages.concat(SOC.msgs);SOC.more=r.more;m.innerHTML=(SOC.more?'<button class="lnk chmore" data-act="more">Oudere berichten laden</button>':'')+msgsHTML(SOC.msgs);m.scrollTop=m.scrollHeight-h}catch(x){b.disabled=false}}
+      if(b.dataset.act==='unfriend')dlg(`<h2>@${esc(u)} verwijderen?</h2><p class="muted">Jullie zijn dan geen vrienden meer en kunnen niet meer chatten. De berichten blijven bewaard als jullie elkaar later opnieuw toevoegen.</p><div class="row" style="margin-top:14px"><button class="btn" id="unok">Verwijderen</button><button class="btn ghost" id="unno">Annuleren</button></div>`,card=>{
+        $('#unno',card).onclick=closeOverlay;$('#unok',card).onclick=async()=>{try{await Api.call('/api/social/remove',{method:'POST',body:{username:u}});closeOverlay();UI.toast({title:`@${u} is verwijderd uit je vrienden`});location.hash='#vrienden'}catch(x){UI.toast({title:'Dat lukte niet',body:x.message})}}})});
+    this.refreshList(el);
+    SOC.t=setInterval(async()=>{if(UI.cur!=='vrienden'||UI.arg!==u){SOC.stop();return}if(document.visibilityState!=='visible')return;
+      const last=SOC.msgs.length?SOC.msgs[SOC.msgs.length-1].id:0;try{const r=await Api.call(`/api/social/chat?u=${encodeURIComponent(u)}&after=${last}`);r.messages.forEach(add);if(r.messages.some(x=>!x.me))this.refreshList(el)}catch(x){}},4000)},
+
+  /* crypto sturen vanuit de chat */
+  async sendDlg(u,f,add){dlg(`<h2>Crypto sturen naar @${esc(u)}</h2><p class="muted">Laden…</p>`);let P;try{P=await PT.load()}catch(e){}
+    const H=Object.entries((P&&P.holdings)||{}).filter(([s,h])=>(h.k||'crypto')==='crypto'&&h.qty>0).map(([s,h])=>{const q=PT.px(s,'crypto');return {s,qty:h.qty,p:q&&q.p,v:q&&q.p?q.p*h.qty:null}}).sort((a,b)=>(b.v||0)-(a.v||0));
+    if(!H.length){dlg(`<h2>Crypto sturen naar @${esc(u)}</h2><p class="muted">Je hebt nog geen crypto in je portefeuille. Koop eerst iets via Handelen, dan kun je het hier naar een vriend sturen.</p><div class="row" style="margin-top:14px"><a class="btn" href="#handel" id="sdgo">Naar Handelen</a><button class="btn ghost" id="sdno">Sluiten</button></div>`,c=>{$('#sdno',c).onclick=closeOverlay;$('#sdgo',c).onclick=closeOverlay});return}
+    dlg(`<h2>Crypto sturen naar @${esc(u)}</h2><p class="muted sm">Tot de officiële lancering verstuur je oefengeld. Het bedrag gaat direct van jouw portefeuille naar die van @${esc(u)}, tegen de actuele koers en zonder kosten.</p>
+      <form id="sdf" class="sdf"><label>Wat stuur je?<select name="sym">${H.map(h=>`<option value="${esc(h.s)}">${esc(h.s)}: ${qtyFmt(h.qty)} (${h.v!=null?eur2(h.v):'koers onbekend'})</option>`).join('')}</select></label>
+      <label>Bedrag in euro<div class="sdamt"><input name="eur" inputmode="decimal" autocomplete="off" placeholder="0,00" required><button type="button" class="btn ghost sm" id="sdall">Alles</button></div></label>
+      <p class="sdprev" id="sdprev" aria-live="polite"></p><label>Bericht (optioneel)<input name="note" maxlength="140" placeholder="Bijvoorbeeld: voor de pizza"></label>
+      <p class="err" id="sderr" role="alert"></p><div class="row"><button class="btn" id="sdok">${ico('send')}Versturen</button><button type="button" class="btn ghost" id="sdno">Annuleren</button></div></form>`,c=>{
+      const fm=$('#sdf',c),pv=$('#sdprev',c);let all=false;const cur=()=>H.find(h=>h.s===fm.sym.value);
+      const upd=()=>{const h=cur(),v=parseFloat(String(fm.eur.value).replace(/\./g,'').replace(',','.'));if(all&&h){pv.textContent=`Je stuurt al je ${h.s}: ${qtyFmt(h.qty)} ${h.s}${h.v!=null?' ('+eur2(h.v)+')':''}.`;return}
+        if(!h||!h.p||!(v>0)){pv.textContent=h&&h.p?`Koers ${h.s}: ${eur(h.p)}`:'';return}const q=v/h.p;pv.textContent=q>h.qty*(1+1e-6)?`Je hebt maar ${qtyFmt(h.qty)} ${h.s} (${eur2(h.v)}).`:`≈ ${qtyFmt(q)} ${h.s} tegen ${eur(h.p)}`};
+      fm.eur.addEventListener('input',()=>{all=false;upd()});fm.sym.addEventListener('change',()=>{all=false;fm.eur.value='';upd()});upd();
+      $('#sdall',c).onclick=()=>{const h=cur();all=true;fm.eur.value=h&&h.v!=null?nlN(h.v,2):'';upd()};$('#sdno',c).onclick=closeOverlay;
+      fm.onsubmit=async e=>{e.preventDefault();const bt=$('#sdok',c);bt.disabled=true;$('#sderr',c).textContent='';const v=parseFloat(String(fm.eur.value).replace(/\./g,'').replace(',','.'));
+        try{const r=await Api.call('/api/social/send',{method:'POST',body:{u,sym:fm.sym.value,eur:all?null:v,all,note:fm.note.value.trim()||null}});closeOverlay();add(r.message);PT.load();
+          UI.toast({kind:'success',title:`${eur2(r.message.data.eur)} aan ${r.message.data.sym} gestuurd naar @${u}`})}catch(x){$('#sderr',c).textContent=x.message;bt.disabled=false}}})}
+};
+
+/* terugkeer na Discord-koppeling */
+{const q=new URLSearchParams(location.search).get('discord');if(q){const M={ok:['success','Discord gekoppeld','Je bent lid van de Vantis-server en krijgt je meldingen nu ook als privébericht.'],cancelled:['info','Koppelen geannuleerd','Je kunt Discord later alsnog koppelen bij Instellingen.'],expired:['error','Koppelen duurde te lang','Probeer het opnieuw bij Instellingen → Discord.'],error:['error','Discord koppelen is niet gelukt','Probeer het opnieuw. Lukt het niet, laat het ons weten.']};
+  const m=M[q]||M.error;history.replaceState(null,'',location.pathname+location.hash);setTimeout(()=>UI.toast({kind:m[0],title:m[1],body:m[2]}),1200)}}
 
 }
 </script>

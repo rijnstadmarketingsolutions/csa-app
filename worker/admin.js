@@ -32,14 +32,14 @@ export async function adminApi(req, env, s, p, m, url) {
     const [tot, plans, new30, act1, act7, subs, tg, paper, trades, alerts, orders, dca, perDay] = await env.DB.batch([
       q1('SELECT COUNT(*) n FROM users'), q1('SELECT plan, COUNT(*) n FROM users GROUP BY plan'), q1('SELECT COUNT(*) n FROM users WHERE created>?').bind(now - 30 * DAY),
       q1('SELECT COUNT(*) n FROM users WHERE last_seen>?').bind(now - DAY), q1('SELECT COUNT(*) n FROM users WHERE last_seen>?').bind(now - 7 * DAY),
-      q1('SELECT COUNT(*) n FROM push_subs'), q1('SELECT COUNT(*) n FROM tg_links'), q1('SELECT COUNT(*) n FROM paper'), q1('SELECT COUNT(*) n FROM paper_trades WHERE t>?').bind(now - 30 * DAY),
+      q1('SELECT COUNT(*) n FROM push_subs'), q1('SELECT COUNT(*) n FROM dc_links'), q1('SELECT COUNT(*) n FROM paper'), q1('SELECT COUNT(*) n FROM paper_trades WHERE t>?').bind(now - 30 * DAY),
       q1('SELECT COUNT(*) n FROM price_alerts WHERE active=1'), q1("SELECT COUNT(*) n FROM paper_orders WHERE status='open'"), q1('SELECT COUNT(*) n FROM paper_dca WHERE active=1'),
       q1("SELECT (created/86400000) d, COUNT(*) n FROM users WHERE created>? GROUP BY d ORDER BY d").bind(now - 30 * DAY)]);
     const st = await kv(env, ['scanstatus', 'mailstatus', 'tickers', 'unlocks']);
     return json({ users: tot.results[0].n, plans: Object.fromEntries(plans.results.map(r => [r.plan, r.n])), new30: new30.results[0].n, active1: act1.results[0].n, active7: act7.results[0].n,
-      push: subs.results[0].n, telegram: tg.results[0].n, paper: paper.results[0].n, trades30: trades.results[0].n, alerts: alerts.results[0].n, orders: orders.results[0].n, dca: dca.results[0].n,
+      push: subs.results[0].n, discord: tg.results[0].n, paper: paper.results[0].n, trades30: trades.results[0].n, alerts: alerts.results[0].n, orders: orders.results[0].n, dca: dca.results[0].n,
       signups: perDay.results.map(r => [r.d * DAY, r.n]), scan: st.scanstatus || null, mail: st.mailstatus || null, prices: st.tickers ? { src: st.tickers.src, n: st.tickers.list.length, t: st.tickers.t } : null, unlocks: st.unlocks ? { n: st.unlocks.events.length, t: st.unlocks.t } : null,
-      config: { stripe: !!env.STRIPE_SECRET_KEY, telegram: !!env.TELEGRAM_BOT_TOKEN, mail: !!(env.RESEND_API_KEY && env.MAIL_FROM), finnhub: !!env.FINNHUB_KEY, premiumEnforced: env.PREMIUM_ENFORCED === 'true' } }); }
+      config: { stripe: !!env.STRIPE_SECRET_KEY, discord: !!(env.DISCORD_BOT_TOKEN && env.DISCORD_APP_ID), mail: !!(env.RESEND_API_KEY && env.MAIL_FROM), finnhub: !!env.FINNHUB_KEY, premiumEnforced: env.PREMIUM_ENFORCED === 'true' } }); }
   if (p === '/api/admin/users' && m === 'GET') { const q = '%' + String(url.searchParams.get('q') || '').toLowerCase().replace(/[%_]/g, '') + '%';
     const r = await env.DB.prepare('SELECT u.id,u.email,u.name,u.plan,u.created,u.last_seen,(SELECT COUNT(*) FROM paper_trades t WHERE t.user_id=u.id) trades,(SELECT COUNT(*) FROM push_subs ps WHERE ps.user_id=u.id) devices FROM users u WHERE lower(u.email) LIKE ? OR lower(u.name) LIKE ? ORDER BY u.created DESC LIMIT 100').bind(q, q).all();
     return json({ users: r.results }); }
