@@ -20,6 +20,11 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
       - run: npm ci --no-audit --no-fund || npm i --no-audit --no-fund
+      - name: Database-ID invullen
+        run: |
+          npx wrangler d1 list --json > d1.json
+          ID=$(python3 -c "import json;print(next((d.get('uuid') or d.get('id')) for d in json.load(open('d1.json')) if d.get('name')=='csa-db'))")
+          sed -i "s/00000000-0000-0000-0000-000000000000/$ID/" wrangler.jsonc
       - name: Rol zetten
         env:
           WIE: ${{ inputs.wie }}
