@@ -2174,7 +2174,8 @@ function tvChart(el,sym,h){tv(el,'advanced-chart',{autosize:true,symbol:sym,inte
 /* ---------- router ---------- */
 const UI={
   cur:null,arg:null,el:null,dirty:false,lastPaint:0,lastCalcSeen:0,
-  go(h){location.hash=h},
+  link(h){h=String(h||'').trim();const i=h.indexOf('#');h=i>=0?h.slice(i):'#'+h.replace(/^\/?(app\/?)?/,'');return h.length>1?h:'#overzicht'},
+  go(h){const t=this.link(h);if(location.hash===t)this.route();else location.hash=t},
   route(){
     const h=(location.hash||'#overzicht').slice(1);let [p,...rest]=h.split('-');let arg=rest.join('-')||null;
     if(p==='aandelen'){p='markten';arg='aandelen'}
@@ -3077,13 +3078,13 @@ Pages.meldingen={
   async mount(el){
     $('#ncf',el).onclick=e=>{const b=e.target.closest('[data-f]');if(!b)return;NC.f=b.dataset.f;$$('#ncf .chip',el).forEach(x=>x.classList.toggle('on',x===b));this.live(el,null,'calc')};
     $('#ncread',el).onclick=()=>{NC.markAll();this.live(el,null,'calc')};$('#ncnew',el).onclick=()=>PA.dialog();
-    el.addEventListener('click',async e=>{const n=e.target.closest('[data-nid]');if(n){NC.read.add(n.dataset.nid);LS.set('readids',[...NC.read].slice(-500));UI.badge()}
+    el.addEventListener('click',async e=>{const n=e.target.closest('[data-nid]');if(n){NC.read.add(n.dataset.nid);LS.set('readids',[...NC.read].slice(-500));UI.badge();if(n.getAttribute('href')===location.hash){e.preventDefault();UI.route()}}
       const d=e.target.closest('[data-pad]');if(d){e.preventDefault();await PA.del(+d.dataset.pad).catch(x=>UI.toast({title:x.message}));PA.list=null;this.live(el,null,'calc')}});
     await NC.pull();await PA.load();this.live(el,null,'calc')},
   live(el,arg,kind){if(kind!=='calc')return;let L=NC.items();const f=NC.f;
     if(f==='unread')L=L.filter(x=>!NC.read.has(x.id));else if(f!=='all')L=L.filter(x=>x.cat===f);
     let html='',last='';for(const x of L.slice(0,120)){const dl=dayLabel(x.t);if(dl!==last){html+=`<div class="ncday">${dl}</div>`;last=dl}
-      const unread=!NC.read.has(x.id);html+=`<a class="nci ${unread?'unread':''}" href="${esc(x.url&&x.url.startsWith('#')?x.url:'#'+(x.url||'impact').replace(/^#?/,''))}" data-nid="${esc(x.id)}">${x.score?ring(x.score,40):`<span class="ncic">${ico(x.cat==='alert'?'alarm':x.cat==='briefing'?'sun':x.cat==='reminder'?'cal':'bell')}</span>`}<span><b>${esc(x.title)}</b>${x.body?`<span class="note" style="display:block">${esc(x.body)}</span>`:''}<span class="src">${hhmm(x.t)} · ${CATLBL[x.cat]||'Melding'}</span></span></a>`}
+      const unread=!NC.read.has(x.id);html+=`<a class="nci ${unread?'unread':''}" href="${esc(UI.link(x.url||'impact'))}" data-nid="${esc(x.id)}">${x.score?ring(x.score,40):`<span class="ncic">${ico(x.cat==='alert'?'alarm':x.cat==='briefing'?'sun':x.cat==='reminder'?'cal':'bell')}</span>`}<span><b>${esc(x.title)}</b>${x.body?`<span class="note" style="display:block">${esc(x.body)}</span>`:''}<span class="src">${hhmm(x.t)} · ${CATLBL[x.cat]||'Melding'}</span></span></a>`}
     $('#nclist',el).innerHTML=html||`<div class="empty">${f==='all'?'Nog geen meldingen. Stel je voorkeuren in bij Instellingen of zet een koersalert.':'Geen meldingen in deze categorie.'}</div>`;
     const P=PA.list||[];$('#palist',el).innerHTML=P.length?P.map(a=>{const x=getAsset(a.sym);return `<div class="srow" style="cursor:default"><span><b>${esc(x?x.name:a.sym)}</b> <span class="src">${a.sym}</span><br><span class="note">${KNOVAL.has(a.kind)?KINDS[a.kind]:a.kind==='volx'?KINDS[a.kind].replace('…',nlN(a.value,1)):`${KINDS[a.kind]} ${/1h|24h/.test(a.kind)?nlN(a.value,1)+'%':/^rsi/.test(a.kind)?nlN(a.value,0):(x?money(x,a.value):nlN(a.value,2))}`}${x&&x.price!=null?' · nu '+money(x,x.price):''}</span></span><span style="display:flex;align-items:center;gap:6px"><span class="tag ${a.active?'up':''}">${a.active?'Actief':'Afgegaan'}</span><button class="ibtn" data-pad="${a.id}" aria-label="Verwijderen">${ico('x')}</button></span></div>`}).join(''):`<div class="empty">Nog geen koersalerts. Zet er een via de knop hierboven of op een assetpagina.</div>`}
 };
@@ -3493,12 +3494,12 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden){clearInte
 const TKIND={success:['check','Gelukt'],error:['warn','Niet gelukt'],info:['bell','Melding'],order:['trade','Order'],alert:['alarm','Koersalert'],hot:['impact','Hoge impact'],impact:['impact','Impact'],reminder:['cal','Herinnering']};
 UI.toast=function(a){
   const kind=NX.kindOf(a);const imp=NX.important(a)&&kind!=='success'&&kind!=='error'&&S.settings.bigAlerts!==false;const [icn,lbl]=TKIND[kind]||TKIND.info;
-  const ms=imp?0:kind==='error'?9000:a.href?8000:5500;
+  const ms=imp?0:kind==='error'?9000:a.href||a.act?8000:5500;
   const t=document.createElement('div');t.className=`tst k-${kind}${imp?' big':''}`;t.setAttribute('role',imp||kind==='error'?'alert':'status');
-  t.innerHTML=`<span class="tic">${ico(IC[icn]?icn:'bell')}</span><div class="tbd"><div class="tmeta">${esc(a.score?`Impact ${a.score}/100`:lbl)} · ${hhmm(Date.now())}</div><b>${esc(a.title)}</b>${a.body?`<p>${esc(a.body).slice(0,220)}</p>`:''}${a.href||imp?`<div class="tact">${a.href?`<button class="tgo">Bekijken</button>`:''}${imp?'<button class="tok">Gezien</button>':''}</div>`:''}</div><button class="tx" aria-label="Sluiten">${ico('x')}</button>${ms?`<i class="tbar" style="animation-duration:${ms}ms"></i>`:''}`;
+  t.innerHTML=`<span class="tic">${ico(IC[icn]?icn:'bell')}</span><div class="tbd"><div class="tmeta">${esc(a.score?`Impact ${a.score}/100`:lbl)} · ${hhmm(Date.now())}</div><b>${esc(a.title)}</b>${a.body?`<p>${esc(a.body).slice(0,220)}</p>`:''}${a.href||a.act||imp?`<div class="tact">${a.href||a.act?`<button class="tgo">Bekijken</button>`:''}${imp?'<button class="tok">Gezien</button>':''}</div>`:''}</div><button class="tx" aria-label="Sluiten">${ico('x')}</button>${ms?`<i class="tbar" style="animation-duration:${ms}ms"></i>`:''}`;
   const close=()=>{t.classList.add('out');setTimeout(()=>t.remove(),220)};let timer=ms?setTimeout(close,ms):null;
   t.addEventListener('mouseenter',()=>{if(timer){clearTimeout(timer);timer=null;t.classList.add('hold')}});t.addEventListener('mouseleave',()=>{if(ms&&!timer){t.classList.remove('hold');timer=setTimeout(close,2500)}});
-  t.addEventListener('click',e=>{if(e.target.closest('.tx')||e.target.closest('.tok'))return close();if(a.href){location.hash=a.href;close()}});
+  t.addEventListener('click',e=>{if(e.target.closest('.tx')||e.target.closest('.tok'))return close();if(a.act){close();a.act()}else if(a.href){close();UI.go(a.href)}});
   const box=$('#toasts');box.prepend(t);while(box.children.length>4)box.lastChild.remove();
   if(imp||kind==='order'||kind==='alert'){NX.chime(imp);NX.buzz(imp);NX.ring();NX.flagTitle(a.title)}else if(kind!=='success'&&kind!=='error'&&kind!=='info')NX.chime(false);
 };
@@ -3506,7 +3507,7 @@ UI.toast=function(a){
 /* servermeldingen (koersalerts, uitgevoerde orders, impact) die binnenkomen terwijl de app open is */
 {const op=NC.pull.bind(NC);let first=true;NC.pull=async function(){await op();const seen=new Set(LS.get('srvseen',[]));const since=LS.get('srvseenT',Date.now()-10*MIN);const fresh=this.srv.filter(n=>!seen.has(n.id)&&n.t>since&&Date.now()-n.t<30*MIN).sort((a,b)=>a.t-b.t);
   this.srv.forEach(n=>seen.add(n.id));LS.set('srvseen',[...seen].slice(-400));LS.set('srvseenT',Date.now());
-  fresh.slice(-3).forEach(n=>UI.toast({title:n.title,body:n.body,href:(n.url||'').replace(/^\//,'')||null,cat:n.cat,score:n.score}));if(fresh.length&&UI.cur==='handel'&&UI.el)PT.load().then(()=>Pages.handel.live(UI.el,null,'calc'));first=false}}
+  fresh.slice(-3).forEach(n=>UI.toast({title:n.title,body:n.body,href:n.url?UI.link(n.url):null,cat:n.cat,score:n.score}));if(fresh.length&&UI.cur==='handel'&&UI.el)PT.load().then(()=>Pages.handel.live(UI.el,null,'calc'));first=false}}
 setInterval(()=>{if(Api.authed&&!document.hidden)NC.pull()},45000);
 if('serviceWorker' in navigator)navigator.serviceWorker.addEventListener('message',e=>{const d=e.data||{};if(d.type==='push'){NC.pull()}});
 CATLBL.order='Order';
@@ -3595,7 +3596,7 @@ OV.B.stocks={t:'Mijn aandelen',d:'Aandelen en ETF\'s die jij kiest, met koers en
 OV.B.news={t:'Laatste nieuws',d:'De nieuwste artikelen uit alle bronnen, gegroepeerd per onderwerp.',html:()=>`<div class="card"><div class="chead"><h2>Laatste nieuws</h2><a class="lnk" href="#nieuws">Alles →</a></div><div id="ovnw"></div></div>`,
   live(el,kind){const b=$('#ovnw',el);if(!b||(kind!=='calc'&&b.dataset.f))return;b.dataset.f=1;const L=S.clusters.slice(0,6);b.innerHTML=L.length?L.map(c=>clusterRow(c,true)).join(''):waitBox('Nieuws laden…')}};
 OV.B.notif={t:'Laatste meldingen',d:'Koersalerts, uitgevoerde orders en impactmeldingen.',html:()=>`<div class="card"><div class="chead"><h2>Laatste meldingen</h2><a class="lnk" href="#meldingen">Alles →</a></div><div id="ovnc"></div></div>`,
-  live(el){const b=$('#ovnc',el);if(!b)return;const L=NC.items().slice(0,6);b.innerHTML=L.length?L.map(x=>`<a class="srow" href="${esc(x.url&&x.url.startsWith('#')?x.url:'#'+(x.url||'meldingen').replace(/^#?/,''))}"><span><b>${esc(x.title)}</b><br><small class="faint">${esc(CATLBL[x.cat]||'Melding')} · ${ago(x.t)}</small></span>${NC.read.has(x.id)?'':'<span class="tag navy">Nieuw</span>'}</a>`).join(''):'<div class="empty">Nog geen meldingen.</div>'}};
+  live(el){const b=$('#ovnc',el);if(!b)return;const L=NC.items().slice(0,6);b.innerHTML=L.length?L.map(x=>`<a class="srow" href="${esc(UI.link(x.url||'meldingen'))}"><span><b>${esc(x.title)}</b><br><small class="faint">${esc(CATLBL[x.cat]||'Melding')} · ${ago(x.t)}</small></span>${NC.read.has(x.id)?'':'<span class="tag navy">Nieuw</span>'}</a>`).join(''):'<div class="empty">Nog geen meldingen.</div>'}};
 
 Pages.overzicht={
   title:()=>'Overzicht',
@@ -4070,7 +4071,7 @@ const Badges={
   test(id){const P=PT.P||{};const T=P.trades||[],O=P.orders||[];const st=S.settings.streak||{};const L=learned();
     return {first_trade:T.length>0,stop_loss:O.some(o=>o.type==='stop'||o.type==='trail'||o.note==='Winst nemen'||o.note==='Stop-loss'),dca:(P.dca||[]).length>0,journal:T.filter(t=>t.note).length>=3,diversify:Object.keys(P.holdings||{}).length>=5,
       profit10:P.start?pfCalc(P).retP>=10:false,alert:(PA.list||[]).length>0,watch5:S.watch.length>=5,scanner:(S.settings.screens||[]).length>0,board:!!P.board,learn1:Object.keys(L).length>=1,learnall:LESSONS.every(l=>L[l.id]),streak7:(st.best||0)>=7,streak30:(st.best||0)>=30}[id]},
-  check(){const g={...this.got()};let nw=[];for(const [id,t] of this.L){if(!g[id]&&this.test(id)){g[id]=Date.now();nw.push(t)}}if(nw.length){S.settings.badges=g;saveSettings();nw.forEach(t=>UI.toast({kind:'success',title:'Badge behaald: '+t,body:'Bekijk je badges bij Leren & badges.',href:'#leren'}))}},
+  check(){const g={...this.got()};let nw=[];for(const [id,t] of this.L){if(!g[id]&&this.test(id)){g[id]=Date.now();nw.push(t)}}if(nw.length){S.settings.badges=g;saveSettings();nw.forEach(t=>UI.toast({kind:'success',title:'Badge behaald: '+t,body:'Bekijk je badges in de Academy.',href:'#leren-badges'}))}},
   streak(){const d=new Date();const k=x=>x.toLocaleDateString('sv-SE');const today=k(d),yest=k(new Date(Date.now()-DAY));const st={...(S.settings.streak||{})};if(st.last===today)return;st.n=st.last===yest?(st.n||0)+1:1;st.best=Math.max(st.best||0,st.n);st.last=today;S.settings.streak=st;saveSettings()},
   html(){const g=this.got();const st=S.settings.streak||{};const n=Object.keys(g).length;
     return `<section class="kpis k3">${kpi('Huidige reeks',`${ico('fire','class="fireic"')} ${st.n||1} ${st.n===1?'dag':'dagen'}`,'kom elke dag even kijken')+kpi('Langste reeks',`${st.best||1} dagen`,'')+kpi('Badges',`${n} van ${this.L.length}`,'')}</section>
@@ -4866,7 +4867,7 @@ const REW={st:null,
   prog(k){const u=UNLOCKS[k],r=this.get();if(!u)return 1;if(u.n)return Math.min(1,r.n/u.n);if(u.days)return Math.min(1,r.days/u.days);if(u.rank)return Math.min(1,(r.xp||0)/RANKS[u.rank-1][0]);return 1},
   check(){const now=Object.keys(UNLOCKS).filter(k=>this.open(k));const seen=LS.get('rwseen',null);if(!Array.isArray(seen)){LS.set('rwseen',now);return}
     const fresh=now.filter(k=>!seen.includes(k));if(!fresh.length)return;LS.set('rwseen',now);
-    fresh.forEach(k=>{const s=SKINS.find(x=>x[0]===k);UI.toast({kind:'success',title:'Nieuwe stijl vrijgespeeld: '+(s?s[1]:k),body:'Kies hem met de stijlknop rechtsboven.'})})},
+    fresh.forEach(k=>{const s=SKINS.find(x=>x[0]===k);UI.toast({kind:'success',title:'Nieuwe stijl vrijgespeeld: '+(s?s[1]:k),body:'Kies hem met de stijlknop rechtsboven.',act:()=>{const b=$('#skinbtn');b&&b.offsetParent?b.click():UI.go('#instellingen')}})})},
   bar(){const r=this.get(),R=rankOf(r.xp),p=R.next?Math.min(100,((r.xp-R.min)/(R.next-R.min))*100):100;
     return `<div class="rwbar"><div class="rwtop"><b>Handelsrang ${R.n}: <span>${R.name}</span></b><span>${R.next?`${nlN(r.xp,0)} van ${nlN(R.next,0)} xp`:`${nlN(r.xp,0)} xp, hoogste rang`}</span></div><div class="rwtrack" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(p)}" aria-label="Voortgang naar de volgende rang"><i style="width:${p.toFixed(1)}%"></i></div>
       <small>Je verdient xp met elke transactie (10), elke dag dat je handelt (25) en met je omzet. Zo speel je nieuwe stijlen vrij.</small></div>`}
@@ -4998,7 +4999,7 @@ Object.assign(PLANF,{
   free:['Live koersen, grafieken en nieuws','Oefenhandel met € 10.000','Vrienden, chat en crypto sturen','Koersalerts in de app','De Vantis-community op Discord'],
   plus:['Alles van Gratis','De volledige Vantis Academy: alle leerpaden en lessen','Pushmeldingen 24/7 en meldingen via Discord','Ochtendbriefing, nieuws op trefwoord en weekoverzicht per e-mail','Plus-rol in de Discord-server'],
   pro:['Alles van Plus','Certificaten bij afgeronde leerpaden','Indicator-alerts (zoals RSI) en eigen scanners','Volledige Impact, Event Radar en Marktdata','Track record, backtest en "Wat als"','Pro-kanalen in Discord'],
-  elite:['Alles van Pro','Elke maand een live sessie in Discord','Elite-kanaal in Discord','Vroege toegang tot nieuwe functies','Voorrang bij support'],
+  elite:['Alles van Pro','Kansmeldingen in Discord bij grote kansen','Elke maand een live sessie in Discord','Elite-kanaal in Discord','Vroege toegang tot nieuwe functies','Voorrang bij support'],
   ultimate:['Alles van Elite','Elke maand een 1-op-1 sessie met een coach','Ultimate-lounge in Discord','Vantis AI: 5× zoveel vragen per dag','Alle stijlen direct vrijgespeeld','Als eerste nieuwe functies testen'],
   black:['Alles van Ultimate','Onbeperkt Vantis AI','Vantis Black-rol in Discord']});
 Pages.premium.html=()=>`<div class="phead"><div><h1>Abonnementen</h1><p>Leer traden met de Vantis Academy vanaf Plus, haal certificaten met Pro, krijg begeleiding met Elite en 1-op-1 coaching met Ultimate. Probeer een betaald abonnement eerst een week gratis; je kunt altijd opzeggen.</p></div></div><div id="prbody">${waitBox()}</div>
@@ -5117,6 +5118,7 @@ setTimeout(aiRender,800);
 /* taalkeuze op het inlogscherm */
 {const w=document.querySelector('.lglang');if(w){const cur=I18N.lang==='nl'?'nl':'en';w.querySelectorAll('[data-lglang]').forEach(b=>{b.classList.toggle('on',b.dataset.lglang===cur);b.setAttribute('aria-pressed',b.dataset.lglang===cur)});
   w.addEventListener('click',e=>{const b=e.target.closest('[data-lglang]');if(b&&b.dataset.lglang!==cur)I18N.set(b.dataset.lglang)})}}
+if(location.hostname==='127.0.0.1')window.__vt={UI};/* alleen lokaal testen */
 
 }
 </script>

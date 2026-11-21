@@ -377,7 +377,7 @@ h2.big{font-family:var(--wide);font-stretch:115%;font-variation-settings:"wdth" 
   var PLANF={free:['Live prices, charts and news','Price alerts in the app','Friends and chat','The Vantis community on Discord'],
     plus:['Everything in Free','The full Vantis Academy','Push notifications and Discord notifications','Morning briefing and weekly summary by email'],
     pro:['Everything in Plus','Certificates for completed learning paths','Indicator alerts and custom scanners','Full market data, track record and backtest'],
-    elite:['Everything in Pro','A live session in Discord every month','Elite channel in Discord','Early access and priority support'],
+    elite:['Everything in Pro','Discord alerts for big market opportunities','A live session in Discord every month','Elite channel in Discord','Early access and priority support'],
     ultimate:['Everything in Elite','A 1-on-1 session with a coach every month','Ultimate lounge in Discord','All styles unlocked straight away']};
   document.querySelectorAll('[data-tier]').forEach(function(u){u.innerHTML=PLANF[u.dataset.tier].map(function(f){return '<li>'+CHK+'<span>'+esc(f)+'</span></li>'}).join('')});
   fetch('/api/billing/plans').then(function(r){return r.ok?r.json():null}).then(function(P){if(!P||!P.plans)return;

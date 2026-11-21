@@ -377,7 +377,7 @@ h2.big{font-family:var(--wide);font-stretch:115%;font-variation-settings:"wdth" 
   var PLANF={free:['Live koersen, grafieken en nieuws','Koersalerts in de app','Vrienden en chat','De Vantis-community op Discord'],
     plus:['Alles van Gratis','De volledige Vantis Academy','Pushmeldingen en meldingen via Discord','Ochtendbriefing en weekoverzicht per e-mail'],
     pro:['Alles van Plus','Certificaten bij afgeronde leerpaden','Indicator-alerts en eigen scanners','Volledige marktdata, track record en backtest'],
-    elite:['Alles van Pro','Elke maand een live sessie in Discord','Elite-kanaal in Discord','Vroege toegang en voorrang bij support'],
+    elite:['Alles van Pro','Kansmeldingen in Discord bij grote kansen','Elke maand een live sessie in Discord','Elite-kanaal in Discord','Vroege toegang en voorrang bij support'],
     ultimate:['Alles van Elite','Elke maand een 1-op-1 sessie met een coach','Ultimate-lounge in Discord','Alle stijlen direct vrijgespeeld']};
   document.querySelectorAll('[data-tier]').forEach(function(u){u.innerHTML=PLANF[u.dataset.tier].map(function(f){return '<li>'+CHK+'<span>'+esc(f)+'</span></li>'}).join('')});
   fetch('/api/billing/plans').then(function(r){return r.ok?r.json():null}).then(function(P){if(!P||!P.plans)return;

@@ -1,6 +1,7 @@
 // Discord: account koppelen (OAuth, met automatisch lid worden van de Vantis-server),
 // meldingen per DM, slash-commando's en berichten in het openbare marktkanaal.
 import { json, err, kvPutStmt, tierRank, ROLES, DAY, MIN } from './lib.js';
+const HOUR = 60 * MIN;
 import { quote } from './market.js';
 import { loadDict, en, enPayload, langOf } from './i18n.js';
 export const dcDict = env => loadDict(env);
@@ -178,7 +179,7 @@ async function iconData(env) {
 export async function dcSetup(env, force) {
   if (!dcReady(env)) return { ok: false, error: 'geen bot-token' };
   const row = await env.DB.prepare("SELECT val FROM kv WHERE key='dccfg'").first(); const cfg = row ? JSON.parse(row.val) : {};
-  if (cfg.done && cfg.v === 4 && !force) return { ok: true, cached: true, cfg };
+  if (cfg.done && cfg.v === 5 && !force) return { ok: true, cached: true, cfg };
   let gid = env.DISCORD_GUILD_ID || cfg.DISCORD_GUILD_ID;
   if (!gid) { const g = await DC(env, 'GET', '/users/@me/guilds'); if (!g.ok || !g.data?.length) return { ok: false, error: 'De bot zit nog in geen enkele server.' }; gid = (g.data.find(x => /vantis/i.test(x.name)) || g.data[0]).id; }
   const log = [];
@@ -209,6 +210,8 @@ export async function dcSetup(env, force) {
   await ch('plus-lounge', cPlus, 'For members with Plus, Pro, Elite or Ultimate.', only(plus, pro, elite, ultimate, black, team));
   await ch('pro-analysis', cPro, 'Deeper analysis and scanners, for Pro and up.', only(pro, elite, ultimate, black, team), 0, 'pro-analyse');
   await ch('elite', cElite, 'The Elite channel: questions for the coaches and the live session schedule.', only(elite, ultimate, black, team));
+  const roOnly = (...ids) => [{ id: gid, type: 0, deny: s(P.VIEW), allow: '0' }, { id: me.id, type: 1, allow: s(P.VIEW | P.SEND), deny: '0' }, { id: team, type: 0, allow: s(P.VIEW | P.SEND), deny: '0' }, ...ids.map(id => ({ id, type: 0, allow: s(P.VIEW), deny: s(P.SEND | P.THREADS) }))];
+  const oppCh = await ch('opportunity-alerts', cElite, 'Automatic: an alert as soon as the Vantis model sees a big opportunity in crypto or stocks. For Elite and Ultimate. Not investment advice.', roOnly(elite, ultimate, black));
   await ch('Elite live session', cElite, null, only(elite, ultimate, black, team), 2, 'Elite live sessie');
   await ch('ultimate-lounge', cUlt, 'For Ultimate members: book 1-on-1 sessions and test new features first.', only(ultimate, black, team));
   await ch('Ultimate 1-on-1', cUlt, null, only(ultimate, black, team), 2, 'Ultimate 1-op-1');
@@ -221,11 +224,11 @@ export async function dcSetup(env, force) {
   const WEL = { embeds: [{ title: 'Welcome to Vantis', color: 0xC9CDD4, description: `Vantis teaches you to trade crypto and stocks step by step, and shows live what is moving the market and why.\n\n**How to start**\n1. Create an account in the app: ${origin(env)}/app\n2. Connect Discord under **Settings → Discord**. You'll get the **Member** role and your notifications as a direct message from the Vantis bot.\n3. With Plus, Pro, Elite or Ultimate you automatically get access to your plan's channels.\n\nType \`/price BTC\` or \`/briefing\` to try the bot.` }] };
   const RUL = { embeds: [{ title: 'House rules', color: 0xC9CDD4, description: '1. Be respectful. No insults, harassment or discrimination.\n2. Do not give or promise investment advice. Share ideas, always make your own decisions.\n3. No advertising, pump-and-dump, referral links or calls to buy coins.\n4. Never share your password, 2FA code or seed phrase. The Vantis team will never ask for it.\n5. Keep each channel on topic.\n\nIf you break the rules, the team may delete messages or remove members from the server.' }] };
   if (!cfg.posted && welkom) { await DC(env, 'POST', `/channels/${welkom}/messages`, WEL); if (regels) await DC(env, 'POST', `/channels/${regels}/messages`, RUL); }
-  else if (cfg.v !== 4 || force) for (const [cid, body] of [[welkom, WEL], [regels, RUL]]) { if (!cid) continue; const ms = (await DC(env, 'GET', `/channels/${cid}/messages?limit=20`)).data || [];
+  else if (cfg.v !== 4 && cfg.v !== 5 || force) for (const [cid, body] of [[welkom, WEL], [regels, RUL]]) { if (!cid) continue; const ms = (await DC(env, 'GET', `/channels/${cid}/messages?limit=20`)).data || [];
     const mine = (Array.isArray(ms) ? ms : []).filter(x => x.author?.id === me.id).sort((x, y) => (x.id < y.id ? -1 : 1))[0]; if (mine) { const r = await DC(env, 'PATCH', `/channels/${cid}/messages/${mine.id}`, body); log.push('bericht bijgewerkt ' + r.status); } }
   const icon = await iconData(env);
   if (icon && !cfg.icon) { await DC(env, 'PATCH', `/guilds/${gid}`, { icon, system_channel_id: welkom || undefined }); await DC(env, 'PATCH', '/users/@me', { avatar: icon }); }
-  const out = { ...cfg, DISCORD_GUILD_ID: gid, DISCORD_ROLE_MEMBER: lid, DISCORD_ROLE_PLUS: plus, DISCORD_ROLE_PRO: pro, DISCORD_ROLE_ELITE: elite, DISCORD_ROLE_ULTIMATE: ultimate, DISCORD_ROLE_BLACK: black, DISCORD_ROLE_TEAM: team, DISCORD_STAFF_ROLES: staffIds, DISCORD_WEBHOOK_URL: hook, DISCORD_INVITE: invite, posted: true, icon: !!icon || cfg.icon, done: true, v: 4, t: Date.now() };
+  const out = { ...cfg, DISCORD_GUILD_ID: gid, DISCORD_ROLE_MEMBER: lid, DISCORD_ROLE_PLUS: plus, DISCORD_ROLE_PRO: pro, DISCORD_ROLE_ELITE: elite, DISCORD_ROLE_ULTIMATE: ultimate, DISCORD_ROLE_BLACK: black, DISCORD_ROLE_TEAM: team, DISCORD_STAFF_ROLES: staffIds, DISCORD_WEBHOOK_URL: hook, DISCORD_INVITE: invite, DISCORD_OPP_CHANNEL: oppCh, posted: true, icon: !!icon || cfg.icon, done: true, v: 5, t: Date.now() };
   await kvPutStmt(env, 'dccfg', out).run(); CFG = null;
   return { ok: true, log, cfg: { ...out, DISCORD_WEBHOOK_URL: hook ? '(ingesteld)' : null } };
 }
@@ -238,4 +241,25 @@ async function orderRoles(env, gid, botId, ids, log) {
   const body = list.map((id, i) => ({ id, position: Math.max(1, top - 1 - i) }));
   const r = await DC(env, 'PATCH', `/guilds/${gid}/roles`, body); log && log.push('rangorde ' + r.status);
   return r.ok;
+}
+
+/* ---------- kansmeldingen voor Elite en Ultimate: sterke vooruitzichten van het Vantis-model ---------- */
+const TREND_EN = { 'boven 20- en 50-daags gemiddelde': 'above the 20- and 50-day average', 'boven 50-daags gemiddelde': 'above the 50-day average', 'onder 50-daags gemiddelde': 'below the 50-day average' };
+export const isOpportunity = f => f && f.score >= 40 && f.pUp >= 57 && f.tested >= 20 && (f.hitRate || 0) >= 55 && f.range && f.range[1] > 0;
+export async function dcOpportunities(env, R) {
+  env = await dcEnv(env); if (!dcReady(env) || !env.DISCORD_OPP_CHANNEL || !R || !R.list) return { posted: 0 };
+  const row = await env.DB.prepare("SELECT val FROM kv WHERE key='dcopp'").first(); const seen = row ? JSON.parse(row.val) : {}; const now = Date.now();
+  for (const k of Object.keys(seen)) if (now - seen[k] > 7 * DAY) delete seen[k];
+  const picks = R.list.filter(isOpportunity).filter(f => !seen[f.sym] || now - seen[f.sym] > 48 * HOUR).sort((a, b) => b.score - a.score).slice(0, 2);
+  if (!picks.length) return { posted: 0 };
+  const roles = [env.DISCORD_ROLE_ELITE, env.DISCORD_ROLE_ULTIMATE].filter(Boolean); let posted = 0; LOC = 'en-GB';
+  for (const f of picks) {
+    const px = f.cur === 'USD' ? '$' + nl(f.price) : eurF(f.price); const kind = f.kind === 'stock' ? 'Stock' : 'Crypto';
+    const body = { content: roles.map(r => `<@&${r}>`).join(' '), allowed_mentions: { roles },
+      embeds: [{ title: `🎯 Opportunity: ${f.name} (${f.sym})`, url: `${origin(env)}/app#asset-${f.sym.toLowerCase()}`, color: 0x2BB673,
+        description: `The Vantis model sees a strong setup in this ${kind.toLowerCase()}.\n\n**Model score** +${Math.round(f.score)}/100\n**Chance higher in 7 days** ${Math.round(f.pUp)}%\n**Expected range (7 days)** ${pct(f.range[0])} to ${pct(f.range[1])}\n**Model hit rate** ${Math.round(f.hitRate)}% (tested ${f.tested}×)\n**Price now** ${px}${f.ch24 != null ? ` (${pct(f.ch24)} in 24 hours)` : ''}\n**Trend** ${TREND_EN[f.trend] || f.trend} · RSI ${f.rsi}\n\nAsk Vantis AI in the app for a plan before you act: entry, stop-loss and position size.`,
+        footer: { text: `${kind} · Vantis model outlook, not investment advice. Always make your own decision.` }, timestamp: new Date().toISOString() }] };
+    const r = await DC(env, 'POST', `/channels/${env.DISCORD_OPP_CHANNEL}/messages`, body); if (r.ok) { posted++; seen[f.sym] = now; }
+  }
+  await kvPutStmt(env, 'dcopp', seen).run(); return { posted, syms: picks.map(f => f.sym) };
 }

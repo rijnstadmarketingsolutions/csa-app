@@ -31,7 +31,7 @@ const REW={st:null,
   prog(k){const u=UNLOCKS[k],r=this.get();if(!u)return 1;if(u.n)return Math.min(1,r.n/u.n);if(u.days)return Math.min(1,r.days/u.days);if(u.rank)return Math.min(1,(r.xp||0)/RANKS[u.rank-1][0]);return 1},
   check(){const now=Object.keys(UNLOCKS).filter(k=>this.open(k));const seen=LS.get('rwseen',null);if(!Array.isArray(seen)){LS.set('rwseen',now);return}
     const fresh=now.filter(k=>!seen.includes(k));if(!fresh.length)return;LS.set('rwseen',now);
-    fresh.forEach(k=>{const s=SKINS.find(x=>x[0]===k);UI.toast({kind:'success',title:'Nieuwe stijl vrijgespeeld: '+(s?s[1]:k),body:'Kies hem met de stijlknop rechtsboven.'})})},
+    fresh.forEach(k=>{const s=SKINS.find(x=>x[0]===k);UI.toast({kind:'success',title:'Nieuwe stijl vrijgespeeld: '+(s?s[1]:k),body:'Kies hem met de stijlknop rechtsboven.',act:()=>{const b=$('#skinbtn');b&&b.offsetParent?b.click():UI.go('#instellingen')}})})},
   bar(){const r=this.get(),R=rankOf(r.xp),p=R.next?Math.min(100,((r.xp-R.min)/(R.next-R.min))*100):100;
     return `<div class="rwbar"><div class="rwtop"><b>Handelsrang ${R.n}: <span>${R.name}</span></b><span>${R.next?`${nlN(r.xp,0)} van ${nlN(R.next,0)} xp`:`${nlN(r.xp,0)} xp, hoogste rang`}</span></div><div class="rwtrack" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(p)}" aria-label="Voortgang naar de volgende rang"><i style="width:${p.toFixed(1)}%"></i></div>
       <small>Je verdient xp met elke transactie (10), elke dag dat je handelt (25) en met je omzet. Zo speel je nieuwe stijlen vrij.</small></div>`}
@@ -163,7 +163,7 @@ Object.assign(PLANF,{
   free:['Live koersen, grafieken en nieuws','Oefenhandel met € 10.000','Vrienden, chat en crypto sturen','Koersalerts in de app','De Vantis-community op Discord'],
   plus:['Alles van Gratis','De volledige Vantis Academy: alle leerpaden en lessen','Pushmeldingen 24/7 en meldingen via Discord','Ochtendbriefing, nieuws op trefwoord en weekoverzicht per e-mail','Plus-rol in de Discord-server'],
   pro:['Alles van Plus','Certificaten bij afgeronde leerpaden','Indicator-alerts (zoals RSI) en eigen scanners','Volledige Impact, Event Radar en Marktdata','Track record, backtest en "Wat als"','Pro-kanalen in Discord'],
-  elite:['Alles van Pro','Elke maand een live sessie in Discord','Elite-kanaal in Discord','Vroege toegang tot nieuwe functies','Voorrang bij support'],
+  elite:['Alles van Pro','Kansmeldingen in Discord bij grote kansen','Elke maand een live sessie in Discord','Elite-kanaal in Discord','Vroege toegang tot nieuwe functies','Voorrang bij support'],
   ultimate:['Alles van Elite','Elke maand een 1-op-1 sessie met een coach','Ultimate-lounge in Discord','Vantis AI: 5× zoveel vragen per dag','Alle stijlen direct vrijgespeeld','Als eerste nieuwe functies testen'],
   black:['Alles van Ultimate','Onbeperkt Vantis AI','Vantis Black-rol in Discord']});
 Pages.premium.html=()=>`<div class="phead"><div><h1>Abonnementen</h1><p>Leer traden met de Vantis Academy vanaf Plus, haal certificaten met Pro, krijg begeleiding met Elite en 1-op-1 coaching met Ultimate. Probeer een betaald abonnement eerst een week gratis; je kunt altijd opzeggen.</p></div></div><div id="prbody">${waitBox()}</div>

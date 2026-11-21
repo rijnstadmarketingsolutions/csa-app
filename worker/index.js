@@ -7,10 +7,10 @@ import { checkout, portal, webhook, stripeReady, plans } from './billing.js';
 import { adminApi, isAdmin } from './admin.js';
 import { handlePaper, paperCron, paperNeed, tradeStats } from './paper.js';
 import { handleSocial } from './social.js';
-import { handleAI, aiCron } from './ai.js';
+import { handleAI, aiCron, ranking } from './ai.js';
 import { newsKw, weekly, mailApi, mailReady } from './notify.js';
 import { loadDict, langOf, tx, enPayload } from './i18n.js';
-import { registerCommands, dcSetup, dcEnv, dcReady, dcApi, dcCallback, dcInteractions, dcSend, dcFormat, dcPublic, briefingEmbed, dcDaily } from './discord.js';
+import { dcOpportunities, isOpportunity, registerCommands, dcSetup, dcEnv, dcReady, dcApi, dcCallback, dcInteractions, dcSend, dcFormat, dcPublic, briefingEmbed, dcDaily } from './discord.js';
 
 const VERSION = '2.1.0';
 const NATIVE_ORIGINS = ['capacitor://localhost', 'http://localhost', 'https://localhost', 'ionic://localhost'];
@@ -51,7 +51,8 @@ export default {
     ctx.waitUntil(tick(env));
   }
 };
-async function autopilot(env) { try { const st = await loadState(env, ['tickers', 'names', 'candles', 'xquotes', 'stocks', 'fx']); if (!st.tickers) return; const r = await aiCron(env, st); await kvPutStmt(env, 'aistatus', { ...r, t: Date.now() }).run(); } catch (e) { console.error('autopilot', e.message); } }
+async function autopilot(env) { try { const st = await loadState(env, ['tickers', 'names', 'candles', 'xquotes', 'stocks', 'fx']); if (!st.tickers) return; const r = await aiCron(env, st); await kvPutStmt(env, 'aistatus', { ...r, t: Date.now() }).run();
+  const opp = await dcOpportunities(env, await ranking(env, st)).catch(e => ({ error: e.message })); if (opp.posted) console.log('kansmeldingen', JSON.stringify(opp)); } catch (e) { console.error('autopilot', e.message); } }
 
 /* =================================================================== API */
 async function api(req, env, ctx, url) {
@@ -172,7 +173,10 @@ async function api(req, env, ctx, url) {
   if (p === '/api/discord/callback' && m === 'GET') return dcCallback(req, env, url);
   if (p === '/api/discord/resetup' && m === 'POST') { // aangeroepen door de GitHub-workflow; sleutel = SHA-256 van de bot-token
     const k = req.headers.get('x-setup-key') || ''; const h = env.DISCORD_BOT_TOKEN ? [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(env.DISCORD_BOT_TOKEN)))].map(b => b.toString(16).padStart(2, '0')).join('') : null;
-    if (!h || k !== h) return err(403, 'Geen toegang.'); const cmds = await registerCommands(env, true).catch(e => ({ error: e.message })); return json({ ...(await dcSetup(env, true)), commands: cmds }); }
+    if (!h || k !== h) return err(403, 'Geen toegang.'); const cmds = await registerCommands(env, true).catch(e => ({ error: e.message })); const res = await dcSetup(env, true);
+    const st0 = await loadState(env, ['tickers', 'names', 'candles', 'xquotes', 'stocks', 'fx']); const R0 = await ranking(env, st0).catch(() => null);
+    const opps = R0 ? R0.list.slice(0, 8).map(f => ({ sym: f.sym, score: f.score, pUp: f.pUp, hit: f.hitRate, n: f.tested, ok: isOpportunity(f) })) : null;
+    const post = url.searchParams.get('opp') === '1' && R0 ? await dcOpportunities(env, R0) : null; return json({ ...res, commands: cmds, opps, post }); }
   if (p === '/api/discord/translate' && m === 'POST') { // GitHub-workflow: oude Nederlandse botberichten naar het Engels vertalen
     const k = req.headers.get('x-setup-key') || ''; const h = env.DISCORD_BOT_TOKEN ? [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(env.DISCORD_BOT_TOKEN)))].map(b => b.toString(16).padStart(2, '0')).join('') : null;
     if (!h || k !== h) return err(403, 'Geen toegang.'); await loadDict(env); const b = await readJSON(req, 512 * 1024);

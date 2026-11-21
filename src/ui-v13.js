@@ -77,3 +77,4 @@ setTimeout(aiRender,800);
 /* taalkeuze op het inlogscherm */
 {const w=document.querySelector('.lglang');if(w){const cur=I18N.lang==='nl'?'nl':'en';w.querySelectorAll('[data-lglang]').forEach(b=>{b.classList.toggle('on',b.dataset.lglang===cur);b.setAttribute('aria-pressed',b.dataset.lglang===cur)});
   w.addEventListener('click',e=>{const b=e.target.closest('[data-lglang]');if(b&&b.dataset.lglang!==cur)I18N.set(b.dataset.lglang)})}}
+if(location.hostname==='127.0.0.1')window.__vt={UI};/* alleen lokaal testen */

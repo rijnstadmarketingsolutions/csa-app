@@ -270,12 +270,12 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden){clearInte
 const TKIND={success:['check','Gelukt'],error:['warn','Niet gelukt'],info:['bell','Melding'],order:['trade','Order'],alert:['alarm','Koersalert'],hot:['impact','Hoge impact'],impact:['impact','Impact'],reminder:['cal','Herinnering']};
 UI.toast=function(a){
   const kind=NX.kindOf(a);const imp=NX.important(a)&&kind!=='success'&&kind!=='error'&&S.settings.bigAlerts!==false;const [icn,lbl]=TKIND[kind]||TKIND.info;
-  const ms=imp?0:kind==='error'?9000:a.href?8000:5500;
+  const ms=imp?0:kind==='error'?9000:a.href||a.act?8000:5500;
   const t=document.createElement('div');t.className=`tst k-${kind}${imp?' big':''}`;t.setAttribute('role',imp||kind==='error'?'alert':'status');
-  t.innerHTML=`<span class="tic">${ico(IC[icn]?icn:'bell')}</span><div class="tbd"><div class="tmeta">${esc(a.score?`Impact ${a.score}/100`:lbl)} · ${hhmm(Date.now())}</div><b>${esc(a.title)}</b>${a.body?`<p>${esc(a.body).slice(0,220)}</p>`:''}${a.href||imp?`<div class="tact">${a.href?`<button class="tgo">Bekijken</button>`:''}${imp?'<button class="tok">Gezien</button>':''}</div>`:''}</div><button class="tx" aria-label="Sluiten">${ico('x')}</button>${ms?`<i class="tbar" style="animation-duration:${ms}ms"></i>`:''}`;
+  t.innerHTML=`<span class="tic">${ico(IC[icn]?icn:'bell')}</span><div class="tbd"><div class="tmeta">${esc(a.score?`Impact ${a.score}/100`:lbl)} · ${hhmm(Date.now())}</div><b>${esc(a.title)}</b>${a.body?`<p>${esc(a.body).slice(0,220)}</p>`:''}${a.href||a.act||imp?`<div class="tact">${a.href||a.act?`<button class="tgo">Bekijken</button>`:''}${imp?'<button class="tok">Gezien</button>':''}</div>`:''}</div><button class="tx" aria-label="Sluiten">${ico('x')}</button>${ms?`<i class="tbar" style="animation-duration:${ms}ms"></i>`:''}`;
   const close=()=>{t.classList.add('out');setTimeout(()=>t.remove(),220)};let timer=ms?setTimeout(close,ms):null;
   t.addEventListener('mouseenter',()=>{if(timer){clearTimeout(timer);timer=null;t.classList.add('hold')}});t.addEventListener('mouseleave',()=>{if(ms&&!timer){t.classList.remove('hold');timer=setTimeout(close,2500)}});
-  t.addEventListener('click',e=>{if(e.target.closest('.tx')||e.target.closest('.tok'))return close();if(a.href){location.hash=a.href;close()}});
+  t.addEventListener('click',e=>{if(e.target.closest('.tx')||e.target.closest('.tok'))return close();if(a.act){close();a.act()}else if(a.href){close();UI.go(a.href)}});
   const box=$('#toasts');box.prepend(t);while(box.children.length>4)box.lastChild.remove();
   if(imp||kind==='order'||kind==='alert'){NX.chime(imp);NX.buzz(imp);NX.ring();NX.flagTitle(a.title)}else if(kind!=='success'&&kind!=='error'&&kind!=='info')NX.chime(false);
 };
@@ -283,7 +283,7 @@ UI.toast=function(a){
 /* servermeldingen (koersalerts, uitgevoerde orders, impact) die binnenkomen terwijl de app open is */
 {const op=NC.pull.bind(NC);let first=true;NC.pull=async function(){await op();const seen=new Set(LS.get('srvseen',[]));const since=LS.get('srvseenT',Date.now()-10*MIN);const fresh=this.srv.filter(n=>!seen.has(n.id)&&n.t>since&&Date.now()-n.t<30*MIN).sort((a,b)=>a.t-b.t);
   this.srv.forEach(n=>seen.add(n.id));LS.set('srvseen',[...seen].slice(-400));LS.set('srvseenT',Date.now());
-  fresh.slice(-3).forEach(n=>UI.toast({title:n.title,body:n.body,href:(n.url||'').replace(/^\//,'')||null,cat:n.cat,score:n.score}));if(fresh.length&&UI.cur==='handel'&&UI.el)PT.load().then(()=>Pages.handel.live(UI.el,null,'calc'));first=false}}
+  fresh.slice(-3).forEach(n=>UI.toast({title:n.title,body:n.body,href:n.url?UI.link(n.url):null,cat:n.cat,score:n.score}));if(fresh.length&&UI.cur==='handel'&&UI.el)PT.load().then(()=>Pages.handel.live(UI.el,null,'calc'));first=false}}
 setInterval(()=>{if(Api.authed&&!document.hidden)NC.pull()},45000);
 if('serviceWorker' in navigator)navigator.serviceWorker.addEventListener('message',e=>{const d=e.data||{};if(d.type==='push'){NC.pull()}});
 CATLBL.order='Order';
@@ -372,7 +372,7 @@ OV.B.stocks={t:'Mijn aandelen',d:'Aandelen en ETF\'s die jij kiest, met koers en
 OV.B.news={t:'Laatste nieuws',d:'De nieuwste artikelen uit alle bronnen, gegroepeerd per onderwerp.',html:()=>`<div class="card"><div class="chead"><h2>Laatste nieuws</h2><a class="lnk" href="#nieuws">Alles →</a></div><div id="ovnw"></div></div>`,
   live(el,kind){const b=$('#ovnw',el);if(!b||(kind!=='calc'&&b.dataset.f))return;b.dataset.f=1;const L=S.clusters.slice(0,6);b.innerHTML=L.length?L.map(c=>clusterRow(c,true)).join(''):waitBox('Nieuws laden…')}};
 OV.B.notif={t:'Laatste meldingen',d:'Koersalerts, uitgevoerde orders en impactmeldingen.',html:()=>`<div class="card"><div class="chead"><h2>Laatste meldingen</h2><a class="lnk" href="#meldingen">Alles →</a></div><div id="ovnc"></div></div>`,
-  live(el){const b=$('#ovnc',el);if(!b)return;const L=NC.items().slice(0,6);b.innerHTML=L.length?L.map(x=>`<a class="srow" href="${esc(x.url&&x.url.startsWith('#')?x.url:'#'+(x.url||'meldingen').replace(/^#?/,''))}"><span><b>${esc(x.title)}</b><br><small class="faint">${esc(CATLBL[x.cat]||'Melding')} · ${ago(x.t)}</small></span>${NC.read.has(x.id)?'':'<span class="tag navy">Nieuw</span>'}</a>`).join(''):'<div class="empty">Nog geen meldingen.</div>'}};
+  live(el){const b=$('#ovnc',el);if(!b)return;const L=NC.items().slice(0,6);b.innerHTML=L.length?L.map(x=>`<a class="srow" href="${esc(UI.link(x.url||'meldingen'))}"><span><b>${esc(x.title)}</b><br><small class="faint">${esc(CATLBL[x.cat]||'Melding')} · ${ago(x.t)}</small></span>${NC.read.has(x.id)?'':'<span class="tag navy">Nieuw</span>'}</a>`).join(''):'<div class="empty">Nog geen meldingen.</div>'}};
 
 Pages.overzicht={
   title:()=>'Overzicht',

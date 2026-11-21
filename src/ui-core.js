@@ -49,7 +49,8 @@ function tvChart(el,sym,h){tv(el,'advanced-chart',{autosize:true,symbol:sym,inte
 /* ---------- router ---------- */
 const UI={
   cur:null,arg:null,el:null,dirty:false,lastPaint:0,lastCalcSeen:0,
-  go(h){location.hash=h},
+  link(h){h=String(h||'').trim();const i=h.indexOf('#');h=i>=0?h.slice(i):'#'+h.replace(/^\/?(app\/?)?/,'');return h.length>1?h:'#overzicht'},
+  go(h){const t=this.link(h);if(location.hash===t)this.route();else location.hash=t},
   route(){
     const h=(location.hash||'#overzicht').slice(1);let [p,...rest]=h.split('-');let arg=rest.join('-')||null;
     if(p==='aandelen'){p='markten';arg='aandelen'}
