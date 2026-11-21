@@ -1,12 +1,24 @@
 name: Marktdata exporteren (voor schermafbeeldingen)
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      opruimen:
+        description: 'Alleen de tijdelijke branch verwijderen'
+        type: boolean
+        default: false
 env:
   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
   CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 permissions:
   contents: write
 jobs:
+  opruimen:
+    if: ${{ inputs.opruimen }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: git push -q "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" --delete marktdata || true
   export:
+    if: ${{ !inputs.opruimen }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

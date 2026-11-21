@@ -141,5 +141,6 @@
 "toLocaleTimeString('nl-NL'": "toLocaleTimeString('en-GB'",
 "<html lang=\"nl\">": "<html lang=\"en\">",
 "Website door <a": "Website by <a",
-"<b>€ 0</b>Altijd gratis</div><ul data-tier=\"free\"></ul><a class=\"btn sec\" href=\"/app?start=register\">Gratis account maken</a>": "<b>€0</b>Always free</div><ul data-tier=\"free\"></ul><a class=\"btn sec\" href=\"/app?start=register\">Sign up free</a>"
+"<b>€ 0</b>Altijd gratis</div><ul data-tier=\"free\"></ul><a class=\"btn sec\" href=\"/app?start=register\">Gratis account maken</a>": "<b>€0</b>Always free</div><ul data-tier=\"free\"></ul><a class=\"btn sec\" href=\"/app?start=register\">Sign up free</a>",
+"var eur=function(p){return '€ '+": "var eur=function(p){return '€'+"
 }

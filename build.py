@@ -63,12 +63,15 @@ for _k in sorted(_T, key=len, reverse=True):
 _E = _E.replace("esc(p.label.replace(/ per maand$/,''))", "esc(p.label.replace(/ per maand$/,'').replace(/€\\s?(\\d+),(\\d+)/,'€$1.$2'))").replace("' dagen gratis'", "' days free'")
 _E = _re.sub(r'€\s?(\d+),(\d{2})', r'€\1.\2', _E)
 _E = _E.replace('<div class="acts">', '<div class="acts">' + _SW.format(h='/nl/', l='nl', a='Nederlands', t='NL'), 1).replace('</head>', _ALT + '</head>', 1)
+_DIM = {'app-overzicht': (1800, 1191), 'marktstatus': (1600, 311), 'impact': (1122, 248), 'waarom-oorzaken': (892, 890), 'orderticket': (676, 1452), 'academy-paden': (1600, 889), 'academy-les': (1100, 1562), 'academy-rekenhulp': (1100, 387), 'academy-uitdaging': (1200, 888), 'telefoon-overzicht': (600, 1298), 'telefoon-les': (600, 1298)}
+for _n, (_w, _h) in _DIM.items(): _E = _re.sub(r'(src="landing/' + _n + r'\.webp" width=")\d+(" height=")\d+', lambda m: m.group(1) + str(_w) + m.group(2) + str(_h), _E)
 open('site/index.html', 'w').write(_E)
 # Nederlands op /nl/
 _N = _L
 for _a in ('src="', 'href="', 'srcset="', 'url('): _N = _N.replace(_a + 'landing/', _a + '/landing/')
 for _f in ('apple-touch-icon.png', 'icon-192.png', 'manifest.webmanifest'): _N = _N.replace('href="' + _f + '"', 'href="/' + _f + '"')
-_N = _N.replace('href="/app"', 'href="/app?lang=nl"').replace('href="/app?start=register"', 'href="/app?start=register&lang=nl"')
+_N = _N.replace("fetch('/api/pulse')", "fetch('/api/pulse?lang=nl')").replace('href="/app"', 'href="/app?lang=nl"').replace('href="/app?start=register"', 'href="/app?start=register&lang=nl"')
 _N = _N.replace('<div class="acts">', '<div class="acts">' + _SW.format(h='/', l='en', a='English', t='EN'), 1).replace('</head>', _ALT + '</head>', 1).replace('href="/" aria-label="Vantis, naar het begin"', 'href="/nl/" aria-label="Vantis, naar het begin"')
+_N = _re.sub(r'/landing/([a-z-]+)\.webp', r'/landing/nl/\1.webp', _N).replace('/landing/og.png', '/landing/nl/og.png').replace('<meta property="og:url" content="https://vantis.rijnstadmarketing.workers.dev/">', '<meta property="og:url" content="https://vantis.rijnstadmarketing.workers.dev/nl/">')
 _os.makedirs('site/nl', exist_ok=True); open('site/nl/index.html', 'w').write(_N)
 open('site/config.js','w').write('// gegenereerd door build.py\nwindow.VANTIS_API_ORIGIN='+_json.dumps(API_ORIGIN if NATIVE or API_ORIGIN else '')+';\n')

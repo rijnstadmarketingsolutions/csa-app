@@ -143,9 +143,10 @@ async function api(req, env, ctx, url) {
     const st = await loadState(env, ['tickers', 'extra']); const L = (st.tickers && st.tickers.list) || [];
     const prices = ['BTC', 'ETH', 'SOL', 'XRP', 'ADA', 'DOGE'].map(sy => { const x = L.find(y => y.s === sy); return x ? { s: sy, p: x.p, ch: x.o ? (x.p / x.o - 1) * 100 : null } : null; }).filter(Boolean);
     const top = L.slice(0, 40).filter(x => x.o); const X = st.extra || {};
-    const ev = (await env.DB.prepare('SELECT data FROM events WHERE first>? ORDER BY score DESC LIMIT 3').bind(Date.now() - DAY).all()).results.map(r => { const e = JSON.parse(r.data); return { title: e.title, what: e.what || e.body || null, score: e.score, dir: e.dir, s: e.s || null, first: e.first }; });
+    const lg = url.searchParams.get('lang') === 'nl' ? 'nl' : 'en'; if (lg === 'en') await loadDict(env);
+    const ev = (await env.DB.prepare('SELECT data FROM events WHERE first>? ORDER BY score DESC LIMIT 3').bind(Date.now() - DAY).all()).results.map(r => { const e = JSON.parse(r.data); return { title: tx(lg, e.title), what: tx(lg, e.what || e.body || null), score: e.score, dir: e.dir, s: e.s || null, first: e.first }; });
     return json({ t: Date.now(), prices, breadth: top.length ? top.filter(x => x.p > x.o).length / top.length : null, n: top.length,
-      global: X.global ? { cap: X.global.cap, capCh: X.global.capCh, btcDom: X.global.btcDom, src: X.global.src } : null, fng: X.fng && X.fng[0] ? X.fng[0] : null, events: ev }, 200, { 'cache-control': 'public, max-age=60' });
+      global: X.global ? { cap: X.global.cap, capCh: X.global.capCh, btcDom: X.global.btcDom, src: X.global.src } : null, fng: X.fng && X.fng[0] ? X.fng[0] : null, events: ev }, 200, { 'cache-control': 'public, max-age=60', vary: 'accept-language' });
   }
   if (p === '/api/backtest' && m === 'GET') { const r = await kvGet(env, 'backtest'); if (!r) return json({ pending: true });
     const out = r.val; if (s && premiumOnly(env, s) || (!s && env.PREMIUM_ENFORCED === 'true')) return json({ ...out, recent: [], locked: true }); return json(out); }

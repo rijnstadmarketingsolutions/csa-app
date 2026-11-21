@@ -68,7 +68,8 @@ setTimeout(aiRender,800);
 
 /* Engelse lesinhoud: de Academy-teksten zelf vertalen zodra het Engelse woordenboek binnen is */
 {let tries=0;const apply=()=>{const D=I18N.dict;if(!D){if(I18N.lang==='en'&&tries++<40)setTimeout(apply,250);return}const M=D.__acad;if(!M)return;
-  const tr=x=>typeof x==='string'?(M[x]??x):Array.isArray(x)?x.map(tr):x&&typeof x==='object'?Object.fromEntries(Object.entries(x).map(([k,v])=>[k,['id','w','L'].includes(k)?v:tr(v)])):x;
+  const toNL=t=>/\d[.,]\d/.test(t)?t.replace(/(?<![\d.,:])(\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+\.\d+)(?!\d|[.,]\d)/g,m=>m.replace(/[.,]/g,c=>c===','?'.':',')):t;/* de vertaalmotor zet Nederlandse getallen om naar Engels; Engelse lestekst dus eerst in NL-notatie */
+  const tr=x=>typeof x==='string'?(M[x]!=null?toNL(M[x]):x):Array.isArray(x)?x.map(tr):x&&typeof x==='object'?Object.fromEntries(Object.entries(x).map(([k,v])=>[k,['id','w','L'].includes(k)?v:tr(v)])):x;
   AC_PATHS.forEach((p,i)=>AC_PATHS[i]=tr(p));for(const k in AC_LESSONS)AC_LESSONS[k]=tr(AC_LESSONS[k]);AC_TERMS.splice(0,AC_TERMS.length,...tr(AC_TERMS));
   LESSONS.forEach((l,i)=>LESSONS[i]=tr(l));if(UI.cur==='leren'||UI.cur==='overzicht')UI.route()};
   if(I18N.lang==='en')apply()}
